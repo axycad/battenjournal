@@ -202,7 +202,7 @@ export async function createExport(
       }),
       prisma.medication.findMany({
         where: { caseId: options.caseId, deletedAt: null },
-        select: { name: true, dose: true, frequency: true, isActive: true },
+        select: { name: true, dose: true, isActive: true },
       }),
       prisma.condition.findMany({
         where: { caseId: options.caseId, deletedAt: null },
@@ -480,3 +480,4 @@ export async function getAvailableScopesForExport(
     .filter((s) => s.eventCount > 0)
     .sort((a, b) => b.eventCount - a.eventCount)
 }
+
