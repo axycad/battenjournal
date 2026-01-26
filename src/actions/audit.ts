@@ -256,7 +256,7 @@ export async function getAuditLog(
 
   const where = {
     caseId,
-    ...(options?.actions && { action: { in: options.actions } }),
+    ...(options?.actions?.length && { action: { in: options.actions as any } }),
     ...(options?.startDate && { ts: { gte: options.startDate } }),
     ...(options?.endDate && { ts: { lte: options.endDate } }),
   }
