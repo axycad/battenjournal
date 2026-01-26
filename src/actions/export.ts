@@ -57,7 +57,7 @@ export interface ExportedProfile {
   allergies: { substance: string; severity: string | null; reaction: string | null }[]
   medications: { name: string; dose: string | null; schedule: string | null; active: boolean }[]
   conditions: { name: string; notes: string | null }[]
-  measurements: { type: string; value: string; unit: string; recordedAt: string }[]
+  measurements: { type: string; value: string; unit: string; measuredAt: string }[]
 }
 
 // ============================================================================
@@ -184,7 +184,6 @@ export async function createExport(
       author: {
         select: { name: true },
       },
-      mediaItems: true,
       _count: {
         select: { mediaItems: true },
       },
@@ -210,8 +209,8 @@ export async function createExport(
       }),
       prisma.measurement.findMany({
         where: { caseId: options.caseId, deletedAt: null },
-        select: { measurementType: true, value: true, unit: true, recordedAt: true },
-        orderBy: { recordedAt: 'desc' },
+        select: { type: true, value: true, unit: true, measuredAt: true },
+        orderBy: { measuredAt: 'desc' },
         take: 100,
       }),
     ])
@@ -233,10 +232,10 @@ export async function createExport(
         notes: c.notes,
       })),
       measurements: measurements.map((m) => ({
-        type: m.measurementType,
+        type: m.type,
         value: m.value.toString(),
         unit: m.unit || '',
-        recordedAt: m.recordedAt.toISOString(),
+        measuredAt: m.measuredAt.toISOString(),
       })),
     }
   }
@@ -479,5 +478,3 @@ export async function getAvailableScopesForExport(
     .filter((s) => s.eventCount > 0)
     .sort((a, b) => b.eventCount - a.eventCount)
 }
-
-

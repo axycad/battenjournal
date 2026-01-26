@@ -152,7 +152,7 @@ export async function getPendingDigestItems(
   })
 
   const caseMap = new Map(memberships.map((m) => [m.caseId, m.case.childDisplayName]))
-  const caseIds = Array.from(caseMap.keys())
+  const caseIds = [...caseMap.keys()]
 
   // Get user's email preferences
   const prefs = await prisma.emailPreference.findUnique({
@@ -451,4 +451,3 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
 }
-

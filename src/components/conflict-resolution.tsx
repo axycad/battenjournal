@@ -49,10 +49,10 @@ export function ConflictResolution({ conflict, onResolved }: ConflictResolutionP
             freeText: mergedText,
           }
         } else {
-        mergedData = {
-          ...conflict.localVersion,
-          emergencyNotes: mergedText,
-        }
+          mergedData = {
+            ...conflict.localVersion,
+            emergencyNotes: mergedText,
+          }
         }
       }
 

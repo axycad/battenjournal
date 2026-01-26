@@ -153,15 +153,15 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Conflict detected',
-            serverVersion: {
-              caseId: fullCase?.id,
-              childDisplayName: fullCase?.childDisplayName,
-              weightKg: fullCase?.profile?.weightKg,
-              heightCm: fullCase?.profile?.heightCm,
-              emergencyNotes: fullCase?.profile?.emergencyNotes,
-              updatedAt: existing.updatedAt,
-            },
+          serverVersion: {
+            caseId: fullCase?.id,
+            childDisplayName: fullCase?.childDisplayName,
+            weightKg: fullCase?.profile?.weightKg,
+            heightCm: fullCase?.profile?.heightCm,
+            emergencyNotes: fullCase?.profile?.emergencyNotes,
+            updatedAt: existing.updatedAt,
           },
+        },
         { status: 409 }
       )
     }
@@ -201,11 +201,7 @@ export async function PUT(request: NextRequest) {
     if (Object.keys(intentUpdates).length > 0) {
       await tx.careIntent.upsert({
         where: { caseId },
-        create: {
-          caseId,
-          updatedByUserId: session.user.id,
-          ...intentUpdates,
-        },
+        create: { caseId, updatedByUserId: session.user.id, ...intentUpdates },
         update: intentUpdates,
       })
     }

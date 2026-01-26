@@ -160,7 +160,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
         select: { id: true, name: true, email: true },
       },
     },
-    orderBy: { addedAt: 'asc' },
+    orderBy: { createdAt: 'asc' },
   })
 
   // Get all clinicians with their consent and permissions
@@ -208,7 +208,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
           userId,
           name: grant.membership.user.name,
           email: grant.membership.user.email,
-          specialty: null,
+          specialty: grant.membership.specialty,
           scopes: [],
           grantedAt: grant.createdAt,
         })
@@ -232,7 +232,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
       name: m.user.name,
       email: m.user.email,
       role: m.familyRole || 'VIEWER',
-      joinedAt: m.addedAt,
+      joinedAt: m.createdAt,
     })),
   }
 }
@@ -256,7 +256,7 @@ export async function getAuditLog(
 
   const where = {
     caseId,
-    ...(options?.actions?.length && { action: { in: options.actions as any } }),
+    ...(options?.actions && { action: { in: options.actions } }),
     ...(options?.startDate && { ts: { gte: options.startDate } }),
     ...(options?.endDate && { ts: { lte: options.endDate } }),
   }
@@ -277,7 +277,7 @@ export async function getAuditLog(
   ])
 
   // Get membership info for actors
-  const actorIds = Array.from(new Set(entries.map((e) => e.actorUserId)))
+  const actorIds = [...new Set(entries.map((e) => e.actorUserId))]
   const memberships = await prisma.membership.findMany({
     where: {
       caseId,
@@ -410,7 +410,7 @@ export async function getDocumentAccessLog(
   })
 
   // Get membership info to filter by clinicians if needed
-  const actorIds = Array.from(new Set(entries.map((e) => e.actorUserId)))
+  const actorIds = [...new Set(entries.map((e) => e.actorUserId))]
   const memberships = await prisma.membership.findMany({
     where: {
       caseId,
@@ -421,7 +421,7 @@ export async function getDocumentAccessLog(
   const membershipMap = new Map(memberships.map((m) => [m.userId, m.memberType]))
 
   // Get document titles
-  const documentIds = Array.from(new Set(entries.map((e) => e.objectId)))
+  const documentIds = [...new Set(entries.map((e) => e.objectId))]
   const documents = await prisma.document.findMany({
     where: { id: { in: documentIds } },
     select: { id: true, title: true },
@@ -517,10 +517,7 @@ export async function recordPermissionChange(
       action,
       objectType,
       objectId,
-      metadata: metadata as any,
+      metadata,
     },
   })
 }
-
-
-
