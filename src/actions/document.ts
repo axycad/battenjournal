@@ -200,7 +200,7 @@ export async function updateDocument(
       // Add new scopes
       if (input.scopeCodes.length > 0) {
         const scopes = await tx.scope.findMany({
-          where: { code: { in: input.scopeCodes } },
+          where: { code: { in: input.scopeCodes as string[] } },
         })
 
         if (scopes.length > 0) {

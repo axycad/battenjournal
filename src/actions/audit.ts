@@ -160,7 +160,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
         select: { id: true, name: true, email: true },
       },
     },
-    orderBy: { addedAt: 'asc' },
+    orderBy: { createdAt: 'asc' },
   })
 
   // Get all clinicians with their consent and permissions
@@ -208,7 +208,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
           userId,
           name: grant.membership.user.name,
           email: grant.membership.user.email,
-          specialty: null,
+          specialty: grant.membership.specialty,
           scopes: [],
           grantedAt: grant.createdAt,
         })
@@ -232,7 +232,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
       name: m.user.name,
       email: m.user.email,
       role: m.familyRole || 'VIEWER',
-      joinedAt: m.addedAt,
+      joinedAt: m.createdAt,
     })),
   }
 }
@@ -256,7 +256,7 @@ export async function getAuditLog(
 
   const where = {
     caseId,
-    ...(options?.actions && { action: options.actions?.length ? { in: options.actions as any } : undefined }),
+    ...(options?.actions && { action: { in: options.actions as any } }),
     ...(options?.startDate && { ts: { gte: options.startDate } }),
     ...(options?.endDate && { ts: { lte: options.endDate } }),
   }
@@ -320,7 +320,7 @@ export async function getPermissionChanges(
   const entries = await prisma.auditEntry.findMany({
     where: {
       caseId,
-      action: { in: ['GRANT', 'REVOKE', 'EDIT'] },
+      action: { in: ['GRANT', 'REVOKE', 'EDIT'] as any },
       objectType: { in: ['PermissionGrant', 'Consent', 'Membership'] },
     },
     include: {
@@ -397,7 +397,7 @@ export async function getDocumentAccessLog(
   const entries = await prisma.auditEntry.findMany({
     where: {
       caseId,
-      action: { in: ['VIEW', 'DOWNLOAD'] },
+      action: { in: ['VIEW', 'DOWNLOAD'] as any },
       objectType: 'Document',
     },
     include: {

@@ -149,7 +149,7 @@ export async function createExport(
   if (options.scopeCodes && options.scopeCodes.length > 0) {
     eventWhere.scopes = {
       some: {
-        scope: { code: { in: options.scopeCodes } },
+        scope: { code: { in: options.scopeCodes as string[] } },
       },
     }
   }

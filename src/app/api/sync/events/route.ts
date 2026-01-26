@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     // Create scopes
     if (scopeCodes?.length) {
       const scopes = await tx.scope.findMany({
-        where: { code: { in: scopeCodes } },
+        where: { code: { in: scopeCodes as string[] } },
       })
 
       if (scopes.length > 0) {
@@ -237,7 +237,7 @@ export async function PUT(request: NextRequest) {
 
       if (scopeCodes.length > 0) {
         const scopes = await tx.scope.findMany({
-          where: { code: { in: scopeCodes } },
+          where: { code: { in: scopeCodes as string[] } },
         })
 
         if (scopes.length > 0) {

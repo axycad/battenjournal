@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
         // Get scope IDs and create DocumentScope records
         const scopes = await tx.scope.findMany({
-          where: { code: { in: parsedScopes } },
+          where: { code: { in: parsedScopes as string[] } },
         })
 
         if (scopes.length > 0) {

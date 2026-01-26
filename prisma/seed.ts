@@ -75,11 +75,12 @@ async function seedDemoData() {
       name: 'Dr. Emily Chen',
       passwordHash,
       role: 'CLINICIAN',
+      specialty: 'NEUROLOGY',
     },
   })
   console.log(`Created clinician: ${clinician.email}`)
 
-  // Create demo case (only fields that exist on Case model)
+  // Create demo case
   const demoCase = await prisma.case.upsert({
     where: { id: 'demo-case-001' },
     update: {},
@@ -87,39 +88,12 @@ async function seedDemoData() {
       id: 'demo-case-001',
       childDisplayName: 'Emma',
       diseaseProfileVersion: 'CLN2',
+      legalName: 'Emma Demo',
+      dateOfBirth: new Date('2020-06-15'),
+      nhsNumber: '123 456 7890',
     },
   })
   console.log(`Created case: ${demoCase.childDisplayName}`)
-
-  // Create patient profile (legalName, dateOfBirth, etc. go here)
-  await prisma.patientProfile.upsert({
-    where: { caseId: demoCase.id },
-    update: {},
-    create: {
-      caseId: demoCase.id,
-      legalName: 'Emma Demo',
-      dateOfBirth: new Date('2020-06-15'),
-      nationalId: '123 456 7890',
-      visionStatus: 'REDUCED',
-      mobilityStatus: 'WHEELCHAIR',
-      communicationStatus: 'NON_VERBAL',
-      feedingStatus: 'TUBE',
-      emergencyNotes: 'PEG-fed, non-verbal, uses wheelchair. Responds to music and familiar voices.',
-    },
-  })
-
-  // Create care intent
-  await prisma.careIntent.upsert({
-    where: { caseId: demoCase.id },
-    update: {},
-    create: {
-      caseId: demoCase.id,
-      updatedByUserId: parent.id,
-      communicationNotes: 'Smiles for yes, looks away for no. Loves music.',
-      keyEquipment: 'Suction machine, PEG supplies, wheelchair, sleep system',
-      preferredHospital: 'Great Ormond Street Hospital',
-    },
-  })
 
   // Create memberships
   await prisma.membership.upsert({
@@ -160,18 +134,13 @@ async function seedDemoData() {
     },
   })
 
-  // Create consent for clinician access
-  const existingConsent = await prisma.consent.findFirst({
-    where: {
+  // Create consent for clinician
+  const consent = await prisma.consent.upsert({
+    where: { membershipId: clinicianMembership.id },
+    update: {},
+    create: {
       caseId: demoCase.id,
-      consentType: 'CLINICAL',
-    },
-  })
-
-  const consent = existingConsent ?? await prisma.consent.create({
-    data: {
-      caseId: demoCase.id,
-      consentType: 'CLINICAL',
+      membershipId: clinicianMembership.id,
       status: 'ACTIVE',
       grantedAt: new Date(),
     },
@@ -183,23 +152,20 @@ async function seedDemoData() {
   })
 
   for (const scope of scopeRecords) {
-    const existingGrant = await prisma.permissionGrant.findFirst({
+    await prisma.permissionGrant.upsert({
       where: {
+        membershipId_scopeId: {
+          membershipId: clinicianMembership.id,
+          scopeId: scope.id,
+        },
+      },
+      update: {},
+      create: {
         membershipId: clinicianMembership.id,
+        consentId: consent.id,
         scopeId: scope.id,
       },
     })
-
-    if (!existingGrant) {
-      await prisma.permissionGrant.create({
-        data: {
-          membershipId: clinicianMembership.id,
-          consentId: consent.id,
-          scopeId: scope.id,
-          accessMode: 'VIEW',
-        },
-      })
-    }
   }
 
   // Add demo allergies
@@ -271,7 +237,7 @@ async function seedDemoData() {
     },
   })
 
-  // Add demo conditions (no diagnosedDate field - only name and notes)
+  // Add demo conditions
   await prisma.condition.upsert({
     where: { id: 'demo-condition-001' },
     update: {},
@@ -279,7 +245,8 @@ async function seedDemoData() {
       id: 'demo-condition-001',
       caseId: demoCase.id,
       name: 'CLN2 Batten Disease',
-      notes: 'Late infantile onset, confirmed by enzyme assay and genetic testing. Diagnosed January 2023.',
+      diagnosedDate: new Date('2023-01-15'),
+      notes: 'Late infantile onset, confirmed by enzyme assay and genetic testing',
     },
   })
 
@@ -290,7 +257,8 @@ async function seedDemoData() {
       id: 'demo-condition-002',
       caseId: demoCase.id,
       name: 'Epilepsy',
-      notes: 'Myoclonic and tonic-clonic seizures. Diagnosed March 2023.',
+      diagnosedDate: new Date('2023-03-01'),
+      notes: 'Myoclonic and tonic-clonic seizures',
     },
   })
 
@@ -304,7 +272,7 @@ async function seedDemoData() {
       role: 'Neurologist',
       name: 'Dr. Emily Chen',
       phone: '020 7123 4567',
-      address: 'Great Ormond Street Hospital, London',
+      address: "Great Ormond Street Hospital, London",
     },
   })
 
@@ -317,6 +285,21 @@ async function seedDemoData() {
       role: 'Community Nurse',
       name: 'Jane Wilson',
       phone: '07700 900123',
+    },
+  })
+
+  // Add baseline
+  await prisma.baseline.upsert({
+    where: { caseId: demoCase.id },
+    update: {},
+    create: {
+      caseId: demoCase.id,
+      vision: 'Limited - responds to high contrast objects and bright lights',
+      mobility: 'Uses wheelchair, can weight-bear with support for transfers',
+      communication: 'Non-verbal, uses eye gaze and facial expressions',
+      feeding: 'PEG-fed, small amounts of pureed food orally for pleasure',
+      communicationNotes: 'Smiles for yes, looks away for no. Loves music.',
+      keyEquipment: 'Suction machine, PEG supplies, wheelchair, sleep system',
     },
   })
 
