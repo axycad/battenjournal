@@ -421,7 +421,7 @@ export async function getDocumentAccessLog(
   const membershipMap = new Map(memberships.map((m) => [m.userId, m.memberType]))
 
   // Get document titles
-  const documentIds = [...new Set(entries.map((e) => e.objectId))]
+  const documentIds = Array.from(new Set(entries.map((e) => e.objectId)))
   const documents = await prisma.document.findMany({
     where: { id: { in: documentIds } },
     select: { id: true, title: true },
