@@ -208,7 +208,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
           userId,
           name: grant.membership.user.name,
           email: grant.membership.user.email,
-          specialty: grant.membership.specialty,
+          specialty: null,
           scopes: [],
           grantedAt: grant.createdAt,
         })
