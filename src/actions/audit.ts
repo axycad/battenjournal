@@ -410,7 +410,7 @@ export async function getDocumentAccessLog(
   })
 
   // Get membership info to filter by clinicians if needed
-  const actorIds = Array.from(new Set(entries.map((e) => e.actorUserId))]
+  const actorIds = Array.from(new Set(entries.map((e) => e.actorUserId)))
   const memberships = await prisma.membership.findMany({
     where: {
       caseId,
@@ -421,7 +421,7 @@ export async function getDocumentAccessLog(
   const membershipMap = new Map(memberships.map((m) => [m.userId, m.memberType]))
 
   // Get document titles
-  const documentIds = Array.from(new Set(entries.map((e) => e.objectId))]
+  const documentIds = Array.from(new Set(entries.map((e) => e.objectId)))
   const documents = await prisma.document.findMany({
     where: { id: { in: documentIds } },
     select: { id: true, title: true },
@@ -521,3 +521,5 @@ export async function recordPermissionChange(
     },
   })
 }
+
+
