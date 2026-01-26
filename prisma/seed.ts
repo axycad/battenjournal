@@ -85,38 +85,36 @@ async function main() {
   })
   console.log(`Created case: ${demoCase.childDisplayName}`)
 
-  // Create memberships
+  // Create memberships (memberType + familyRole, not role)
   await prisma.membership.upsert({
-    where: { id: 'membership-parent' },
+    where: { caseId_userId: { caseId: demoCase.id, userId: parent.id } },
     update: {},
     create: {
-      id: 'membership-parent',
       userId: parent.id,
       caseId: demoCase.id,
-      role: 'OWNER_ADMIN',
+      memberType: 'PARENT',
+      familyRole: 'OWNER_ADMIN',
     },
   })
 
   await prisma.membership.upsert({
-    where: { id: 'membership-partner' },
+    where: { caseId_userId: { caseId: demoCase.id, userId: partner.id } },
     update: {},
     create: {
-      id: 'membership-partner',
       userId: partner.id,
       caseId: demoCase.id,
-      role: 'EDITOR',
+      memberType: 'PARENT',
+      familyRole: 'EDITOR',
     },
   })
 
   await prisma.membership.upsert({
-    where: { id: 'membership-clinician' },
+    where: { caseId_userId: { caseId: demoCase.id, userId: clinician.id } },
     update: {},
     create: {
-      id: 'membership-clinician',
       userId: clinician.id,
       caseId: demoCase.id,
-      role: 'CARE_TEAM',
-      specialty: 'NEUROLOGY',
+      memberType: 'CARE_TEAM',
     },
   })
 
