@@ -184,6 +184,7 @@ export async function createExport(
       author: {
         select: { name: true },
       },
+      mediaItems: true,
       _count: {
         select: { mediaItems: true },
       },
