@@ -434,21 +434,22 @@ export async function getTodayEvents(caseId: string): Promise<EventWithScopes[]>
     const timeDiff = event.loggedAt.getTime() - event.occurredAt.getTime()
     const isBackdated = timeDiff > 5 * 60 * 1000
 
-    return {
-      id: event.id,
-      eventType: event.eventType,
-      freeText: event.freeText,
-      occurredAt: event.occurredAt,
-      loggedAt: event.loggedAt,
-      author: event.author,
-      scopes: event.scopes.map((es) => ({
-        code: es.scope.code,
-        label: es.scope.label,
-      })),
-      isBackdated,
-    }
-  })
-}
+      return {
+        id: event.id,
+        eventType: event.eventType,
+        freeText: event.freeText,
+        occurredAt: event.occurredAt,
+        loggedAt: event.loggedAt,
+        author: event.author,
+        scopes: event.scopes.map((es) => ({
+          code: es.scope.code,
+          label: es.scope.label,
+        })),
+        isBackdated,
+        mediaItems: [],
+      }
+    })
+  }
 
 // Get all scopes for the scope picker
 export async function getAllScopes() {
