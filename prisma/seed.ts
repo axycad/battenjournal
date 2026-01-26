@@ -160,18 +160,18 @@ async function seedDemoData() {
     },
   })
 
-  // Create consent for clinician (use id-based where for upsert)
+  // Create consent for clinician access
   const existingConsent = await prisma.consent.findFirst({
     where: {
       caseId: demoCase.id,
-      membership: { userId: clinician.id },
+      consentType: 'CLINICAL',
     },
   })
 
   const consent = existingConsent ?? await prisma.consent.create({
     data: {
       caseId: demoCase.id,
-      membershipId: clinicianMembership.id,
+      consentType: 'CLINICAL',
       status: 'ACTIVE',
       grantedAt: new Date(),
     },
@@ -198,6 +198,7 @@ async function seedDemoData() {
           membershipId: clinicianMembership.id,
           consentId: consent.id,
           scopeId: scope.id,
+          accessMode: 'VIEW',
         },
       })
     }
