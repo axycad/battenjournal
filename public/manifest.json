@@ -1,0 +1,33 @@
+{
+  "name": "Batten Journal",
+  "short_name": "Batten Journal",
+  "description": "Care journal for families affected by Batten Disease",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#FFF8F2",
+  "theme_color": "#B58A71",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Log observation",
+      "url": "/dashboard",
+      "description": "Quick access to log today's observations"
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-bg-primary text-text-primary;
+  }
+  
+  /* Generous line height for readability under stress */
+  p, li, span {
+    @apply leading-relaxed;
+  }
+  
+  /* Remove default focus outlines, apply custom */
+  *:focus {
+    @apply outline-none ring-2 ring-accent-focus ring-offset-2;
+  }
+  
+  /* No italics for emotion per UI spec */
+  em {
+    @apply not-italic font-medium;
+  }
+}
+
+@layer components {
+  /* Primary button */
+  .btn-primary {
+    @apply h-button px-sm bg-accent-primary text-white rounded-md font-medium;
+    @apply transition-colors duration-fast;
+    @apply hover:opacity-90;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Secondary button */
+  .btn-secondary {
+    @apply h-button px-sm border border-accent-primary text-accent-primary rounded-md font-medium;
+    @apply transition-colors duration-fast;
+    @apply hover:bg-accent-primary/10;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Text button */
+  .btn-text {
+    @apply h-button px-sm text-accent-primary font-medium;
+    @apply transition-colors duration-fast;
+    @apply hover:underline;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  /* Input fields - borderless or subtle per UI spec */
+  .input-field {
+    @apply w-full px-sm py-3 bg-white border border-divider rounded-sm;
+    @apply text-body text-text-primary;
+    @apply placeholder:text-text-secondary;
+    @apply focus:border-accent-primary;
+  }
+  
+  /* Section divider */
+  .divider {
+    @apply border-t border-divider;
+  }
+  
+  /* Screen title */
+  .screen-title {
+    @apply text-title-lg font-medium text-text-primary;
+  }
+  
+  /* Section header */
+  .section-header {
+    @apply text-title-md font-medium text-text-primary;
+  }
+  
+  /* Meta text */
+  .meta-text {
+    @apply text-meta text-text-secondary;
+  }
+  
+  /* Critical label (allergies) */
+  .critical-label {
+    @apply text-semantic-critical font-medium;
+  }
+  
+  /* Save toast */
+  .save-toast {
+    @apply text-semantic-success text-meta;
+  }
+}

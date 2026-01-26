@@ -1,0 +1,997 @@
+// Batten-Journal Database Schema
+// Source of truth: batten_journal_system_diagram.md
+// Soft delete applied to all major entities via deletedAt field
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTHENTICATION & USERS
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  name          String?
+  image         String?
+  role          UserRole  @default(PARENT)
+  orgId         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // Auth.js relations
+  accounts Account[]
+  sessions Session[]
+
+  // Application relations
+  memberships             Membership[]
+  events                  Event[]          @relation("EventAuthor")
+  messages                Message[]
+  clinicalNotes           ClinicalNote[]
+  flags                   Flag[]           @relation("FlagCreator")
+  tasksCreated            Task[]           @relation("TaskCreator")
+  tasksAssigned           Task[]           @relation("TaskAssignee")
+  documents               Document[]       @relation("DocumentUploader")
+  deletedDocs             Document[]       @relation("DocumentDeleter")
+  measurements            Measurement[]
+  photoRefs               PhotoReference[]
+  careIntents             CareIntent[]
+  settings                UserSetting[]
+  devices                 Device[]
+  outboxItems             OutboxItem[]
+  exportJobs              ExportJob[]
+  auditEntries            AuditEntry[]
+  invitesSent             Invite[]
+  threadReads             ThreadRead[]
+  medicationAdministrations MedicationAdministration[]
+  emailPreferences        EmailPreference?
+
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  PARENT
+  CLINICIAN
+  RESEARCHER
+  ADMIN
+}
+
+// Auth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================================
+// CASE (Child record container)
+// ============================================================================
+
+model Case {
+  id                    String   @id @default(cuid())
+  childDisplayName      String
+  diseaseProfileVersion String   @default("CLN2")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+
+  // Relations
+  profile         PatientProfile?
+  careIntent      CareIntent?
+  allergies       Allergy[]
+  conditions      Condition[]
+  medications     Medication[]
+  immunizations   Immunization[]
+  measurements    Measurement[]
+  labResults      LabResult[]
+  documents       Document[]
+  careContacts    CareContact[]
+  events          Event[]
+  photoReferences PhotoReference[]
+  threads         Thread[]
+  flags           Flag[]
+  tasks           Task[]
+  escalations     Escalation[]
+  memberships     Membership[]
+  consents        Consent[]
+  watches         Watch[]
+  outboxItems     OutboxItem[]
+  exportJobs      ExportJob[]
+  invites         Invite[]
+  clinicalNotes            ClinicalNote[]
+  auditEntries             AuditEntry[]
+  medicationAdministrations MedicationAdministration[]
+
+  @@index([childDisplayName])
+}
+
+// ============================================================================
+// MEMBERSHIP & PERMISSIONS
+// ============================================================================
+
+model Membership {
+  id         String        @id @default(cuid())
+  caseId     String
+  userId     String
+  memberType MemberType
+  familyRole FamilyRole?   // Only applies when memberType = PARENT
+  addedAt    DateTime      @default(now())
+  revokedAt  DateTime?
+  deletedAt  DateTime?
+
+  case             Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissionGrants PermissionGrant[]
+  watches          Watch[]
+  escalationsFrom  Escalation[]      @relation("EscalationFrom")
+  escalationsTo    Escalation[]      @relation("EscalationTo")
+
+  @@unique([caseId, userId])
+  @@index([caseId])
+  @@index([userId])
+}
+
+enum MemberType {
+  PARENT
+  CARE_TEAM
+  RESEARCH_TEAM
+}
+
+enum FamilyRole {
+  OWNER_ADMIN
+  EDITOR
+  VIEWER
+}
+
+model Scope {
+  id    String @id @default(cuid())
+  code  String @unique
+  label String
+
+  eventScopes      EventScope[]
+  permissionGrants PermissionGrant[]
+  watches          Watch[]
+  documentScopes   DocumentScope[]
+}
+
+model Consent {
+  id          String        @id @default(cuid())
+  caseId      String
+  consentType ConsentType
+  status      ConsentStatus @default(ACTIVE)
+  grantedAt   DateTime      @default(now())
+  revokedAt   DateTime?
+  deletedAt   DateTime?
+
+  case             Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  permissionGrants PermissionGrant[]
+
+  @@index([caseId])
+  @@index([status])
+}
+
+enum ConsentType {
+  RESEARCH
+  CLINICAL
+}
+
+enum ConsentStatus {
+  ACTIVE
+  PAUSED
+  REVOKED
+}
+
+model PermissionGrant {
+  id           String     @id @default(cuid())
+  consentId    String
+  membershipId String
+  scopeId      String
+  accessMode   AccessMode
+  createdAt    DateTime   @default(now())
+  deletedAt    DateTime?
+
+  consent    Consent    @relation(fields: [consentId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  scope      Scope      @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@index([consentId])
+  @@index([membershipId])
+  @@index([scopeId])
+}
+
+enum AccessMode {
+  VIEW
+  COMMENT
+  ASK
+  EXPORT
+  MANAGE_MEMBERS
+  MANAGE_DOCUMENTS
+}
+
+// ============================================================================
+// PATIENT PROFILE & EMERGENCY DATA
+// ============================================================================
+
+model PatientProfile {
+  id          String  @id @default(cuid())
+  caseId      String  @unique
+  legalName   String?
+  dateOfBirth DateTime?
+  sex         String?
+  photoUri    String?
+  bloodType   String?
+
+  // Latest measurements for emergency snapshot
+  weightKg         Float?
+  weightMeasuredAt DateTime?
+  heightCm         Float?
+  heightMeasuredAt DateTime?
+
+  // Baseline for emergency care
+  visionStatus        VisionStatus?
+  visionConfirmedAt   DateTime?
+  mobilityStatus      MobilityStatus?
+  mobilityConfirmedAt DateTime?
+  communicationStatus CommunicationStatus?
+  communicationConfirmedAt DateTime?
+  feedingStatus       FeedingStatus?
+  feedingConfirmedAt  DateTime?
+
+  // Administrative
+  nationalId       String?
+  insuranceProvider String?
+  insuranceNumber  String?
+  emergencyNotes   String? @db.Text
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+enum VisionStatus {
+  NORMAL
+  REDUCED
+  NO_FUNCTIONAL_VISION
+  UNKNOWN
+}
+
+enum MobilityStatus {
+  INDEPENDENT
+  ASSISTED
+  WHEELCHAIR
+  NON_AMBULATORY
+  UNKNOWN
+}
+
+enum CommunicationStatus {
+  TYPICAL
+  LIMITED_SPEECH
+  NON_VERBAL
+  AAC
+  UNKNOWN
+}
+
+enum FeedingStatus {
+  ORAL
+  MODIFIED_ORAL
+  TUBE
+  UNKNOWN
+}
+
+model CareIntent {
+  id                    String   @id @default(cuid())
+  caseId                String   @unique
+  preferredHospital     String?
+  emergencyPreferences  String?  @db.Text
+  avoidList             String?  @db.Text
+  communicationNotes    String?  @db.Text  // e.g., "responds to voice", "AAC device", "non-verbal"
+  keyEquipment          String?  @db.Text  // e.g., "PEG, suction, oxygen"
+  showOnEmergencyCard   Boolean  @default(true)
+  updatedByUserId       String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+
+  case      Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  updatedBy User @relation(fields: [updatedByUserId], references: [id])
+}
+
+// ============================================================================
+// MEDICAL RECORDS
+// ============================================================================
+
+model Allergy {
+  id        String           @id @default(cuid())
+  caseId    String
+  substance String
+  reaction  String?
+  severity  AllergySeverity?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  deletedAt DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+}
+
+enum AllergySeverity {
+  MILD
+  MODERATE
+  SEVERE
+  LIFE_THREATENING
+}
+
+model Condition {
+  id        String    @id @default(cuid())
+  caseId    String
+  name      String
+  notes     String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+}
+
+model Medication {
+  id              String    @id @default(cuid())
+  caseId          String
+  name            String
+  dose            String?
+  route           String?
+  schedule        String?   // e.g., "every 8 hours", "twice daily"
+  isPRN           Boolean   @default(false) // As-needed medication
+  active          Boolean   @default(true)
+  reminderEnabled Boolean   @default(false)
+  reminderTimes   String?   // JSON array of times, e.g., ["08:00", "20:00"]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  case            Case                     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  administrations MedicationAdministration[]
+
+  @@index([caseId])
+  @@index([active])
+}
+
+model MedicationAdministration {
+  id           String    @id @default(cuid())
+  caseId       String
+  medicationId String
+  givenAt      DateTime
+  givenById    String    // User who administered
+  dose         String?   // Actual dose given (may differ from prescribed)
+  route        String?   // Actual route used
+  notes        String?
+  prnReason    String?   // Reason for PRN administration
+  skipped      Boolean   @default(false)
+  skipReason   String?   // Why medication was skipped
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime?
+
+  case       Case       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  medication Medication @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  givenBy    User       @relation(fields: [givenById], references: [id])
+
+  @@index([caseId])
+  @@index([medicationId])
+  @@index([givenAt])
+}
+
+model Immunization {
+  id        String    @id @default(cuid())
+  caseId    String
+  vaccine   String
+  dateGiven DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+}
+
+model Measurement {
+  id              String          @id @default(cuid())
+  caseId          String
+  type            MeasurementType
+  value           Float
+  unit            String
+  measuredAt      DateTime
+  enteredByUserId String
+  note            String?
+  createdAt       DateTime        @default(now())
+  deletedAt       DateTime?
+
+  case      Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  enteredBy User @relation(fields: [enteredByUserId], references: [id])
+
+  @@index([caseId])
+  @@index([type])
+}
+
+enum MeasurementType {
+  WEIGHT
+  HEIGHT
+}
+
+model LabResult {
+  id         String    @id @default(cuid())
+  caseId     String
+  testName   String
+  result     String?
+  resultDate DateTime?
+  documentId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+}
+
+model Document {
+  id                   String       @id @default(cuid())
+  caseId               String
+  eventId              String?      // Optional: if attached to an event
+  kind                 DocumentKind
+  title                String
+  storagePath          String       // Path in storage service
+  originalFilename     String       // Original uploaded filename
+  mimeType             String
+  size                 Int          // File size in bytes
+  checksum             String       // SHA256 hash
+  uploadedByUserId     String
+  uploadedAt           DateTime     @default(now())
+  isCritical           Boolean      @default(false)
+  supersedesDocumentId String?
+  deletedAt            DateTime?
+  deletedByUserId      String?
+
+  case       Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  event      Event?    @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  uploadedBy User      @relation("DocumentUploader", fields: [uploadedByUserId], references: [id])
+  deletedBy  User?     @relation("DocumentDeleter", fields: [deletedByUserId], references: [id])
+  scopes     DocumentScope[]
+  messages   Message[]
+
+  @@index([caseId])
+  @@index([eventId])
+  @@index([kind])
+}
+
+model DocumentScope {
+  id         String @id @default(cuid())
+  documentId String
+  scopeId    String
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  scope    Scope    @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, scopeId])
+  @@index([documentId])
+  @@index([scopeId])
+}
+
+enum DocumentKind {
+  LAB_REPORT
+  CLINIC_LETTER
+  GENETIC_REPORT
+  INSURANCE
+  OTHER
+}
+
+model CareContact {
+  id        String    @id @default(cuid())
+  caseId    String
+  role      String    // GP, specialist, emergency
+  name      String
+  phone     String?
+  address   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([caseId])
+}
+
+// ============================================================================
+// EVENTS (Daily observations)
+// ============================================================================
+
+model Event {
+  id            String   @id @default(cuid())
+  caseId        String
+  authorUserId  String
+  occurredAt    DateTime
+  loggedAt      DateTime @default(now())
+  eventType     String
+  freeText      String?  @db.Text
+  schemaVersion String   @default("1.0")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  case          Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  author        User           @relation("EventAuthor", fields: [authorUserId], references: [id])
+  scopes        EventScope[]
+  mediaItems    MediaItem[]
+  documents     Document[]
+  clinicalNotes ClinicalNote[]
+
+  @@index([caseId])
+  @@index([occurredAt])
+  @@index([eventType])
+}
+
+model EventScope {
+  id       String @id @default(cuid())
+  eventId  String
+  scopeId  String
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scope Scope @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, scopeId])
+}
+
+model MediaItem {
+  id               String    @id @default(cuid())
+  eventId          String
+  kind             MediaKind
+  storagePath      String    // Path in storage service
+  originalFilename String    // Original uploaded filename
+  mimeType         String
+  size             Int       // File size in bytes
+  checksum         String    // SHA256 hash
+  capturedAt       DateTime?
+  bodyLocation     String?
+  createdAt        DateTime  @default(now())
+  deletedAt        DateTime?
+
+  event          Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  photoReference PhotoReference[]
+
+  @@index([eventId])
+}
+
+enum MediaKind {
+  PHOTO
+  VIDEO
+  DOC
+}
+
+model PhotoReference {
+  id              String    @id @default(cuid())
+  caseId          String
+  bodyLocation    String
+  mediaId         String
+  createdByUserId String
+  createdAt       DateTime  @default(now())
+  archivedAt      DateTime?
+  deletedAt       DateTime?
+
+  case      Case      @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  media     MediaItem @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  createdBy User      @relation(fields: [createdByUserId], references: [id])
+
+  @@index([caseId])
+  @@index([bodyLocation])
+}
+
+// ============================================================================
+// COMMUNICATION
+// ============================================================================
+
+model Thread {
+  id         String     @id @default(cuid())
+  caseId     String
+  anchorType AnchorType
+  anchorId   String     // caseId for CASE threads, eventId for EVENT threads
+  subject    String?    // Optional subject line for case threads
+  createdAt  DateTime   @default(now())
+  deletedAt  DateTime?
+
+  case        Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  threadReads ThreadRead[]
+
+  @@index([caseId])
+  @@index([anchorType, anchorId])
+}
+
+enum AnchorType {
+  CASE
+  EVENT
+}
+
+model Message {
+  id           String      @id @default(cuid())
+  threadId     String
+  authorUserId String
+  messageType  MessageType
+  content      String      @db.Text
+  documentId   String?     // Optional attachment reference
+  createdAt    DateTime    @default(now())
+  deletedAt    DateTime?
+
+  thread   Thread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author   User      @relation(fields: [authorUserId], references: [id])
+  document Document? @relation(fields: [documentId], references: [id])
+
+  @@index([threadId])
+}
+
+enum MessageType {
+  FREE_TEXT
+  QUESTION_CARD
+  ANSWER
+}
+
+model ThreadRead {
+  id         String   @id @default(cuid())
+  threadId   String
+  userId     String
+  lastReadAt DateTime @default(now())
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([userId])
+}
+
+model ClinicalNote {
+  id           String           @id @default(cuid())
+  caseId       String
+  eventId      String?          // Null for case-level notes
+  authorUserId String
+  visibility   NoteVisibility   @default(TEAM_ONLY)
+  text         String           @db.Text
+  createdAt    DateTime         @default(now())
+  deletedAt    DateTime?
+
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  event  Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorUserId], references: [id])
+
+  @@index([caseId])
+  @@index([eventId])
+}
+
+enum NoteVisibility {
+  TEAM_ONLY
+  SHARE_WITH_PARENT
+}
+
+// ============================================================================
+// CLINICIAN WORKFLOWS
+// ============================================================================
+
+model Flag {
+  id          String         @id @default(cuid())
+  caseId      String
+  anchorType  AnchorType
+  anchorId    String
+  createdById String
+  status      FlagStatus     @default(OPEN)
+  visibility  NoteVisibility @default(TEAM_ONLY)
+  label       String
+  createdAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+  deletedAt   DateTime?
+
+  case      Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy User @relation("FlagCreator", fields: [createdById], references: [id])
+
+  @@index([caseId])
+  @@index([status])
+}
+
+enum FlagStatus {
+  OPEN
+  RESOLVED
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  caseId       String
+  anchorType   AnchorType
+  anchorId     String
+  createdById  String
+  assignedToId String?
+  status       TaskStatus @default(OPEN)
+  title        String
+  description  String?    @db.Text
+  dueAt        DateTime?
+  createdAt    DateTime   @default(now())
+  completedAt  DateTime?
+  deletedAt    DateTime?
+
+  case       Case  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy  User  @relation("TaskCreator", fields: [createdById], references: [id])
+  assignedTo User? @relation("TaskAssignee", fields: [assignedToId], references: [id])
+
+  @@index([caseId])
+  @@index([status])
+  @@index([assignedToId])
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  CANCELED
+}
+
+model Escalation {
+  id               String   @id @default(cuid())
+  caseId           String
+  anchorType       AnchorType
+  anchorId         String
+  fromMembershipId String
+  toMembershipId   String
+  reason           String?  @db.Text
+  createdAt        DateTime @default(now())
+  deletedAt        DateTime?
+
+  case           Case       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  fromMembership Membership @relation("EscalationFrom", fields: [fromMembershipId], references: [id])
+  toMembership   Membership @relation("EscalationTo", fields: [toMembershipId], references: [id])
+
+  @@index([caseId])
+}
+
+model Watch {
+  id           String    @id @default(cuid())
+  caseId       String
+  membershipId String
+  scopeId      String
+  createdAt    DateTime  @default(now())
+  removedAt    DateTime?
+  deletedAt    DateTime?
+
+  case       Case       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  membership Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  scope      Scope      @relation(fields: [scopeId], references: [id], onDelete: Cascade)
+
+  @@unique([membershipId, scopeId])
+  @@index([caseId])
+}
+
+// ============================================================================
+// USER SETTINGS & DEVICES
+// ============================================================================
+
+model UserSetting {
+  id        String   @id @default(cuid())
+  userId    String
+  caseId    String?
+  key       String
+  value     String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, caseId, key])
+}
+
+model EmailPreference {
+  id                     String          @id @default(cuid())
+  userId                 String          @unique
+  digestFrequency        DigestFrequency @default(DAILY)
+  watchAlerts            Boolean         @default(true)
+  taskReminders          Boolean         @default(true)
+  messageNotifications   Boolean         @default(true)
+  unsubscribeToken       String          @unique @default(cuid())
+  lastDigestSentAt       DateTime?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum DigestFrequency {
+  OFF
+  IMMEDIATE
+  DAILY
+  WEEKLY
+}
+
+model Device {
+  id          String   @id @default(cuid())
+  userId      String
+  platform    Platform
+  deviceLabel String?
+  pushToken   String?
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}
+
+// ============================================================================
+// OFFLINE SYNC
+// ============================================================================
+
+model OutboxItem {
+  id              String       @id @default(cuid())
+  caseId          String
+  createdByUserId String
+  payloadType     PayloadType
+  payloadId       String
+  payload         Json
+  status          SyncStatus   @default(QUEUED)
+  createdAt       DateTime     @default(now())
+  lastAttemptAt   DateTime?
+  errorMessage    String?
+
+  case      Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdByUserId], references: [id])
+
+  @@index([caseId])
+  @@index([status])
+}
+
+enum PayloadType {
+  EVENT
+  MEDIA
+  MESSAGE
+  DOCUMENT
+  MEASUREMENT
+  PROFILE_UPDATE
+}
+
+enum SyncStatus {
+  QUEUED
+  SYNCING
+  SYNCED
+  FAILED
+  CONFLICT
+}
+
+// ============================================================================
+// EXPORT & AUDIT
+// ============================================================================
+
+model ExportJob {
+  id            String   @id @default(cuid())
+  caseId        String
+  requestedById String
+  scopeFilter   String?  // JSON array of scope codes
+  format        String   @default("pdf")
+  status        String   @default("pending")
+  fileUri       String?
+  createdAt     DateTime @default(now())
+  completedAt   DateTime?
+
+  case        Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  requestedBy User @relation(fields: [requestedById], references: [id])
+
+  @@index([caseId])
+}
+
+model AuditEntry {
+  id          String      @id @default(cuid())
+  caseId      String?     // Optional: for case-scoped audits
+  actorUserId String
+  action      AuditAction
+  objectType  String
+  objectId    String
+  metadata    Json?
+  ts          DateTime    @default(now())
+
+  case  Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  actor User  @relation(fields: [actorUserId], references: [id])
+
+  @@index([caseId])
+  @@index([actorUserId])
+  @@index([objectType, objectId])
+  @@index([ts])
+}
+
+enum AuditAction {
+  VIEW
+  DOWNLOAD
+  EXPORT
+  GRANT
+  REVOKE
+  EDIT
+  FLAG
+  TASK
+  ESCALATION
+  WATCH
+  DELETE
+  RESTORE
+  SYNC
+  LOGIN
+  LOGOUT
+}
+
+// ============================================================================
+// INVITATIONS
+// ============================================================================
+
+model Invite {
+  id            String      @id @default(cuid())
+  caseId        String
+  email         String
+  inviteType    InviteType  @default(FAMILY)
+  familyRole    FamilyRole? @default(EDITOR)  // For family invites
+  specialty     String?     // For clinician invites, selected on acceptance
+  token         String      @unique
+  invitedById   String
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  createdAt     DateTime    @default(now())
+
+  case      Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  invitedBy User @relation(fields: [invitedById], references: [id])
+
+  @@index([token])
+  @@index([email])
+  @@index([caseId])
+}
+
+enum InviteType {
+  FAMILY
+  CLINICIAN
+}

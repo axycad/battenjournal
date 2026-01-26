@@ -1,0 +1,378 @@
+'use server'
+
+import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+
+export type ActionResult<T = void> = {
+  success: boolean
+  error?: string
+  data?: T
+}
+
+// Event type definitions with default scope mappings
+export const EVENT_TYPES = {
+  seizure: {
+    label: 'Seizure activity',
+    defaultScopes: ['seizures', 'meds'],
+  },
+  skin_wound: {
+    label: 'Skin / wound observation',
+    defaultScopes: ['skin_wounds', 'infection'],
+  },
+  infection: {
+    label: 'Infection concern',
+    defaultScopes: ['infection', 'meds'],
+  },
+  medication: {
+    label: 'Medication given / changed',
+    defaultScopes: ['meds'],
+  },
+  feeding: {
+    label: 'Feeding observation',
+    defaultScopes: ['feeding'],
+  },
+  sleep: {
+    label: 'Sleep note',
+    defaultScopes: ['sleep', 'comfort'],
+  },
+  mobility: {
+    label: 'Mobility change',
+    defaultScopes: ['mobility'],
+  },
+  vision_comm: {
+    label: 'Vision / communication note',
+    defaultScopes: ['vision_comm'],
+  },
+  comfort: {
+    label: 'Comfort / pain observation',
+    defaultScopes: ['comfort'],
+  },
+  care_admin: {
+    label: 'Care admin',
+    defaultScopes: ['care_admin'],
+  },
+  general: {
+    label: 'General note',
+    defaultScopes: ['other'],
+  },
+  nothing_new: {
+    label: 'Nothing new today',
+    defaultScopes: [],
+  },
+} as const
+
+export type EventType = keyof typeof EVENT_TYPES
+
+// Helper to verify membership
+async function verifyAccess(caseId: string, requireEditor = false) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { error: 'Not authenticated', membership: null }
+  }
+
+  const membership = await prisma.membership.findFirst({
+    where: {
+      caseId,
+      userId: session.user.id,
+      revokedAt: null,
+      deletedAt: null,
+    },
+  })
+
+  if (!membership) {
+    return { error: 'Access denied', membership: null }
+  }
+
+  if (requireEditor && membership.familyRole === 'VIEWER') {
+    return { error: 'View-only access', membership: null }
+  }
+
+  return { error: null, membership, userId: session.user.id }
+}
+
+export interface CreateEventInput {
+  eventType: EventType
+  freeText?: string
+  occurredAt?: string // ISO date string, defaults to now
+  scopeCodes?: string[] // Override default scopes if provided
+}
+
+export async function createEvent(
+  caseId: string,
+  input: CreateEventInput
+): Promise<ActionResult<{ eventId: string }>> {
+  const { error, userId } = await verifyAccess(caseId, true)
+  if (error) return { success: false, error }
+
+  const eventTypeConfig = EVENT_TYPES[input.eventType]
+  if (!eventTypeConfig) {
+    return { success: false, error: 'Invalid event type' }
+  }
+
+  // Use provided scopes or fall back to defaults
+  const scopeCodes = input.scopeCodes ?? eventTypeConfig.defaultScopes
+
+  // Parse occurred time or default to now
+  const occurredAt = input.occurredAt ? new Date(input.occurredAt) : new Date()
+
+  const result = await prisma.$transaction(async (tx) => {
+    // Create the event
+    const event = await tx.event.create({
+      data: {
+        caseId,
+        authorUserId: userId!,
+        eventType: input.eventType,
+        freeText: input.freeText?.trim() || null,
+        occurredAt,
+        loggedAt: new Date(),
+      },
+    })
+
+    // Link scopes if any
+    if (scopeCodes.length > 0) {
+      // Get scope IDs
+      const scopes = await tx.scope.findMany({
+        where: { code: { in: scopeCodes } },
+      })
+
+      if (scopes.length > 0) {
+        await tx.eventScope.createMany({
+          data: scopes.map((scope) => ({
+            eventId: event.id,
+            scopeId: scope.id,
+          })),
+        })
+      }
+    }
+
+    // Audit
+    await tx.auditEntry.create({
+      data: {
+        actorUserId: userId!,
+        action: 'EDIT',
+        objectType: 'Event',
+        objectId: event.id,
+        metadata: { eventType: input.eventType },
+      },
+    })
+
+    return event
+  })
+
+  revalidatePath(`/case/${caseId}/today`)
+  revalidatePath(`/case/${caseId}`)
+  return { success: true, data: { eventId: result.id } }
+}
+
+export async function updateEvent(
+  eventId: string,
+  input: {
+    freeText?: string
+    occurredAt?: string
+    scopeCodes?: string[]
+  }
+): Promise<ActionResult> {
+  const event = await prisma.event.findUnique({ where: { id: eventId } })
+  if (!event) return { success: false, error: 'Event not found' }
+
+  const { error, userId } = await verifyAccess(event.caseId, true)
+  if (error) return { success: false, error }
+
+  await prisma.$transaction(async (tx) => {
+    // Update event
+    await tx.event.update({
+      where: { id: eventId },
+      data: {
+        freeText: input.freeText?.trim(),
+        occurredAt: input.occurredAt ? new Date(input.occurredAt) : undefined,
+      },
+    })
+
+    // Update scopes if provided
+    if (input.scopeCodes !== undefined) {
+      // Remove existing scopes
+      await tx.eventScope.deleteMany({ where: { eventId } })
+
+      // Add new scopes
+      if (input.scopeCodes.length > 0) {
+        const scopes = await tx.scope.findMany({
+          where: { code: { in: input.scopeCodes } },
+        })
+
+        if (scopes.length > 0) {
+          await tx.eventScope.createMany({
+            data: scopes.map((scope) => ({
+              eventId,
+              scopeId: scope.id,
+            })),
+          })
+        }
+      }
+    }
+
+    await tx.auditEntry.create({
+      data: {
+        actorUserId: userId!,
+        action: 'EDIT',
+        objectType: 'Event',
+        objectId: eventId,
+      },
+    })
+  })
+
+  revalidatePath(`/case/${event.caseId}/today`)
+  revalidatePath(`/case/${event.caseId}`)
+  return { success: true }
+}
+
+export async function deleteEvent(eventId: string): Promise<ActionResult> {
+  const event = await prisma.event.findUnique({ where: { id: eventId } })
+  if (!event) return { success: false, error: 'Event not found' }
+
+  const { error, userId } = await verifyAccess(event.caseId, true)
+  if (error) return { success: false, error }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.event.update({
+      where: { id: eventId },
+      data: { deletedAt: new Date() },
+    })
+
+    await tx.auditEntry.create({
+      data: {
+        actorUserId: userId!,
+        action: 'DELETE',
+        objectType: 'Event',
+        objectId: eventId,
+      },
+    })
+  })
+
+  revalidatePath(`/case/${event.caseId}/today`)
+  revalidatePath(`/case/${event.caseId}`)
+  return { success: true }
+}
+
+export interface EventWithScopes {
+  id: string
+  eventType: string
+  freeText: string | null
+  occurredAt: Date
+  loggedAt: Date
+  author: {
+    id: string
+    name: string | null
+  }
+  scopes: {
+    code: string
+    label: string
+  }[]
+  isBackdated: boolean
+}
+
+export async function getEventsForCase(
+  caseId: string,
+  options?: {
+    limit?: number
+    beforeDate?: Date
+  }
+): Promise<EventWithScopes[]> {
+  const { error } = await verifyAccess(caseId)
+  if (error) return []
+
+  const events = await prisma.event.findMany({
+    where: {
+      caseId,
+      deletedAt: null,
+      ...(options?.beforeDate && {
+        occurredAt: { lt: options.beforeDate },
+      }),
+    },
+    include: {
+      author: {
+        select: { id: true, name: true },
+      },
+      scopes: {
+        include: {
+          scope: true,
+        },
+      },
+    },
+    orderBy: { occurredAt: 'desc' },
+    take: options?.limit || 50,
+  })
+
+  return events.map((event) => {
+    // Event is backdated if logged more than 5 minutes after occurrence
+    const timeDiff = event.loggedAt.getTime() - event.occurredAt.getTime()
+    const isBackdated = timeDiff > 5 * 60 * 1000
+
+    return {
+      id: event.id,
+      eventType: event.eventType,
+      freeText: event.freeText,
+      occurredAt: event.occurredAt,
+      loggedAt: event.loggedAt,
+      author: event.author,
+      scopes: event.scopes.map((es) => ({
+        code: es.scope.code,
+        label: es.scope.label,
+      })),
+      isBackdated,
+    }
+  })
+}
+
+export async function getTodayEvents(caseId: string): Promise<EventWithScopes[]> {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const { error } = await verifyAccess(caseId)
+  if (error) return []
+
+  const events = await prisma.event.findMany({
+    where: {
+      caseId,
+      deletedAt: null,
+      occurredAt: { gte: today },
+    },
+    include: {
+      author: {
+        select: { id: true, name: true },
+      },
+      scopes: {
+        include: {
+          scope: true,
+        },
+      },
+    },
+    orderBy: { occurredAt: 'desc' },
+  })
+
+  return events.map((event) => {
+    const timeDiff = event.loggedAt.getTime() - event.occurredAt.getTime()
+    const isBackdated = timeDiff > 5 * 60 * 1000
+
+    return {
+      id: event.id,
+      eventType: event.eventType,
+      freeText: event.freeText,
+      occurredAt: event.occurredAt,
+      loggedAt: event.loggedAt,
+      author: event.author,
+      scopes: event.scopes.map((es) => ({
+        code: es.scope.code,
+        label: es.scope.label,
+      })),
+      isBackdated,
+    }
+  })
+}
+
+// Get all scopes for the scope picker
+export async function getAllScopes() {
+  return prisma.scope.findMany({
+    orderBy: { code: 'asc' },
+  })
+}

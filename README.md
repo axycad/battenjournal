@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Batten Journal
 
-## Getting Started
+A healthcare tracking application for families affected by Batten disease (NCL). Built to help parents and clinicians collaborate on care documentation.
 
-First, run the development server:
+## Features
+
+- **Event Logging**: Track seizures, sleep, feeding, medications, and daily observations
+- **Scope-Based Sharing**: Control what clinicians can see based on their specialty
+- **Medication Tracking**: Log scheduled and PRN medication administration
+- **Care Team Messaging**: Threaded discussions between family and clinicians
+- **Offline Support**: PWA with IndexedDB for offline event logging
+- **Data Export**: JSON/CSV export with audit trails
+- **Emergency Card**: Quick-reference card with allergies, medications, contacts
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Database**: PostgreSQL with Prisma ORM
+- **Auth**: Auth.js v5 (credentials)
+- **Styling**: Tailwind CSS
+- **Offline**: Dexie (IndexedDB) + Service Worker
+- **Testing**: Jest + React Testing Library
+
+## Quick Start
 
 ```bash
+# Clone and install
+git clone <repo>
+cd batten-journal
+npm install
+
+# Configure environment
+cp .env.example .env.local
+# Edit .env.local with your database URL and secrets
+
+# Setup database
+npm run db:generate
+npm run db:push
+npm run db:seed
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:5000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo Accounts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Seed demo data with `SEED_DEMO=true npm run db:seed`:
 
-## Learn More
+| Role | Email | Password |
+|------|-------|----------|
+| Parent | demo@battenjournal.com | demodemo123 |
+| Partner | partner@battenjournal.com | demodemo123 |
+| Clinician | doctor@battenjournal.com | demodemo123 |
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm test` | Run tests |
+| `npm run test:coverage` | Run tests with coverage |
+| `npm run db:generate` | Generate Prisma client |
+| `npm run db:push` | Push schema to database |
+| `npm run db:seed` | Seed scopes (and demo data if SEED_DEMO=true) |
+| `npm run db:studio` | Open Prisma Studio |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (app)/             # Authenticated routes
+│   │   ├── case/[caseId]/ # Case-specific pages
+│   │   ├── dashboard/     # Main dashboard
+│   │   ├── notifications/ # Notification center
+│   │   └── settings/      # User settings
+│   ├── (auth)/            # Login/register
+│   ├── api/               # API routes
+│   └── ...
+├── actions/               # Server actions
+├── components/            # React components
+│   ├── medications/       # Medication tracking
+│   ├── messaging/         # Care team messaging
+│   ├── notifications/     # Notification badges
+│   ├── offline/           # Offline UI components
+│   └── ui/                # Base UI components
+└── lib/                   # Utilities
+    ├── offline/           # IndexedDB + sync
+    └── ...
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Deployment Guide](./DEPLOYMENT.md)
+
+## License
+
+Private - Anisia's Hope Foundation
+
+## Contributing
+
+This project is developed for Anisia's Hope - Fighting Batten Disease. Contact the maintainers for contribution guidelines.

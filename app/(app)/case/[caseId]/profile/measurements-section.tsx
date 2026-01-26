@@ -1,0 +1,211 @@
+'use client'
+
+import { useState } from 'react'
+import { Button, Input } from '@/components/ui'
+import { addMeasurement } from '@/actions/profile'
+import { formatDate } from '@/lib/utils'
+import type { PatientProfile } from '@prisma/client'
+
+interface MeasurementsSectionProps {
+  caseId: string
+  profile: PatientProfile | null
+  canEdit: boolean
+}
+
+export function MeasurementsSection({
+  caseId,
+  profile,
+  canEdit,
+}: MeasurementsSectionProps) {
+  const [addingWeight, setAddingWeight] = useState(false)
+  const [addingHeight, setAddingHeight] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const [weight, setWeight] = useState('')
+  const [height, setHeight] = useState('')
+
+  async function handleSaveWeight() {
+    if (!weight) return
+    setSaving(true)
+    setError('')
+
+    const result = await addMeasurement(caseId, {
+      type: 'WEIGHT',
+      value: parseFloat(weight),
+    })
+
+    if (!result.success) {
+      setError(result.error || 'Failed to save')
+    } else {
+      setAddingWeight(false)
+      setWeight('')
+    }
+    setSaving(false)
+  }
+
+  async function handleSaveHeight() {
+    if (!height) return
+    setSaving(true)
+    setError('')
+
+    const result = await addMeasurement(caseId, {
+      type: 'HEIGHT',
+      value: parseFloat(height),
+    })
+
+    if (!result.success) {
+      setError(result.error || 'Failed to save')
+    } else {
+      setAddingHeight(false)
+      setHeight('')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <section className="p-md bg-white border border-divider rounded-md">
+      <h2 className="section-header mb-md">Measurements</h2>
+
+      <div className="grid grid-cols-2 gap-md">
+        {/* Weight */}
+        <div>
+          <div className="flex items-center justify-between mb-xs">
+            <span className="text-text-secondary">Weight</span>
+            {canEdit && !addingWeight && (
+              <Button
+                variant="text"
+                onClick={() => setAddingWeight(true)}
+                className="h-auto px-0 text-meta"
+              >
+                Update
+              </Button>
+            )}
+          </div>
+          {addingWeight ? (
+            <div className="space-y-xs">
+              <div className="flex gap-xs items-end">
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="0.0"
+                  className="w-24"
+                  autoFocus
+                />
+                <span className="text-text-secondary pb-3">kg</span>
+              </div>
+              <div className="flex gap-xs">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setAddingWeight(false)
+                    setWeight('')
+                    setError('')
+                  }}
+                  disabled={saving}
+                  className="h-auto py-1 px-sm text-meta"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveWeight}
+                  loading={saving}
+                  className="h-auto py-1 px-sm text-meta"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {profile?.weightKg ? (
+                <>
+                  <p className="text-title-md font-medium">{profile.weightKg} kg</p>
+                  {profile.weightMeasuredAt && (
+                    <p className="text-caption text-text-secondary">
+                      {formatDate(profile.weightMeasuredAt)}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-text-secondary">Not recorded</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Height */}
+        <div>
+          <div className="flex items-center justify-between mb-xs">
+            <span className="text-text-secondary">Height</span>
+            {canEdit && !addingHeight && (
+              <Button
+                variant="text"
+                onClick={() => setAddingHeight(true)}
+                className="h-auto px-0 text-meta"
+              >
+                Update
+              </Button>
+            )}
+          </div>
+          {addingHeight ? (
+            <div className="space-y-xs">
+              <div className="flex gap-xs items-end">
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  placeholder="0.0"
+                  className="w-24"
+                  autoFocus
+                />
+                <span className="text-text-secondary pb-3">cm</span>
+              </div>
+              <div className="flex gap-xs">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setAddingHeight(false)
+                    setHeight('')
+                    setError('')
+                  }}
+                  disabled={saving}
+                  className="h-auto py-1 px-sm text-meta"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveHeight}
+                  loading={saving}
+                  className="h-auto py-1 px-sm text-meta"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              {profile?.heightCm ? (
+                <>
+                  <p className="text-title-md font-medium">{profile.heightCm} cm</p>
+                  {profile.heightMeasuredAt && (
+                    <p className="text-caption text-text-secondary">
+                      {formatDate(profile.heightMeasuredAt)}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-text-secondary">Not recorded</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {error && <p className="mt-sm text-caption text-semantic-critical">{error}</p>}
+    </section>
+  )
+}
