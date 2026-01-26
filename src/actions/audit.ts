@@ -517,7 +517,7 @@ export async function recordPermissionChange(
       action,
       objectType,
       objectId,
-      metadata,
+      metadata: metadata as any,
     },
   })
 }
