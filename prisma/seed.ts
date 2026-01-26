@@ -183,12 +183,10 @@ async function seedDemoData() {
   })
 
   for (const scope of scopeRecords) {
-    const existingGrant = await prisma.permissionGrant.findUnique({
+    const existingGrant = await prisma.permissionGrant.findFirst({
       where: {
-        membershipId_scopeId: {
-          membershipId: clinicianMembership.id,
-          scopeId: scope.id,
-        },
+        membershipId: clinicianMembership.id,
+        scopeId: scope.id,
       },
     })
 
