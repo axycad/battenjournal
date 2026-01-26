@@ -303,7 +303,7 @@ export async function getRecentNotifications(limit = 20): Promise<NotificationIt
   const recentMessages = await prisma.message.findMany({
     where: {
       thread: {
-        caseId: { in: [...caseMap.keys()] },
+        caseId: { in: Array.from(caseMap.keys()) },
         deletedAt: null,
       },
       authorUserId: { not: userId },
