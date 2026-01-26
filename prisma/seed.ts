@@ -75,7 +75,6 @@ async function seedDemoData() {
       name: 'Dr. Emily Chen',
       passwordHash,
       role: 'CLINICIAN',
-      specialty: 'NEUROLOGY',
     },
   })
   console.log(`Created clinician: ${clinician.email}`)
@@ -424,3 +423,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
+
