@@ -160,7 +160,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
         select: { id: true, name: true, email: true },
       },
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { addedAt: 'asc' },
   })
 
   // Get all clinicians with their consent and permissions
