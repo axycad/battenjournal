@@ -133,7 +133,7 @@ export async function createEvent(
     if (scopeCodes.length > 0) {
       // Get scope IDs
       const scopes = await tx.scope.findMany({
-        where: { code: { in: scopeCodes } },
+        where: { code: { in: [...scopeCodes] } },
       })
 
       if (scopes.length > 0) {
@@ -456,3 +456,4 @@ export async function getAllScopes() {
     orderBy: { code: 'asc' },
   })
 }
+
