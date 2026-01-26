@@ -87,9 +87,6 @@ async function seedDemoData() {
       id: 'demo-case-001',
       childDisplayName: 'Emma',
       diseaseProfileVersion: 'CLN2',
-      legalName: 'Emma Demo',
-      dateOfBirth: new Date('2020-06-15'),
-      nhsNumber: '123 456 7890',
     },
   })
   console.log(`Created case: ${demoCase.childDisplayName}`)
