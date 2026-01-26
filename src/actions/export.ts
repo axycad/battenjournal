@@ -55,8 +55,8 @@ export interface ExportedEvent {
 
 export interface ExportedProfile {
   allergies: { substance: string; severity: string | null; reaction: string | null }[]
-  medications: { name: string; dose: string | null; frequency: string | null; isActive: boolean }[]
-  conditions: { name: string; diagnosedAt: string | null; status: string }[]
+  medications: { name: string; dose: string | null; schedule: string | null; active: boolean }[]
+  conditions: { name: string; notes: string | null }[]
   measurements: { type: string; value: string; unit: string; recordedAt: string }[]
 }
 
@@ -202,11 +202,11 @@ export async function createExport(
       }),
       prisma.medication.findMany({
         where: { caseId: options.caseId, deletedAt: null },
-        select: { name: true, dose: true, active: true },
+        select: { name: true, dose: true, schedule: true, active: true },
       }),
       prisma.condition.findMany({
         where: { caseId: options.caseId, deletedAt: null },
-        select: { name: true, diagnosedAt: true, status: true },
+        select: { name: true, notes: true },
       }),
       prisma.measurement.findMany({
         where: { caseId: options.caseId, deletedAt: null },
@@ -225,13 +225,12 @@ export async function createExport(
       medications: medications.map((m) => ({
         name: m.name,
         dose: m.dose,
-        frequency: m.frequency,
-        isActive: m.isActive,
+        schedule: m.schedule,
+        active: m.active,
       })),
       conditions: conditions.map((c) => ({
         name: c.name,
-        diagnosedAt: c.diagnosedAt?.toISOString() || null,
-        status: c.status,
+        notes: c.notes,
       })),
       measurements: measurements.map((m) => ({
         type: m.measurementType,

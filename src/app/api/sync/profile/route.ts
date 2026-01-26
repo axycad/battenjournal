@@ -52,11 +52,11 @@ export async function GET(request: NextRequest) {
     childDisplayName: caseData.childDisplayName,
     legalName: caseData.profile?.legalName,
     dateOfBirth: caseData.profile?.dateOfBirth,
-    nhsNumber: caseData.profile?.nhsNumber,
+    nationalId: caseData.profile?.nationalId,
     bloodType: caseData.profile?.bloodType,
     weightKg: caseData.profile?.weightKg,
     heightCm: caseData.profile?.heightCm,
-    emergencyInstructions: caseData.profile?.emergencyInstructions,
+    emergencyNotes: caseData.profile?.emergencyNotes,
     allergies: caseData.allergies.map((a) => ({
       id: a.id,
       substance: a.substance,
@@ -67,15 +67,12 @@ export async function GET(request: NextRequest) {
       id: m.id,
       name: m.name,
       dose: m.dose,
-      frequency: m.frequency,
+      schedule: m.schedule,
       route: m.route,
-      purpose: m.purpose,
-      prescribedBy: m.prescribedBy,
     })),
     conditions: caseData.conditions.map((c) => ({
       id: c.id,
       name: c.name,
-      diagnosedDate: c.diagnosedDate,
       notes: c.notes,
     })),
     careContacts: caseData.careContacts.map((c) => ({
@@ -85,10 +82,10 @@ export async function GET(request: NextRequest) {
       phone: c.phone,
       address: c.address,
     })),
-    baselineVision: caseData.profile?.baselineVision,
-    baselineMobility: caseData.profile?.baselineMobility,
-    baselineCommunication: caseData.profile?.baselineCommunication,
-    baselineFeeding: caseData.profile?.baselineFeeding,
+    visionStatus: caseData.profile?.visionStatus,
+    mobilityStatus: caseData.profile?.mobilityStatus,
+    communicationStatus: caseData.profile?.communicationStatus,
+    feedingStatus: caseData.profile?.feedingStatus,
     communicationNotes: caseData.careIntent?.communicationNotes,
     keyEquipment: caseData.careIntent?.keyEquipment,
     updatedAt: caseData.profile?.updatedAt || caseData.createdAt,
@@ -156,15 +153,15 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Conflict detected',
-          serverVersion: {
-            caseId: fullCase?.id,
-            childDisplayName: fullCase?.childDisplayName,
-            weightKg: fullCase?.profile?.weightKg,
-            heightCm: fullCase?.profile?.heightCm,
-            emergencyInstructions: fullCase?.profile?.emergencyInstructions,
-            updatedAt: existing.updatedAt,
+            serverVersion: {
+              caseId: fullCase?.id,
+              childDisplayName: fullCase?.childDisplayName,
+              weightKg: fullCase?.profile?.weightKg,
+              heightCm: fullCase?.profile?.heightCm,
+              emergencyNotes: fullCase?.profile?.emergencyNotes,
+              updatedAt: existing.updatedAt,
+            },
           },
-        },
         { status: 409 }
       )
     }
@@ -174,7 +171,7 @@ export async function PUT(request: NextRequest) {
   const allowedFields = [
     'weightKg',
     'heightCm',
-    'emergencyInstructions',
+    'emergencyNotes',
     'communicationNotes',
     'keyEquipment',
   ]
@@ -204,18 +201,23 @@ export async function PUT(request: NextRequest) {
     if (Object.keys(intentUpdates).length > 0) {
       await tx.careIntent.upsert({
         where: { caseId },
-        create: { caseId, ...intentUpdates },
+        create: {
+          caseId,
+          updatedByUserId: session.user.id,
+          ...intentUpdates,
+        },
         update: intentUpdates,
       })
     }
 
     await tx.auditEntry.create({
       data: {
+        caseId,
         actorUserId: session.user.id,
         action: 'EDIT',
         objectType: 'PatientProfile',
         objectId: caseId,
-        metadata: { source: 'offline_sync', fields: Object.keys(updates) },
+        metadata: { source: 'offline_sync', fields: Object.keys(updates) } as any,
       },
     })
   })

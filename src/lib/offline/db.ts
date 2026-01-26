@@ -31,11 +31,11 @@ export interface CachedProfile {
   childDisplayName: string
   legalName?: string
   dateOfBirth?: Date
-  nhsNumber?: string
+  nationalId?: string
   bloodType?: string
   weightKg?: number
   heightCm?: number
-  emergencyInstructions?: string
+  emergencyNotes?: string
   allergies: {
     id: string
     substance: string
@@ -46,15 +46,12 @@ export interface CachedProfile {
     id: string
     name: string
     dose?: string
-    frequency?: string
+    schedule?: string
     route?: string
-    purpose?: string
-    prescribedBy?: string
   }[]
   conditions: {
     id: string
     name: string
-    diagnosedDate?: Date
     notes?: string
   }[]
   careContacts: {
@@ -64,10 +61,10 @@ export interface CachedProfile {
     phone?: string
     address?: string
   }[]
-  baselineVision?: string
-  baselineMobility?: string
-  baselineCommunication?: string
-  baselineFeeding?: string
+  visionStatus?: string
+  mobilityStatus?: string
+  communicationStatus?: string
+  feedingStatus?: string
   communicationNotes?: string
   keyEquipment?: string
   cachedAt: Date

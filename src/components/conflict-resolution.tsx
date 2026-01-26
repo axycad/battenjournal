@@ -20,10 +20,10 @@ export function ConflictResolution({ conflict, onResolved }: ConflictResolutionP
   const isEvent = conflict.entityType === 'event'
   const localText = isEvent
     ? (conflict.localVersion.freeText as string) || ''
-    : (conflict.localVersion.emergencyInstructions as string) || ''
+    : (conflict.localVersion.emergencyNotes as string) || ''
   const serverText = isEvent
     ? (conflict.serverVersion.freeText as string) || ''
-    : (conflict.serverVersion.emergencyInstructions as string) || ''
+    : (conflict.serverVersion.emergencyNotes as string) || ''
 
   function selectResolution(r: 'local' | 'server' | 'merged') {
     setResolution(r)
@@ -49,10 +49,10 @@ export function ConflictResolution({ conflict, onResolved }: ConflictResolutionP
             freeText: mergedText,
           }
         } else {
-          mergedData = {
-            ...conflict.localVersion,
-            emergencyInstructions: mergedText,
-          }
+        mergedData = {
+          ...conflict.localVersion,
+          emergencyNotes: mergedText,
+        }
         }
       }
 
