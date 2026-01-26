@@ -318,7 +318,7 @@ export async function getRecentNotifications(limit = 20): Promise<NotificationIt
   })
 
   // Get read timestamps for these threads
-  const threadIds = [...new Set(recentMessages.map((m) => m.threadId))]
+  const threadIds = Array.from(new Set(recentMessages.map((m) => m.threadId)))
   const reads = await prisma.threadRead.findMany({
     where: { threadId: { in: threadIds }, userId },
     select: { threadId: true, lastReadAt: true },

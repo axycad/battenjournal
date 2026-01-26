@@ -245,7 +245,7 @@ export async function getThreadsForCase(
     },
   })
 
-  const userIds = [...new Set(participantsByThread.map((p) => p.authorUserId))]
+  const userIds = Array.from(new Set(participantsByThread.map((p) => p.authorUserId)))
   const users = await prisma.user.findMany({
     where: { id: { in: userIds } },
     select: { id: true, name: true },
@@ -343,7 +343,7 @@ export async function getThread(
   if (error) return null
 
   // Get membership info for authors
-  const authorIds = [...new Set(thread.messages.map((m) => m.authorUserId))]
+  const authorIds = Array.from(new Set(thread.messages.map((m) => m.authorUserId)))
   const memberships = await prisma.membership.findMany({
     where: {
       caseId: thread.caseId,

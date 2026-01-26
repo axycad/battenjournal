@@ -458,7 +458,7 @@ export async function pauseClinicianAccess(
     include: { consent: true },
   })
 
-  const consentIds = [...new Set(grants.map((g) => g.consent.id))]
+  const consentIds = Array.from(new Set(grants.map((g) => g.consent.id)))
 
   await prisma.$transaction(async (tx) => {
     // Pause all related consents
@@ -512,7 +512,7 @@ export async function resumeClinicianAccess(
     include: { consent: true },
   })
 
-  const consentIds = [...new Set(grants.map((g) => g.consent.id))]
+  const consentIds = Array.from(new Set(grants.map((g) => g.consent.id)))
 
   await prisma.$transaction(async (tx) => {
     await tx.consent.updateMany({
@@ -574,7 +574,7 @@ export async function revokeClinicianAccess(
       include: { consent: true },
     })
 
-    const consentIds = [...new Set(grants.map((g) => g.consent.id))]
+    const consentIds = Array.from(new Set(grants.map((g) => g.consent.id)))
 
     await tx.consent.updateMany({
       where: { id: { in: consentIds } },
