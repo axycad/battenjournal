@@ -6,17 +6,17 @@ const prisma = new PrismaClient()
 async function main() {
   // Seed scopes (always run)
   const scopes = [
-    { id: 'seizures', name: 'Seizures', description: 'Seizure events and triggers' },
-    { id: 'skin_wounds', name: 'Skin & Wounds', description: 'Skin conditions and wound care' },
-    { id: 'infection', name: 'Infection Signs', description: 'Temperature, illness symptoms' },
-    { id: 'meds', name: 'Medications', description: 'Medication administration' },
-    { id: 'feeding', name: 'Feeding & Nutrition', description: 'Feeding, hydration, weight' },
-    { id: 'sleep', name: 'Sleep', description: 'Sleep patterns and quality' },
-    { id: 'mobility', name: 'Mobility & Physio', description: 'Movement, positioning, therapy' },
-    { id: 'vision_comm', name: 'Vision & Communication', description: 'Visual response, communication' },
-    { id: 'comfort', name: 'Comfort & Wellbeing', description: 'Pain, mood, comfort measures' },
-    { id: 'care_admin', name: 'Care Admin', description: 'Appointments, contacts, admin' },
-    { id: 'other', name: 'Other', description: 'General observations' },
+    { id: 'seizures', code: 'seizures', label: 'Seizures' },
+    { id: 'skin_wounds', code: 'skin_wounds', label: 'Skin & Wounds' },
+    { id: 'infection', code: 'infection', label: 'Infection Signs' },
+    { id: 'meds', code: 'meds', label: 'Medications' },
+    { id: 'feeding', code: 'feeding', label: 'Feeding & Nutrition' },
+    { id: 'sleep', code: 'sleep', label: 'Sleep' },
+    { id: 'mobility', code: 'mobility', label: 'Mobility & Physio' },
+    { id: 'vision_comm', code: 'vision_comm', label: 'Vision & Communication' },
+    { id: 'comfort', code: 'comfort', label: 'Comfort & Wellbeing' },
+    { id: 'care_admin', code: 'care_admin', label: 'Care Admin' },
+    { id: 'other', code: 'other', label: 'Other' },
   ]
 
   for (const scope of scopes) {
