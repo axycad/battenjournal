@@ -277,7 +277,7 @@ export async function getAuditLog(
   ])
 
   // Get membership info for actors
-  const actorIds = [...new Set(entries.map((e) => e.actorUserId))]
+  const actorIds = Array.from(new Set(entries.map((e) => e.actorUserId)))
   const memberships = await prisma.membership.findMany({
     where: {
       caseId,
