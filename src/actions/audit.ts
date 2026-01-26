@@ -410,7 +410,7 @@ export async function getDocumentAccessLog(
   })
 
   // Get membership info to filter by clinicians if needed
-  const actorIds = [...new Set(entries.map((e) => e.actorUserId))]
+  const actorIds = Array.from(new Set(entries.map((e) => e.actorUserId)))
   const memberships = await prisma.membership.findMany({
     where: {
       caseId,
