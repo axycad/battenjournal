@@ -4,16 +4,8 @@
   "regions": ["lhr1"],
   "crons": [
     {
-      "path": "/api/cron/digest?frequency=IMMEDIATE",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/cron/digest?frequency=DAILY",
       "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/digest?frequency=WEEKLY",
-      "schedule": "0 8 * * 1"
     }
   ]
 }
