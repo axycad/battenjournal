@@ -426,6 +426,7 @@ export async function getTodayEvents(caseId: string): Promise<EventWithScopes[]>
           scope: true,
         },
       },
+      mediaItems: true,
     },
     orderBy: { occurredAt: 'desc' },
   })
