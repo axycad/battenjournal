@@ -232,7 +232,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
       name: m.user.name,
       email: m.user.email,
       role: m.familyRole || 'VIEWER',
-      joinedAt: m.createdAt,
+      joinedAt: m.addedAt,
     })),
   }
 }
@@ -521,4 +521,5 @@ export async function recordPermissionChange(
     },
   })
 }
+
 
