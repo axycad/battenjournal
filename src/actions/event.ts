@@ -446,6 +446,11 @@ export async function getTodayEvents(caseId: string): Promise<EventWithScopes[]>
         code: es.scope.code,
         label: es.scope.label,
       })),
+      mediaItems: event.mediaItems.map((m) => ({
+        id: m.id,
+        mimeType: m.mimeType,
+        url: `/api/files/${m.storagePath}`,
+      })),
       isBackdated,
     }
   })
