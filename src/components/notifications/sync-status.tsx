@@ -45,7 +45,8 @@ export function SyncStatusIndicator() {
     async function checkSyncStatus() {
       try {
         // Dynamic import to avoid SSR issues
-        const { db } = await import('@/lib/offline/db')
+        const { getOfflineDb } = await import('@/lib/offline/db')
+        const db = getOfflineDb()
 
         const pending = await db.outbox
           .where('syncStatus')
