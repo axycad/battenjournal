@@ -20,7 +20,8 @@ export interface StorageResult {
 }
 
 // Configuration
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads'
+const UPLOAD_DIR =
+  process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/uploads' : './uploads')
 const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
 
 const ALLOWED_MIME_TYPES = [

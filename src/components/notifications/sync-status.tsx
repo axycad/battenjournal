@@ -59,8 +59,7 @@ export function SyncStatusIndicator() {
           .count()
 
         const conflicts = await db.conflicts
-          .where('resolvedAt')
-          .equals(null as unknown as Date)
+          .filter((c) => !c.resolvedAt)
           .count()
 
         setStatus((prev) => ({
@@ -245,8 +244,7 @@ export function ConflictBanner() {
         const { getOfflineDb } = await import('@/lib/offline/db')
         const db = getOfflineDb()
         const count = await db.conflicts
-          .where('resolvedAt')
-          .equals(null as unknown as Date)
+          .filter((c) => !c.resolvedAt)
           .count()
         setConflictCount(count)
       } catch {
