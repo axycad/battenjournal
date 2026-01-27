@@ -14,6 +14,18 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 })
 
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email('Invalid email address'),
+})
+
+export const passwordResetSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(100),
+})
+
 export const createCaseSchema = z.object({
   childDisplayName: z
     .string()
@@ -30,5 +42,7 @@ export const inviteSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>
+export type PasswordResetInput = z.infer<typeof passwordResetSchema>
 export type CreateCaseInput = z.infer<typeof createCaseSchema>
 export type InviteInput = z.infer<typeof inviteSchema>

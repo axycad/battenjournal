@@ -62,12 +62,6 @@ export default async function MessagesPage({ params, searchParams }: MessagesPag
             caseId={caseId}
             anchorType="case"
             anchorId={caseId}
-            onCreated={(threadId) => {
-              // Will redirect via router in component
-            }}
-            onCancel={() => {
-              // Navigate back without ?new
-            }}
           />
           <Link
             href={`/case/${caseId}/messages`}

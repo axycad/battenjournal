@@ -8,6 +8,7 @@ A healthcare tracking application for families affected by Batten disease (NCL).
 - **Scope-Based Sharing**: Control what clinicians can see based on their specialty
 - **Medication Tracking**: Log scheduled and PRN medication administration
 - **Care Team Messaging**: Threaded discussions between family and clinicians
+- **Password Reset**: Email-based reset flow for account recovery
 - **Offline Support**: PWA with IndexedDB for offline event logging
 - **Data Export**: JSON/CSV export with audit trails
 - **Emergency Card**: Quick-reference card with allergies, medications, contacts
@@ -32,6 +33,7 @@ npm install
 # Configure environment
 cp .env.example .env.local
 # Edit .env.local with your database URL and secrets
+# SMTP settings are required for password reset emails
 
 # Setup database
 npm run db:generate

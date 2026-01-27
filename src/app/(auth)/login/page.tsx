@@ -63,6 +63,14 @@ export default function LoginPage() {
           required
           autoComplete="current-password"
         />
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="text-meta text-accent-primary hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         {error && (
           <p className="text-caption text-semantic-critical">{error}</p>
