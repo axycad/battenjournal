@@ -32,6 +32,8 @@ model User {
   accounts Account[]
   sessions Session[]
   passwordResetTokens PasswordResetToken[]
+  threadParticipants ThreadParticipant[]
+  threadsCreated     Thread[] @relation("ThreadCreator")
 
   // Application relations
   memberships             Membership[]
@@ -653,12 +655,15 @@ model Thread {
   anchorType AnchorType
   anchorId   String     // caseId for CASE threads, eventId for EVENT threads
   subject    String?    // Optional subject line for case threads
+  createdById String?    // Who started the thread
   createdAt  DateTime   @default(now())
   deletedAt  DateTime?
 
-  case        Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  case        Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy   User?               @relation("ThreadCreator", fields: [createdById], references: [id])
   messages    Message[]
   threadReads ThreadRead[]
+  participants ThreadParticipant[]
 
   @@index([caseId])
   @@index([anchorType, anchorId])
@@ -697,6 +702,19 @@ model ThreadRead {
   threadId   String
   userId     String
   lastReadAt DateTime @default(now())
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId])
+  @@index([userId])
+}
+
+model ThreadParticipant {
+  id        String   @id @default(cuid())
+  threadId  String
+  userId    String
+  addedAt   DateTime @default(now())
 
   thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
