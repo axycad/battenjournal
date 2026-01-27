@@ -350,11 +350,11 @@ export async function getThread(
       userId: { in: authorIds },
       deletedAt: null,
     },
-    select: { userId: true, memberType: true, specialty: true },
+    select: { userId: true, memberType: true },
   })
 
   const membershipMap = new Map(
-    memberships.map((m) => [m.userId, { memberType: m.memberType, specialty: m.specialty }])
+    memberships.map((m) => [m.userId, { memberType: m.memberType }])
   )
 
   const messages: MessageWithAuthor[] = thread.messages.map((m) => ({
@@ -363,11 +363,11 @@ export async function getThread(
     messageType: m.messageType,
     content: m.content,
     createdAt: m.createdAt,
-    author: {
-      id: m.author.id,
-      name: m.author.name,
-      memberType: membershipMap.get(m.authorUserId)?.memberType || null,
-      specialty: membershipMap.get(m.authorUserId)?.specialty || null,
+      author: {
+        id: m.author.id,
+        name: m.author.name,
+        memberType: membershipMap.get(m.authorUserId)?.memberType || null,
+        specialty: null,
     },
     document: m.document,
   }))
