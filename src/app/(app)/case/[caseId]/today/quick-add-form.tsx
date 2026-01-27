@@ -97,7 +97,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
         // Offline: save locally
         const scopesToUse = expanded
           ? selectedScopes
-          : EVENT_TYPES[eventType].defaultScopes
+          : [...EVENT_TYPES[eventType].defaultScopes]
 
         await createEventOffline({
           caseId,
