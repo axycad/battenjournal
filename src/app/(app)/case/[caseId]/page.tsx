@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getCase } from '@/actions/case'
-import { getEventsForCase, EVENT_TYPES } from '@/actions/event'
+import { getEventsForCase } from '@/actions/event'
+import { EVENT_TYPES } from '@/lib/event-types'
 import { Button } from '@/components/ui'
 
 interface CasePageProps {

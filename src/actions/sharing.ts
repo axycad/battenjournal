@@ -4,55 +4,13 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { nanoid } from 'nanoid'
 import { revalidatePath } from 'next/cache'
+import { SPECIALTIES, type Specialty } from '@/lib/specialties'
 
 export type ActionResult<T = void> = {
   success: boolean
   error?: string
   data?: T
 }
-
-// Specialty definitions with default scope grants
-// From system diagram section 6.3
-export const SPECIALTIES = {
-  gp: {
-    label: 'GP / Primary Care',
-    defaultScopes: ['infection', 'meds', 'feeding', 'sleep', 'comfort', 'care_admin'],
-  },
-  neurology: {
-    label: 'Neurology',
-    defaultScopes: ['seizures', 'meds', 'sleep', 'vision_comm', 'mobility', 'comfort'],
-  },
-  dermatology: {
-    label: 'Dermatology / Wound Care',
-    defaultScopes: ['skin_wounds', 'infection', 'meds', 'comfort'],
-  },
-  epilepsy_nurse: {
-    label: 'Epilepsy Nurse',
-    defaultScopes: ['seizures', 'meds', 'sleep', 'comfort'],
-  },
-  gastro: {
-    label: 'Gastro / Dietetics / SLT',
-    defaultScopes: ['feeding', 'infection', 'meds'],
-  },
-  physio: {
-    label: 'Physio / OT',
-    defaultScopes: ['mobility', 'comfort', 'care_admin'],
-  },
-  ophthalmology: {
-    label: 'Ophthalmology',
-    defaultScopes: ['vision_comm', 'mobility'],
-  },
-  palliative: {
-    label: 'Palliative Care',
-    defaultScopes: ['comfort', 'meds', 'feeding', 'sleep', 'care_admin'],
-  },
-  other: {
-    label: 'Other Specialist',
-    defaultScopes: ['care_admin'],
-  },
-} as const
-
-export type Specialty = keyof typeof SPECIALTIES
 
 const INVITE_EXPIRY_DAYS = 7
 

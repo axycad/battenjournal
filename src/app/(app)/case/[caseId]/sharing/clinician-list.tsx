@@ -7,9 +7,9 @@ import {
   pauseClinicianAccess,
   resumeClinicianAccess,
   revokeClinicianAccess,
-  SPECIALTIES,
   type ClinicianShare,
 } from '@/actions/sharing'
+import { SPECIALTIES } from '@/lib/specialties'
 import type { Scope } from '@prisma/client'
 
 interface ClinicianListProps {

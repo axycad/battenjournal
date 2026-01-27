@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button, Textarea, Input } from '@/components/ui'
-import { updateEvent, deleteEvent, EVENT_TYPES, type EventWithScopes } from '@/actions/event'
+import { updateEvent, deleteEvent, type EventWithScopes } from '@/actions/event'
+import { EVENT_TYPES } from '@/lib/event-types'
 import { deleteMediaItem } from '@/actions/document'
 import {
   getNotesForEvent,

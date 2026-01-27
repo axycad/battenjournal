@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui'
-import { acceptClinicianInvite, SPECIALTIES, type Specialty } from '@/actions/sharing'
+import { acceptClinicianInvite } from '@/actions/sharing'
+import { SPECIALTIES, type Specialty } from '@/lib/specialties'
 
 interface AcceptClinicianInviteProps {
   token: string
