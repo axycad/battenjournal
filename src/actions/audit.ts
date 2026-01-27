@@ -160,7 +160,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
         select: { id: true, name: true, email: true },
       },
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { addedAt: 'asc' },
   })
 
   // Get all clinicians with their consent and permissions
@@ -208,7 +208,7 @@ export async function getAccessSummary(caseId: string): Promise<AccessSummary | 
           userId,
           name: grant.membership.user.name,
           email: grant.membership.user.email,
-          specialty: grant.membership.specialty,
+          specialty: null,
           scopes: [],
           grantedAt: grant.createdAt,
         })
@@ -463,7 +463,7 @@ export async function getExportHistory(caseId: string): Promise<ExportHistoryEnt
         select: { id: true, name: true },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { addedAt: 'desc' },
   })
 
   return exports.map((e) => ({
@@ -521,3 +521,4 @@ export async function recordPermissionChange(
     },
   })
 }
+
