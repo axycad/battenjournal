@@ -255,7 +255,7 @@ export async function acceptClinicianInvite(
 
     // Get scope IDs for the specialty's default scopes
     const scopes = await tx.scope.findMany({
-      where: { code: { in: specialtyConfig.defaultScopes as string[] } },
+      where: { code: { in: [...specialtyConfig.defaultScopes] } },
     })
 
     // Create permission grants for each scope
