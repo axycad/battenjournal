@@ -1,14 +1,20 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
 import { SyncSettings } from './sync-settings'
 import { InstallPrompt } from '@/components/offline'
+import { AccountPhoto } from './account-photo'
 
 export default async function SettingsPage() {
   const session = await auth()
   if (!session) {
     redirect('/login')
   }
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { image: true, name: true, email: true },
+  })
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
@@ -27,13 +33,17 @@ export default async function SettingsPage() {
         <section className="p-md bg-white border border-divider rounded-md">
           <h2 className="section-header mb-md">Account</h2>
           <div className="space-y-sm">
+            <AccountPhoto
+              initialUrl={user?.image}
+              displayName={user?.name || user?.email || 'User'}
+            />
             <div>
               <p className="text-meta text-text-secondary">Email</p>
-              <p className="text-body">{session.user.email}</p>
+              <p className="text-body">{user?.email || session.user.email}</p>
             </div>
             <div>
               <p className="text-meta text-text-secondary">Name</p>
-              <p className="text-body">{session.user.name || 'Not set'}</p>
+              <p className="text-body">{user?.name || 'Not set'}</p>
             </div>
           </div>
         </section>
