@@ -1,4 +1,3 @@
-cat > src/lib/storage.ts << 'EOF'
 import { createHash } from 'crypto'
 import { put, del } from '@vercel/blob'
 import path from 'path'
@@ -142,4 +141,3 @@ export function isImage(mimeType: string): boolean {
 export function isPdf(mimeType: string): boolean {
   return mimeType === 'application/pdf'
 }
-EOF
