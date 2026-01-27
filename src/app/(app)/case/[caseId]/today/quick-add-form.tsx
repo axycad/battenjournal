@@ -10,6 +10,15 @@ import { useOffline } from '@/lib/offline/context'
 import { createEventOffline } from '@/lib/offline/sync'
 import type { Scope } from '@prisma/client'
 
+const QUICK_TYPES: EventType[] = [
+  'seizure',
+  'medication',
+  'feeding',
+  'sleep',
+  'comfort',
+  'general',
+]
+
 interface QuickAddFormProps {
   caseId: string
   scopes: Scope[]
@@ -24,6 +33,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
   const [selectedType, setSelectedType] = useState<EventType | null>(null)
   const [freeText, setFreeText] = useState('')
   const [expanded, setExpanded] = useState(false)
+  const [showAllTypes, setShowAllTypes] = useState(false)
   const [selectedScopes, setSelectedScopes] = useState<string[]>([])
   const [backdateTime, setBackdateTime] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
@@ -39,6 +49,12 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
     // Auto-submit "nothing new" immediately
     if (type === 'nothing_new') {
       handleSubmit(type)
+    }
+  }
+
+  function handleStartTyping() {
+    if (!selectedType) {
+      handleTypeSelect('general')
     }
   }
 
@@ -178,95 +194,125 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
     setError('')
   }
 
-  // Event type grid (when nothing selected)
-  if (!selectedType) {
-    return (
-      <div className="p-md bg-white border border-divider rounded-md">
-        <h2 className="text-meta text-text-secondary mb-sm">Log an observation</h2>
-        <div className="grid grid-cols-2 gap-xs">
-          {(Object.entries(EVENT_TYPES) as [EventType, typeof EVENT_TYPES[EventType]][]).map(
-            ([type, config]) => (
-              <button
-                key={type}
-                onClick={() => handleTypeSelect(type)}
-                disabled={saving}
-                className={`p-sm text-left border rounded-sm transition-colors ${
-                  type === 'nothing_new'
-                    ? 'border-divider text-text-secondary hover:border-accent-primary col-span-2'
-                    : 'border-divider hover:border-accent-primary'
-                }`}
-              >
-                <span className="text-body">{config.label}</span>
-              </button>
-            )
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // Quick capture form (type selected)
-  const typeConfig = EVENT_TYPES[selectedType]
+  const typeConfig = selectedType ? EVENT_TYPES[selectedType] : null
 
   return (
     <div className="p-md bg-white border border-divider rounded-md">
       <div className="flex items-center justify-between mb-sm">
-        <h2 className="section-header">{typeConfig.label}</h2>
-        <Button
-          variant="text"
-          onClick={handleCancel}
-          className="h-auto px-0 text-meta"
-        >
-          Cancel
-        </Button>
+        <div>
+          <h2 className="section-header">Quick add</h2>
+          <p className="text-meta text-text-secondary">
+            Choose a type, add a note, and save
+          </p>
+        </div>
+        {selectedType && (
+          <Button
+            variant="text"
+            onClick={handleCancel}
+            className="h-auto px-0 text-meta"
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
       <div className="space-y-sm">
+        <div className="flex flex-wrap gap-xs">
+          {QUICK_TYPES.map((type) => (
+            <button
+              key={type}
+              onClick={() => handleTypeSelect(type)}
+              disabled={saving}
+              className={`px-sm py-1 text-meta rounded-full border transition-colors ${
+                selectedType === type
+                  ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                  : 'border-divider text-text-secondary hover:border-accent-primary'
+              }`}
+            >
+              {EVENT_TYPES[type].label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowAllTypes((prev) => !prev)}
+            className="px-sm py-1 text-meta rounded-full border border-divider text-text-secondary hover:border-accent-primary"
+          >
+            {showAllTypes ? 'Less types' : 'More types'}
+          </button>
+        </div>
+
+        {showAllTypes && (
+          <div className="grid grid-cols-2 gap-xs">
+            {(Object.entries(EVENT_TYPES) as [EventType, typeof EVENT_TYPES[EventType]][])
+              .filter(([type]) => !QUICK_TYPES.includes(type))
+              .map(([type, config]) => (
+                <button
+                  key={type}
+                  onClick={() => handleTypeSelect(type)}
+                  disabled={saving}
+                  className={`p-sm text-left border rounded-sm transition-colors ${
+                    type === 'nothing_new'
+                      ? 'border-divider text-text-secondary hover:border-accent-primary col-span-2'
+                      : 'border-divider hover:border-accent-primary'
+                  }`}
+                >
+                  <span className="text-body">{config.label}</span>
+                </button>
+              ))}
+          </div>
+        )}
+
         {/* Main text input */}
         <Textarea
           value={freeText}
           onChange={(e) => setFreeText(e.target.value)}
-          placeholder="What happened? (optional)"
+          placeholder={
+            selectedType
+              ? `Add ${typeConfig?.label.toLowerCase()} details (optional)`
+              : 'Select a type or start typing (General note)'
+          }
           rows={2}
-          autoFocus
+          onFocus={handleStartTyping}
         />
 
         {/* Photo upload */}
-        <div>
-          <label className="block text-meta text-text-secondary mb-xs">
-            Add photo (optional)
-          </label>
-          {photo ? (
-            <div className="flex items-center gap-sm">
-              <span className="text-meta text-text-primary">
-                {photo.name}
-              </span>
-              <Button
-                variant="text"
-                onClick={removePhoto}
-                className="h-auto px-0 text-meta text-text-secondary"
-              >
-                Remove
-              </Button>
-            </div>
-          ) : (
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/heic,image/heif"
-              onChange={handlePhotoSelect}
-              className="block w-full text-body text-text-primary
-                file:mr-sm file:py-1 file:px-sm
-                file:rounded-sm file:border-0
-                file:text-meta file:font-medium
-                file:bg-accent-primary/10 file:text-accent-primary
-                hover:file:bg-accent-primary/20"
-            />
-          )}
-        </div>
+        {selectedType && (
+          <div>
+            <label className="block text-meta text-text-secondary mb-xs">
+              Add photo (optional)
+            </label>
+            {photo ? (
+              <div className="flex items-center gap-sm">
+                <span className="text-meta text-text-primary">
+                  {photo.name}
+                </span>
+                <Button
+                  variant="text"
+                  onClick={removePhoto}
+                  className="h-auto px-0 text-meta text-text-secondary"
+                >
+                  Remove
+                </Button>
+              </div>
+            ) : (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/heic,image/heif"
+                onChange={handlePhotoSelect}
+                className="block w-full text-body text-text-primary
+                  file:mr-sm file:py-1 file:px-sm
+                  file:rounded-sm file:border-0
+                  file:text-meta file:font-medium
+                  file:bg-accent-primary/10 file:text-accent-primary
+                  hover:file:bg-accent-primary/20"
+              />
+            )}
+          </div>
+        )}
 
         {/* Expand/collapse for additional options */}
-        {!expanded && (
+        {selectedType && !expanded && (
           <button
             type="button"
             onClick={() => setExpanded(true)}
@@ -277,7 +323,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
         )}
 
         {/* Expanded options */}
-        {expanded && (
+        {selectedType && expanded && (
           <div className="space-y-sm pt-sm border-t border-divider">
             {/* Backdate option */}
             <div>
@@ -323,7 +369,11 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
 
         {/* Submit */}
         <div className="flex gap-sm pt-xs">
-          <Button onClick={() => handleSubmit()} loading={saving}>
+          <Button
+            onClick={() => handleSubmit()}
+            loading={saving}
+            disabled={!selectedType || saving}
+          >
             Save
           </Button>
         </div>
