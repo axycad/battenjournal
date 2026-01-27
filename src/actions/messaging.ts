@@ -165,7 +165,6 @@ export async function getCaseDocuments(caseId: string): Promise<{
   id: string
   title: string
   mimeType: string
-  createdAt: Date
 }[]> {
   const { error } = await verifyCaseAccess(caseId)
   if (error) return []
@@ -179,9 +178,8 @@ export async function getCaseDocuments(caseId: string): Promise<{
       id: true,
       title: true,
       mimeType: true,
-      createdAt: true,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { uploadedAt: 'desc' },
     take: 50,
   })
 }

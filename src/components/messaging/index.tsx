@@ -258,7 +258,6 @@ export function DocumentPicker({ caseId, selectedId, onSelect }: DocumentPickerP
     id: string
     title: string
     mimeType: string
-    createdAt: Date
   }[]>([])
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
