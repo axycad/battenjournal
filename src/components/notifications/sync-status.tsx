@@ -190,7 +190,8 @@ export function SyncFailedBanner() {
 
     async function checkFailed() {
       try {
-        const { db } = await import('@/lib/offline/db')
+        const { getOfflineDb } = await import('@/lib/offline/db')
+        const db = getOfflineDb()
         const count = await db.outbox
           .where('syncStatus')
           .equals('failed')
