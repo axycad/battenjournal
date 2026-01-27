@@ -242,7 +242,8 @@ export function ConflictBanner() {
 
     async function checkConflicts() {
       try {
-        const { db } = await import('@/lib/offline/db')
+        const { getOfflineDb } = await import('@/lib/offline/db')
+        const db = getOfflineDb()
         const count = await db.conflicts
           .where('resolvedAt')
           .equals(null as unknown as Date)
