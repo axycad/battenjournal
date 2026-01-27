@@ -90,6 +90,7 @@ class VercelBlobStorageService implements StorageService {
     const blob = await put(storagePath, file, {
       access: 'public',
       contentType: mimeType,
+      allowOverwrite: true,
     })
 
     // Store the URL mapping
