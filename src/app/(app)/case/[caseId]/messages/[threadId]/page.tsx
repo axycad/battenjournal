@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { getCase } from '@/actions/case'
-import { getThread } from '@/actions/messaging'
+import { getThreadWithMessages } from '@/actions/messaging'
 import { ThreadView } from '@/components/messaging'
 
 interface ThreadPageProps {
@@ -17,23 +17,19 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
     redirect('/login')
   }
 
-  const [caseData, threadData] = await Promise.all([
-    getCase(caseId),
-    getThread(threadId),
-  ])
+  const caseData = await getCase(caseId)
 
   if (!caseData) {
     notFound()
   }
 
-  if (!threadData) {
+  const data = await getThreadWithMessages(threadId)
+
+  if (!data) {
     notFound()
   }
 
-  // Verify thread belongs to case
-  if (threadData.thread.caseId !== caseId) {
-    notFound()
-  }
+  const { thread, messages } = data
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
@@ -42,17 +38,18 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
           href={`/case/${caseId}/messages`}
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          ← Back to messages
+          {'<-'} Back to Messages
         </Link>
       </div>
 
       <ThreadView
         threadId={threadId}
         caseId={caseId}
-        messages={threadData.messages}
+        messages={messages}
         currentUserId={session.user.id}
-        subject={threadData.thread.subject}
-        anchorType={threadData.thread.anchorType}
+        subject={thread.subject}
+        anchorType={thread.anchorType}
+        participants={thread.participants}
       />
     </div>
   )

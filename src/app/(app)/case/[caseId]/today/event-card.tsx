@@ -402,6 +402,7 @@ export function EventCard({
                 caseId={caseId}
                 eventId={event.id}
                 eventTitle={typeLabel}
+                currentUserId={currentUserId || ''}
               />
             </div>
           )}

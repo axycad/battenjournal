@@ -4,14 +4,18 @@ import { auth } from '@/lib/auth'
 import { getCase } from '@/actions/case'
 import { getThreadsForCase } from '@/actions/messaging'
 import { Button } from '@/components/ui'
-import { ThreadList, NewThreadForm } from '@/components/messaging'
+import { ThreadList } from '@/components/messaging'
+import { NewThreadFormWrapper } from './new-thread-wrapper'
 
 interface MessagesPageProps {
   params: Promise<{ caseId: string }>
   searchParams: Promise<{ new?: string }>
 }
 
-export default async function MessagesPage({ params, searchParams }: MessagesPageProps) {
+export default async function MessagesPage({
+  params,
+  searchParams,
+}: MessagesPageProps) {
   const { caseId } = await params
   const { new: showNew } = await searchParams
   const session = await auth()
@@ -27,7 +31,6 @@ export default async function MessagesPage({ params, searchParams }: MessagesPag
   }
 
   const threads = await getThreadsForCase(caseId)
-  const isParent = caseData.currentUserMemberType === 'PARENT'
 
   // Separate case and event threads
   const caseThreads = threads.filter((t) => t.anchorType === 'CASE')
@@ -40,11 +43,11 @@ export default async function MessagesPage({ params, searchParams }: MessagesPag
           href={`/case/${caseId}`}
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          ← Back to {caseData.childDisplayName}
+          {'<-'} Back to {caseData.childDisplayName}
         </Link>
         <div className="flex items-center justify-between mt-xs">
           <h1 className="screen-title">Messages</h1>
-          {isParent && !showNew && (
+          {!showNew && (
             <Link href={`/case/${caseId}/messages?new=1`}>
               <Button>New discussion</Button>
             </Link>
@@ -56,13 +59,9 @@ export default async function MessagesPage({ params, searchParams }: MessagesPag
       </div>
 
       {/* New thread form */}
-      {showNew && isParent && (
+      {showNew && (
         <div className="mb-lg">
-          <NewThreadForm
-            caseId={caseId}
-            anchorType="case"
-            anchorId={caseId}
-          />
+          <NewThreadFormWrapper caseId={caseId} currentUserId={session.user.id} />
           <Link
             href={`/case/${caseId}/messages`}
             className="inline-block mt-sm text-meta text-text-secondary hover:text-text-primary"
@@ -99,11 +98,9 @@ export default async function MessagesPage({ params, searchParams }: MessagesPag
           <p className="text-body text-text-secondary mb-md">
             No messages yet
           </p>
-          {isParent && (
-            <Link href={`/case/${caseId}/messages?new=1`}>
-              <Button>Start a discussion</Button>
-            </Link>
-          )}
+          <Link href={`/case/${caseId}/messages?new=1`}>
+            <Button>Start a discussion</Button>
+          </Link>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button, Textarea, Input } from '@/components/ui'
@@ -10,9 +10,12 @@ import {
   sendQuestionCard,
   answerQuestionCard,
   deleteMessage,
+  getCaseParticipants,
+  getCaseDocuments,
   type ThreadWithMessages,
   type MessageWithAuthor,
   type QuestionCardContent,
+  type CaseParticipant,
 } from '@/actions/messaging'
 import { formatDate } from '@/lib/utils'
 
@@ -23,7 +26,7 @@ import { formatDate } from '@/lib/utils'
 interface ThreadListProps {
   threads: ThreadWithMessages[]
   caseId: string
-  basePath: string // e.g., /case/[caseId]/messages
+  basePath: string
 }
 
 export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
@@ -47,7 +50,10 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-sm">
                 <span className="text-body font-medium truncate">
-                  {thread.subject || (thread.anchorType === 'EVENT' ? 'Event discussion' : 'General')}
+                  {thread.subject ||
+                    (thread.anchorType === 'EVENT'
+                      ? 'Event discussion'
+                      : 'General')}
                 </span>
                 {thread.unreadCount > 0 && (
                   <span className="px-xs py-0.5 text-caption bg-accent-primary text-white rounded-full">
@@ -56,6 +62,30 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
                 )}
               </div>
 
+              {thread.participants.length > 0 && (
+                <div className="flex items-center gap-xs mt-xs flex-wrap">
+                  {thread.participants.slice(0, 3).map((p) => (
+                    <span
+                      key={p.id}
+                      className={`px-xs py-0.5 text-caption rounded ${
+                        p.memberType === 'CARE_TEAM'
+                          ? 'bg-accent-primary/10 text-accent-primary'
+                          : p.memberType === 'RESEARCH_TEAM'
+                          ? 'bg-purple-100 text-purple-700'
+                          : 'bg-bg-primary text-text-secondary'
+                      }`}
+                    >
+                      {p.name || p.email.split('@')[0]}
+                    </span>
+                  ))}
+                  {thread.participants.length > 3 && (
+                    <span className="text-caption text-text-secondary">
+                      +{thread.participants.length - 3} more
+                    </span>
+                  )}
+                </div>
+              )}
+
               {thread.lastMessagePreview && (
                 <p className="text-meta text-text-secondary mt-xs truncate">
                   {thread.lastMessagePreview}
@@ -63,10 +93,13 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
               )}
 
               <div className="flex items-center gap-sm mt-xs text-caption text-text-secondary">
-                <span>{thread.messageCount} message{thread.messageCount !== 1 ? 's' : ''}</span>
+                <span>
+                  {thread.messageCount} message
+                  {thread.messageCount !== 1 ? 's' : ''}
+                </span>
                 {thread.lastMessageAt && (
                   <>
-                    <span>·</span>
+                    <span>-</span>
                     <span>{formatDate(thread.lastMessageAt)}</span>
                   </>
                 )}
@@ -86,6 +119,220 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
 }
 
 // ============================================================================
+// PARTICIPANT PICKER
+// ============================================================================
+
+interface ParticipantPickerProps {
+  caseId: string
+  selectedIds: string[]
+  onSelectionChange: (ids: string[]) => void
+  currentUserId: string
+}
+
+export function ParticipantPicker({
+  caseId,
+  selectedIds,
+  onSelectionChange,
+  currentUserId,
+}: ParticipantPickerProps) {
+  const [participants, setParticipants] = useState<CaseParticipant[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getCaseParticipants(caseId).then((data) => {
+      setParticipants(data.filter((p) => p.id !== currentUserId))
+      setLoading(false)
+    })
+  }, [caseId, currentUserId])
+
+  function toggleParticipant(userId: string) {
+    if (selectedIds.includes(userId)) {
+      onSelectionChange(selectedIds.filter((id) => id !== userId))
+    } else {
+      onSelectionChange([...selectedIds, userId])
+    }
+  }
+
+  if (loading) {
+    return <p className="text-meta text-text-secondary">Loading team...</p>
+  }
+
+  const careTeam = participants.filter((p) => p.memberType === 'CARE_TEAM')
+  const researchTeam = participants.filter((p) => p.memberType === 'RESEARCH_TEAM')
+  const family = participants.filter((p) => p.memberType === 'PARENT')
+
+  return (
+    <div className="space-y-sm">
+      <label className="block text-meta font-medium text-text-primary">
+        Share with
+      </label>
+
+      {careTeam.length > 0 && (
+        <div>
+          <p className="text-caption text-text-secondary mb-xs">Care Team</p>
+          <div className="flex flex-wrap gap-xs">
+            {careTeam.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => toggleParticipant(p.id)}
+                className={`px-sm py-1 text-meta rounded-full border transition-colors ${
+                  selectedIds.includes(p.id)
+                    ? 'bg-accent-primary text-white border-accent-primary'
+                    : 'bg-white text-text-primary border-divider hover:border-accent-primary'
+                }`}
+              >
+                {p.name || p.email.split('@')[0]}
+                {p.specialty && ` (${p.specialty})`}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {researchTeam.length > 0 && (
+        <div>
+          <p className="text-caption text-text-secondary mb-xs">Research Team</p>
+          <div className="flex flex-wrap gap-xs">
+            {researchTeam.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => toggleParticipant(p.id)}
+                className={`px-sm py-1 text-meta rounded-full border transition-colors ${
+                  selectedIds.includes(p.id)
+                    ? 'bg-purple-600 text-white border-purple-600'
+                    : 'bg-white text-text-primary border-divider hover:border-purple-600'
+                }`}
+              >
+                {p.name || p.email.split('@')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {family.length > 0 && (
+        <div>
+          <p className="text-caption text-text-secondary mb-xs">Family</p>
+          <div className="flex flex-wrap gap-xs">
+            {family.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => toggleParticipant(p.id)}
+                className={`px-sm py-1 text-meta rounded-full border transition-colors ${
+                  selectedIds.includes(p.id)
+                    ? 'bg-text-primary text-white border-text-primary'
+                    : 'bg-white text-text-primary border-divider hover:border-text-primary'
+                }`}
+              >
+                {p.name || p.email.split('@')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {participants.length === 0 && (
+        <p className="text-meta text-text-secondary italic">
+          No other team members to share with
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
+// DOCUMENT PICKER
+// ============================================================================
+
+interface DocumentPickerProps {
+  caseId: string
+  selectedId: string | null
+  onSelect: (id: string | null) => void
+}
+
+export function DocumentPicker({ caseId, selectedId, onSelect }: DocumentPickerProps) {
+  const [documents, setDocuments] = useState<{
+    id: string
+    title: string
+    mimeType: string
+    createdAt: Date
+  }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    getCaseDocuments(caseId).then((data) => {
+      setDocuments(data)
+      setLoading(false)
+    })
+  }, [caseId])
+
+  const selectedDoc = documents.find((d) => d.id === selectedId)
+
+  function getMimeLabel(mimeType: string) {
+    if (mimeType.startsWith('image/')) return '[IMG]'
+    if (mimeType === 'application/pdf') return '[PDF]'
+    return '[FILE]'
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-xs text-meta text-accent-primary hover:underline"
+      >
+        Attachment: {selectedDoc ? selectedDoc.title : 'None'}
+      </button>
+
+      {isOpen && (
+        <div className="absolute bottom-full left-0 mb-xs w-72 max-h-60 overflow-y-auto bg-white border border-divider rounded-md shadow-lg z-10">
+          {loading ? (
+            <p className="p-sm text-meta text-text-secondary">Loading...</p>
+          ) : documents.length === 0 ? (
+            <p className="p-sm text-meta text-text-secondary">No documents available</p>
+          ) : (
+            <>
+              {selectedId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelect(null)
+                    setIsOpen(false)
+                  }}
+                  className="w-full px-sm py-xs text-left text-meta text-semantic-critical hover:bg-bg-primary"
+                >
+                  Remove attachment
+                </button>
+              )}
+              {documents.map((doc) => (
+                <button
+                  key={doc.id}
+                  type="button"
+                  onClick={() => {
+                    onSelect(doc.id)
+                    setIsOpen(false)
+                  }}
+                  className={`w-full px-sm py-xs text-left hover:bg-bg-primary flex items-center gap-xs ${
+                    doc.id === selectedId ? 'bg-accent-primary/5' : ''
+                  }`}
+                >
+                  <span>{getMimeLabel(doc.mimeType)}</span>
+                  <span className="text-meta truncate flex-1">{doc.title}</span>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================================
 // NEW THREAD FORM
 // ============================================================================
 
@@ -94,6 +341,7 @@ interface NewThreadFormProps {
   anchorType: 'case' | 'event'
   anchorId: string
   eventTitle?: string
+  currentUserId: string
   onCreated?: (threadId: string) => void
   onCancel?: () => void
 }
@@ -103,18 +351,26 @@ export function NewThreadForm({
   anchorType,
   anchorId,
   eventTitle,
+  currentUserId,
   onCreated,
   onCancel,
 }: NewThreadFormProps) {
   const router = useRouter()
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
+  const [participantIds, setParticipantIds] = useState<string[]>([])
+  const [documentId, setDocumentId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   async function handleSubmit() {
     if (!message.trim()) {
       setError('Message is required')
+      return
+    }
+
+    if (participantIds.length === 0) {
+      setError('Please select at least one person to share with')
       return
     }
 
@@ -127,6 +383,8 @@ export function NewThreadForm({
       anchorId,
       subject: subject.trim() || undefined,
       initialMessage: message.trim(),
+      participantIds,
+      documentId: documentId || undefined,
     })
 
     if (!result.success) {
@@ -139,10 +397,19 @@ export function NewThreadForm({
   }
 
   return (
-    <div className="p-md bg-white border border-divider rounded-md space-y-sm">
+    <div className="p-md bg-white border border-divider rounded-md space-y-md">
       <h3 className="text-body font-medium">
-        {anchorType === 'event' ? `Discuss: ${eventTitle || 'Event'}` : 'New discussion'}
+        {anchorType === 'event'
+          ? `Discuss: ${eventTitle || 'Event'}`
+          : 'New discussion'}
       </h3>
+
+      <ParticipantPicker
+        caseId={caseId}
+        selectedIds={participantIds}
+        onSelectionChange={setParticipantIds}
+        currentUserId={currentUserId}
+      />
 
       {anchorType === 'case' && (
         <Input
@@ -157,8 +424,15 @@ export function NewThreadForm({
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Write your message..."
         rows={3}
-        autoFocus
       />
+
+      <div className="flex items-center justify-between">
+        <DocumentPicker
+          caseId={caseId}
+          selectedId={documentId}
+          onSelect={setDocumentId}
+        />
+      </div>
 
       {error && <p className="text-caption text-semantic-critical">{error}</p>}
 
@@ -186,13 +460,18 @@ interface MessageCardProps {
   onDeleted?: () => void
 }
 
-export function MessageCard({ message, currentUserId, onDeleted }: MessageCardProps) {
+export function MessageCard({
+  message,
+  currentUserId,
+  onDeleted,
+}: MessageCardProps) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const isOwn = message.author.id === currentUserId
   const isClinician = message.author.memberType === 'CARE_TEAM'
+  const isResearcher = message.author.memberType === 'RESEARCH_TEAM'
 
   async function handleDelete() {
     setSaving(true)
@@ -202,7 +481,6 @@ export function MessageCard({ message, currentUserId, onDeleted }: MessageCardPr
     onDeleted?.()
   }
 
-  // Question card handling
   if (message.messageType === 'QUESTION_CARD') {
     return (
       <QuestionCardMessage
@@ -213,7 +491,6 @@ export function MessageCard({ message, currentUserId, onDeleted }: MessageCardPr
     )
   }
 
-  // Answer styling
   if (message.messageType === 'ANSWER') {
     return (
       <div className="p-sm bg-semantic-success/5 border-l-2 border-semantic-success rounded-r-sm">
@@ -221,18 +498,19 @@ export function MessageCard({ message, currentUserId, onDeleted }: MessageCardPr
           <span className="text-caption text-semantic-success font-medium">Answer</span>
           <span className="text-caption text-text-secondary">
             {message.author.name || 'Unknown'}
-            {isClinician && message.author.specialty && ` · ${message.author.specialty}`}
+            {isClinician && message.author.specialty && ` - ${message.author.specialty}`}
           </span>
           <span className="text-caption text-text-secondary">
             {formatDate(message.createdAt)}
           </span>
         </div>
-        <p className="text-body text-text-primary whitespace-pre-wrap">{message.content}</p>
+        <p className="text-body text-text-primary whitespace-pre-wrap">
+          {message.content}
+        </p>
       </div>
     )
   }
 
-  // Delete confirmation
   if (deleting) {
     return (
       <div className="p-sm bg-bg-primary rounded-sm">
@@ -271,6 +549,11 @@ export function MessageCard({ message, currentUserId, onDeleted }: MessageCardPr
               {message.author.specialty || 'Clinician'}
             </span>
           )}
+          {isResearcher && (
+            <span className="px-xs py-0.5 text-caption bg-purple-100 text-purple-700 rounded">
+              Researcher
+            </span>
+          )}
           <span className="text-caption text-text-secondary">
             {formatDate(message.createdAt)}
           </span>
@@ -289,14 +572,20 @@ export function MessageCard({ message, currentUserId, onDeleted }: MessageCardPr
       <p className="text-body text-text-primary whitespace-pre-wrap">{message.content}</p>
 
       {message.document && (
-        <div className="mt-sm pt-sm border-t border-divider">
+        <div className="mt-sm p-sm bg-white border border-divider rounded flex items-center gap-sm">
+          <div className="flex-1 min-w-0">
+            <p className="text-meta font-medium truncate">{message.document.title}</p>
+            <p className="text-caption text-text-secondary">
+              {message.document.originalFilename}
+            </p>
+          </div>
           <a
-            href={`/api/files/${message.document.id}`}
+            href={`/api/files/${message.document.storagePath}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-xs text-meta text-accent-primary hover:underline"
+            className="text-meta text-accent-primary hover:underline"
           >
-            📎 {message.document.title}
+            View
           </a>
         </div>
       )}
@@ -308,27 +597,21 @@ export function MessageCard({ message, currentUserId, onDeleted }: MessageCardPr
 // QUESTION CARD MESSAGE
 // ============================================================================
 
-interface QuestionCardMessageProps {
-  message: MessageWithAuthor
-  currentUserId: string
-  onDeleted?: () => void
-}
-
-function QuestionCardMessage({ message, currentUserId, onDeleted }: QuestionCardMessageProps) {
+function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardProps) {
   const router = useRouter()
   const [answering, setAnswering] = useState(false)
   const [answer, setAnswer] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const isClinician = message.author.memberType === 'CARE_TEAM'
+
   let content: QuestionCardContent
   try {
     content = JSON.parse(message.content)
   } catch {
-    return <MessageCard message={message} currentUserId={currentUserId} onDeleted={onDeleted} />
+    content = { question: message.content }
   }
-
-  const isClinician = message.author.memberType === 'CARE_TEAM'
 
   async function handleAnswer() {
     if (!answer.trim()) {
@@ -363,7 +646,7 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: QuestionCard
         </span>
         <span className="text-meta">
           {message.author.name || 'Unknown'}
-          {isClinician && message.author.specialty && ` · ${message.author.specialty}`}
+          {isClinician && message.author.specialty && ` - ${message.author.specialty}`}
         </span>
         <span className="text-caption text-text-secondary">
           {formatDate(message.createdAt)}
@@ -437,6 +720,12 @@ interface ThreadViewProps {
   currentUserId: string
   subject?: string | null
   anchorType: 'CASE' | 'EVENT'
+  participants: {
+    id: string
+    name: string | null
+    email: string
+    memberType: string | null
+  }[]
 }
 
 export function ThreadView({
@@ -446,11 +735,13 @@ export function ThreadView({
   currentUserId,
   subject,
   anchorType,
+  participants,
 }: ThreadViewProps) {
   const router = useRouter()
   const [reply, setReply] = useState('')
   const [isQuestion, setIsQuestion] = useState(false)
   const [questionOptions, setQuestionOptions] = useState('')
+  const [documentId, setDocumentId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -480,6 +771,7 @@ export function ThreadView({
       result = await sendMessage({
         threadId,
         content: reply.trim(),
+        documentId: documentId || undefined,
       })
     }
 
@@ -489,6 +781,7 @@ export function ThreadView({
       setReply('')
       setIsQuestion(false)
       setQuestionOptions('')
+      setDocumentId(null)
       router.refresh()
     }
 
@@ -497,17 +790,34 @@ export function ThreadView({
 
   return (
     <div className="space-y-md">
-      {/* Thread header */}
       <div className="pb-sm border-b border-divider">
         <h2 className="text-title-md font-medium">
-          {subject || (anchorType === 'EVENT' ? 'Event discussion' : 'General discussion')}
+          {subject ||
+            (anchorType === 'EVENT' ? 'Event discussion' : 'General discussion')}
         </h2>
-        <p className="text-meta text-text-secondary">
-          {messages.length} message{messages.length !== 1 ? 's' : ''}
-        </p>
+        <div className="flex items-center gap-sm mt-xs flex-wrap">
+          <span className="text-meta text-text-secondary">
+            {messages.length} message{messages.length !== 1 ? 's' : ''}
+          </span>
+          <span className="text-text-secondary">-</span>
+          <span className="text-meta text-text-secondary">Participants:</span>
+          {participants.map((p) => (
+            <span
+              key={p.id}
+              className={`px-xs py-0.5 text-caption rounded ${
+                p.memberType === 'CARE_TEAM'
+                  ? 'bg-accent-primary/10 text-accent-primary'
+                  : p.memberType === 'RESEARCH_TEAM'
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'bg-bg-primary text-text-secondary'
+              }`}
+            >
+              {p.name || p.email.split('@')[0]}
+            </span>
+          ))}
+        </div>
       </div>
 
-      {/* Messages */}
       <div className="space-y-sm">
         {messages.map((message) => (
           <MessageCard
@@ -518,7 +828,6 @@ export function ThreadView({
         ))}
       </div>
 
-      {/* Reply form */}
       <div className="pt-md border-t border-divider space-y-sm">
         <div className="flex items-center gap-sm">
           <label className="flex items-center gap-xs text-meta text-text-secondary cursor-pointer">
@@ -553,6 +862,14 @@ export function ThreadView({
           </div>
         )}
 
+        {!isQuestion && (
+          <DocumentPicker
+            caseId={caseId}
+            selectedId={documentId}
+            onSelect={setDocumentId}
+          />
+        )}
+
         {error && <p className="text-caption text-semantic-critical">{error}</p>}
 
         <Button onClick={handleSend} loading={saving}>
@@ -572,6 +889,7 @@ interface StartEventThreadButtonProps {
   eventId: string
   eventTitle: string
   existingThreadId?: string
+  currentUserId: string
 }
 
 export function StartEventThreadButton({
@@ -579,6 +897,7 @@ export function StartEventThreadButton({
   eventId,
   eventTitle,
   existingThreadId,
+  currentUserId,
 }: StartEventThreadButtonProps) {
   const [showForm, setShowForm] = useState(false)
   const router = useRouter()
@@ -602,6 +921,7 @@ export function StartEventThreadButton({
           anchorType="event"
           anchorId={eventId}
           eventTitle={eventTitle}
+          currentUserId={currentUserId}
           onCreated={(threadId) => {
             router.push(`/case/${caseId}/messages/${threadId}`)
           }}

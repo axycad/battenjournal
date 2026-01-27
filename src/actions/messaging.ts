@@ -16,31 +16,36 @@ export type ActionResult<T = void> = {
 
 export interface ThreadWithMessages {
   id: string
-  caseId: string
+  subject: string | null
   anchorType: 'CASE' | 'EVENT'
   anchorId: string
-  subject: string | null
   createdAt: Date
   messageCount: number
+  unreadCount: number
   lastMessageAt: Date | null
   lastMessagePreview: string | null
-  unreadCount: number
   participants: {
     id: string
     name: string | null
-    memberType: string
+    email: string
+    role: string
+    memberType: string | null
   }[]
+  createdBy: {
+    id: string
+    name: string | null
+  } | null
 }
 
 export interface MessageWithAuthor {
   id: string
-  threadId: string
-  messageType: 'FREE_TEXT' | 'QUESTION_CARD' | 'ANSWER'
   content: string
+  messageType: 'FREE_TEXT' | 'QUESTION_CARD' | 'ANSWER'
   createdAt: Date
   author: {
     id: string
     name: string | null
+    email: string
     memberType: string | null
     specialty: string | null
   }
@@ -48,15 +53,25 @@ export interface MessageWithAuthor {
     id: string
     title: string
     mimeType: string
+    storagePath: string
+    originalFilename: string
   } | null
 }
 
 export interface QuestionCardContent {
   question: string
   options?: string[]
-  answered: boolean
-  answeredAt?: string
-  answeredBy?: string
+  answered?: boolean
+  answerId?: string
+}
+
+export interface CaseParticipant {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  memberType: string
+  specialty?: string | null
 }
 
 // ============================================================================
@@ -66,7 +81,7 @@ export interface QuestionCardContent {
 async function verifyCaseAccess(caseId: string) {
   const session = await auth()
   if (!session?.user?.id) {
-    return { error: 'Not authenticated', membership: null }
+    return { error: 'Not authenticated', membership: null, userId: null }
   }
 
   const membership = await prisma.membership.findFirst({
@@ -79,10 +94,9 @@ async function verifyCaseAccess(caseId: string) {
   })
 
   if (!membership) {
-    return { error: 'Access denied', membership: null }
+    return { error: 'Access denied', membership: null, userId: null }
   }
 
-  // For clinicians, check consent is active
   if (membership.memberType === 'CARE_TEAM') {
     const consent = await prisma.consent.findFirst({
       where: {
@@ -100,7 +114,7 @@ async function verifyCaseAccess(caseId: string) {
     })
 
     if (!consent) {
-      return { error: 'Clinical access paused or revoked', membership: null }
+      return { error: 'Clinical access paused or revoked', membership: null, userId: null }
     }
   }
 
@@ -108,27 +122,329 @@ async function verifyCaseAccess(caseId: string) {
 }
 
 // ============================================================================
-// THREADS
+// GET AVAILABLE PARTICIPANTS FOR A CASE
 // ============================================================================
 
-export async function createThread(input: {
+export async function getCaseParticipants(caseId: string): Promise<CaseParticipant[]> {
+  const { error } = await verifyCaseAccess(caseId)
+  if (error) return []
+
+  const memberships = await prisma.membership.findMany({
+    where: {
+      caseId,
+      revokedAt: null,
+      deletedAt: null,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
+  })
+
+  return memberships.map((m) => ({
+    id: m.user.id,
+    name: m.user.name,
+    email: m.user.email,
+    role: m.user.role,
+    memberType: m.memberType,
+    specialty: null,
+  }))
+}
+
+// ============================================================================
+// GET CASE DOCUMENTS FOR ATTACHMENT
+// ============================================================================
+
+export async function getCaseDocuments(caseId: string): Promise<{
+  id: string
+  title: string
+  mimeType: string
+  createdAt: Date
+}[]> {
+  const { error } = await verifyCaseAccess(caseId)
+  if (error) return []
+
+  return prisma.document.findMany({
+    where: {
+      caseId,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      title: true,
+      mimeType: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  })
+}
+
+// ============================================================================
+// GET THREADS FOR CASE
+// ============================================================================
+
+export async function getThreadsForCase(caseId: string): Promise<ThreadWithMessages[]> {
+  const { error, userId } = await verifyCaseAccess(caseId)
+  if (error || !userId) return []
+
+  const threads = await prisma.thread.findMany({
+    where: {
+      caseId,
+      deletedAt: null,
+      OR: [
+        { participants: { some: { userId } } },
+        { createdById: userId },
+        { participants: { none: {} } },
+      ],
+    },
+    include: {
+      createdBy: {
+        select: { id: true, name: true },
+      },
+      participants: {
+        include: {
+          user: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+        },
+      },
+      messages: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: {
+          content: true,
+          createdAt: true,
+        },
+      },
+      threadReads: {
+        where: { userId },
+        select: { lastReadAt: true },
+      },
+      _count: {
+        select: {
+          messages: { where: { deletedAt: null } },
+        },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  const participantIds = Array.from(
+    new Set(threads.flatMap((t) => t.participants.map((p) => p.userId)))
+  )
+  const membershipMap = new Map<string, string>()
+
+  if (participantIds.length > 0) {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        caseId,
+        userId: { in: participantIds },
+        revokedAt: null,
+        deletedAt: null,
+      },
+      select: { userId: true, memberType: true },
+    })
+    memberships.forEach((m) => membershipMap.set(m.userId, m.memberType))
+  }
+
+  return threads.map((thread) => {
+    const lastRead = thread.threadReads[0]?.lastReadAt
+    const lastMessage = thread.messages[0]
+
+    let unreadCount = 0
+    if (lastRead && lastMessage) {
+      unreadCount = lastMessage.createdAt > lastRead ? 1 : 0
+    } else if (!lastRead && thread._count.messages > 0) {
+      unreadCount = thread._count.messages
+    }
+
+    return {
+      id: thread.id,
+      subject: thread.subject,
+      anchorType: thread.anchorType,
+      anchorId: thread.anchorId,
+      createdAt: thread.createdAt,
+      messageCount: thread._count.messages,
+      unreadCount,
+      lastMessageAt: lastMessage?.createdAt || null,
+      lastMessagePreview: lastMessage?.content.slice(0, 100) || null,
+      participants: thread.participants.map((p) => ({
+        id: p.user.id,
+        name: p.user.name,
+        email: p.user.email,
+        role: p.user.role,
+        memberType: membershipMap.get(p.userId) || null,
+      })),
+      createdBy: thread.createdBy,
+    }
+  })
+}
+
+// ============================================================================
+// GET THREAD WITH MESSAGES
+// ============================================================================
+
+export async function getThreadWithMessages(threadId: string): Promise<{
+  thread: ThreadWithMessages
+  messages: MessageWithAuthor[]
+} | null> {
+  const session = await auth()
+  if (!session?.user?.id) return null
+
+  const thread = await prisma.thread.findFirst({
+    where: {
+      id: threadId,
+      deletedAt: null,
+      OR: [
+        { participants: { some: { userId: session.user.id } } },
+        { createdById: session.user.id },
+        { participants: { none: {} } },
+      ],
+    },
+    include: {
+      createdBy: {
+        select: { id: true, name: true },
+      },
+      participants: {
+        include: {
+          user: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+        },
+      },
+      messages: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'asc' },
+        include: {
+          author: {
+            select: { id: true, name: true, email: true, role: true },
+          },
+          document: {
+            select: {
+              id: true,
+              title: true,
+              mimeType: true,
+              storagePath: true,
+              originalFilename: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: { messages: { where: { deletedAt: null } } },
+      },
+    },
+  })
+
+  if (!thread) return null
+
+  const { error } = await verifyCaseAccess(thread.caseId)
+  if (error) return null
+
+  const authorIds = Array.from(new Set(thread.messages.map((m) => m.authorUserId)))
+  const membershipMap = new Map<string, string>()
+
+  if (authorIds.length > 0) {
+    const memberships = await prisma.membership.findMany({
+      where: {
+        caseId: thread.caseId,
+        userId: { in: authorIds },
+      },
+      select: { userId: true, memberType: true },
+    })
+    memberships.forEach((m) => membershipMap.set(m.userId, m.memberType))
+  }
+
+  await prisma.threadRead.upsert({
+    where: {
+      threadId_userId: { threadId, userId: session.user.id },
+    },
+    create: { threadId, userId: session.user.id },
+    update: { lastReadAt: new Date() },
+  })
+
+  const participantMembershipMap = new Map<string, string>()
+  const participantUserIds = thread.participants.map((p) => p.userId)
+  if (participantUserIds.length > 0) {
+    const pMemberships = await prisma.membership.findMany({
+      where: {
+        caseId: thread.caseId,
+        userId: { in: participantUserIds },
+      },
+      select: { userId: true, memberType: true },
+    })
+    pMemberships.forEach((m) => participantMembershipMap.set(m.userId, m.memberType))
+  }
+
+  return {
+    thread: {
+      id: thread.id,
+      subject: thread.subject,
+      anchorType: thread.anchorType,
+      anchorId: thread.anchorId,
+      createdAt: thread.createdAt,
+      messageCount: thread._count.messages,
+      unreadCount: 0,
+      lastMessageAt: thread.messages[thread.messages.length - 1]?.createdAt || null,
+      lastMessagePreview: null,
+      participants: thread.participants.map((p) => ({
+        id: p.user.id,
+        name: p.user.name,
+        email: p.user.email,
+        role: p.user.role,
+        memberType: participantMembershipMap.get(p.userId) || null,
+      })),
+      createdBy: thread.createdBy,
+    },
+    messages: thread.messages.map((m) => ({
+      id: m.id,
+      content: m.content,
+      messageType: m.messageType,
+      createdAt: m.createdAt,
+      author: {
+        id: m.author.id,
+        name: m.author.name,
+        email: m.author.email,
+        memberType: membershipMap.get(m.authorUserId) || null,
+        specialty: null,
+      },
+      document: m.document,
+    })),
+  }
+}
+
+// ============================================================================
+// CREATE THREAD
+// ============================================================================
+
+interface CreateThreadInput {
   caseId: string
   anchorType: 'case' | 'event'
   anchorId: string
   subject?: string
   initialMessage: string
-}): Promise<ActionResult<{ threadId: string }>> {
+  participantIds: string[]
+  documentId?: string
+}
+
+export async function createThread(
+  input: CreateThreadInput
+): Promise<ActionResult<{ threadId: string; messageId: string }>> {
   const { error, membership, userId } = await verifyCaseAccess(input.caseId)
-  if (error) return { success: false, error }
+  if (error || !userId) return { success: false, error: error || 'Access denied' }
 
-  const isParent = membership!.memberType === 'PARENT'
-
-  // Only parents can create case-level threads
-  if (input.anchorType === 'case' && !isParent) {
-    return { success: false, error: 'Only parents can create case discussions' }
+  if (input.participantIds.length === 0) {
+    return { success: false, error: 'At least one participant is required' }
   }
 
-  // For event threads, verify event exists and belongs to case
   if (input.anchorType === 'event') {
     const event = await prisma.event.findFirst({
       where: {
@@ -137,301 +453,139 @@ export async function createThread(input: {
         deletedAt: null,
       },
     })
-
     if (!event) {
       return { success: false, error: 'Event not found' }
     }
   }
 
-  const thread = await prisma.$transaction(async (tx) => {
-    const newThread = await tx.thread.create({
-      data: {
+  const participantMemberships = await prisma.membership.findMany({
+    where: {
+      caseId: input.caseId,
+      userId: { in: input.participantIds },
+      revokedAt: null,
+      deletedAt: null,
+    },
+  })
+
+  if (participantMemberships.length !== input.participantIds.length) {
+    return { success: false, error: 'Some participants do not have access to this case' }
+  }
+
+  if (input.documentId) {
+    const document = await prisma.document.findFirst({
+      where: {
+        id: input.documentId,
         caseId: input.caseId,
-        anchorType: input.anchorType.toUpperCase() as 'CASE' | 'EVENT',
-        anchorId: input.anchorType === 'case' ? input.caseId : input.anchorId,
-        subject: input.subject?.trim() || null,
+        deletedAt: null,
       },
     })
 
-    // Create initial message
-    await tx.message.create({
-      data: {
-        threadId: newThread.id,
-        authorUserId: userId!,
-        messageType: 'FREE_TEXT',
-        content: input.initialMessage.trim(),
-      },
-    })
-
-    // Mark as read for creator
-    await tx.threadRead.create({
-      data: {
-        threadId: newThread.id,
-        userId: userId!,
-      },
-    })
-
-    await tx.auditEntry.create({
-      data: {
-        actorUserId: userId!,
-        action: 'EDIT',
-        objectType: 'Thread',
-        objectId: newThread.id,
-        metadata: {
-          anchorType: input.anchorType,
-          anchorId: input.anchorId,
-        },
-      },
-    })
-
-    return newThread
-  })
-
-  revalidatePath(`/case/${input.caseId}`)
-  return { success: true, data: { threadId: thread.id } }
-}
-
-export async function getThreadsForCase(
-  caseId: string,
-  options?: { anchorType?: 'case' | 'event'; anchorId?: string }
-): Promise<ThreadWithMessages[]> {
-  const { error, membership, userId } = await verifyCaseAccess(caseId)
-  if (error || !membership) return []
-
-  const threads = await prisma.thread.findMany({
-    where: {
-      caseId,
-      deletedAt: null,
-      ...(options?.anchorType && {
-        anchorType: options.anchorType.toUpperCase() as 'CASE' | 'EVENT',
-      }),
-      ...(options?.anchorId && { anchorId: options.anchorId }),
-    },
-    include: {
-      messages: {
-        where: { deletedAt: null },
-        orderBy: { createdAt: 'desc' },
-        take: 1,
-        select: {
-          content: true,
-          createdAt: true,
-          author: {
-            select: { id: true, name: true },
-          },
-        },
-      },
-      threadReads: {
-        where: { userId: userId! },
-        select: { lastReadAt: true },
-      },
-      _count: {
-        select: {
-          messages: {
-            where: { deletedAt: null },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
-
-  // Get unique participants for each thread
-  const threadIds = threads.map((t) => t.id)
-  const participantsByThread = await prisma.message.groupBy({
-    by: ['threadId', 'authorUserId'],
-    where: {
-      threadId: { in: threadIds },
-      deletedAt: null,
-    },
-  })
-
-  const userIds = Array.from(new Set(participantsByThread.map((p) => p.authorUserId)))
-  const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
-    select: { id: true, name: true },
-  })
-
-  const memberships = await prisma.membership.findMany({
-    where: {
-      caseId,
-      userId: { in: userIds },
-      deletedAt: null,
-    },
-    select: { userId: true, memberType: true },
-  })
-
-  const userMap = new Map(users.map((u) => [u.id, u]))
-  const membershipMap = new Map(memberships.map((m) => [m.userId, m.memberType]))
-
-  return threads.map((thread) => {
-    const lastMessage = thread.messages[0]
-    const lastRead = thread.threadReads[0]?.lastReadAt
-
-    // Count unread messages
-    const unreadCount = lastRead
-      ? prisma.message.count({
-          where: {
-            threadId: thread.id,
-            createdAt: { gt: lastRead },
-            deletedAt: null,
-          },
-        })
-      : thread._count.messages
-
-    // Get participants for this thread
-    const threadParticipantIds = participantsByThread
-      .filter((p) => p.threadId === thread.id)
-      .map((p) => p.authorUserId)
-
-    const participants = threadParticipantIds.map((uid) => ({
-      id: uid,
-      name: userMap.get(uid)?.name || null,
-      memberType: membershipMap.get(uid) || 'UNKNOWN',
-    }))
-
-    return {
-      id: thread.id,
-      caseId: thread.caseId,
-      anchorType: thread.anchorType,
-      anchorId: thread.anchorId,
-      subject: thread.subject,
-      createdAt: thread.createdAt,
-      messageCount: thread._count.messages,
-      lastMessageAt: lastMessage?.createdAt || null,
-      lastMessagePreview: lastMessage?.content?.slice(0, 100) || null,
-      unreadCount: typeof unreadCount === 'number' ? unreadCount : 0,
-      participants,
+    if (!document) {
+      return { success: false, error: 'Document not found' }
     }
-  })
-}
+  }
 
-export async function getThread(
-  threadId: string
-): Promise<{ thread: ThreadWithMessages; messages: MessageWithAuthor[] } | null> {
-  const session = await auth()
-  if (!session?.user?.id) return null
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const thread = await tx.thread.create({
+        data: {
+          caseId: input.caseId,
+          anchorType: input.anchorType.toUpperCase() as 'CASE' | 'EVENT',
+          anchorId: input.anchorType === 'case' ? input.caseId : input.anchorId,
+          subject: input.subject,
+          createdById: userId,
+        },
+      })
 
-  const thread = await prisma.thread.findUnique({
-    where: { id: threadId },
-    include: {
-      messages: {
-        where: { deletedAt: null },
-        orderBy: { createdAt: 'asc' },
-        include: {
-          author: {
-            select: { id: true, name: true },
-          },
-          document: {
-            select: { id: true, title: true, mimeType: true },
+      const allParticipantIds = Array.from(
+        new Set([userId, ...input.participantIds])
+      )
+
+      await tx.threadParticipant.createMany({
+        data: allParticipantIds.map((participantId) => ({
+          threadId: thread.id,
+          userId: participantId,
+        })),
+      })
+
+      const message = await tx.message.create({
+        data: {
+          threadId: thread.id,
+          authorUserId: userId,
+          messageType: 'FREE_TEXT',
+          content: input.initialMessage,
+          documentId: input.documentId,
+        },
+      })
+
+      await tx.threadRead.create({
+        data: {
+          threadId: thread.id,
+          userId,
+        },
+      })
+
+      await tx.auditEntry.create({
+        data: {
+          actorUserId: userId,
+          action: 'EDIT',
+          objectType: 'Thread',
+          objectId: thread.id,
+          metadata: {
+            anchorType: input.anchorType,
+            anchorId: input.anchorId,
           },
         },
-      },
-      threadReads: {
-        where: { userId: session.user.id },
-        select: { lastReadAt: true },
-      },
-      _count: {
-        select: { messages: { where: { deletedAt: null } } },
-      },
-    },
-  })
+      })
 
-  if (!thread || thread.deletedAt) return null
+      return { threadId: thread.id, messageId: message.id }
+    })
 
-  // Verify access
-  const { error } = await verifyCaseAccess(thread.caseId)
-  if (error) return null
-
-  // Get membership info for authors
-  const authorIds = Array.from(new Set(thread.messages.map((m) => m.authorUserId)))
-  const memberships = await prisma.membership.findMany({
-    where: {
-      caseId: thread.caseId,
-      userId: { in: authorIds },
-      deletedAt: null,
-    },
-    select: { userId: true, memberType: true },
-  })
-
-  const membershipMap = new Map(
-    memberships.map((m) => [m.userId, { memberType: m.memberType }])
-  )
-
-  const messages: MessageWithAuthor[] = thread.messages.map((m) => ({
-    id: m.id,
-    threadId: m.threadId,
-    messageType: m.messageType,
-    content: m.content,
-    createdAt: m.createdAt,
-      author: {
-        id: m.author.id,
-        name: m.author.name,
-        memberType: membershipMap.get(m.authorUserId)?.memberType || null,
-        specialty: null,
-    },
-    document: m.document,
-  }))
-
-  // Mark as read
-  await prisma.threadRead.upsert({
-    where: {
-      threadId_userId: {
-        threadId,
-        userId: session.user.id,
-      },
-    },
-    update: { lastReadAt: new Date() },
-    create: {
-      threadId,
-      userId: session.user.id,
-    },
-  })
-
-  return {
-    thread: {
-      id: thread.id,
-      caseId: thread.caseId,
-      anchorType: thread.anchorType,
-      anchorId: thread.anchorId,
-      subject: thread.subject,
-      createdAt: thread.createdAt,
-      messageCount: thread._count.messages,
-      lastMessageAt: thread.messages[thread.messages.length - 1]?.createdAt || null,
-      lastMessagePreview: null,
-      unreadCount: 0, // Just marked as read
-      participants: [],
-    },
-    messages,
+    revalidatePath(`/case/${input.caseId}/messages`)
+    return { success: true, data: result }
+  } catch (err) {
+    console.error('Failed to create thread:', err)
+    return { success: false, error: 'Failed to create discussion' }
   }
 }
 
 // ============================================================================
-// MESSAGES
+// SEND MESSAGE
 // ============================================================================
 
-export async function sendMessage(input: {
+interface SendMessageInput {
   threadId: string
   content: string
-  messageType?: 'FREE_TEXT' | 'QUESTION_CARD' | 'ANSWER'
   documentId?: string
-}): Promise<ActionResult<{ messageId: string }>> {
+}
+
+export async function sendMessage(
+  input: SendMessageInput
+): Promise<ActionResult<{ messageId: string }>> {
   const session = await auth()
   if (!session?.user?.id) {
     return { success: false, error: 'Not authenticated' }
   }
 
-  const thread = await prisma.thread.findUnique({
-    where: { id: input.threadId },
+  const thread = await prisma.thread.findFirst({
+    where: {
+      id: input.threadId,
+      deletedAt: null,
+      OR: [
+        { participants: { some: { userId: session.user.id } } },
+        { createdById: session.user.id },
+        { participants: { none: {} } },
+      ],
+    },
   })
 
-  if (!thread || thread.deletedAt) {
+  if (!thread) {
     return { success: false, error: 'Thread not found' }
   }
 
   const { error } = await verifyCaseAccess(thread.caseId)
   if (error) return { success: false, error }
 
-  // If attaching document, verify it exists and user has access
   if (input.documentId) {
     const document = await prisma.document.findFirst({
       where: {
@@ -446,135 +600,166 @@ export async function sendMessage(input: {
     }
   }
 
-  const message = await prisma.$transaction(async (tx) => {
-    const newMessage = await tx.message.create({
+  try {
+    const message = await prisma.message.create({
       data: {
         threadId: input.threadId,
         authorUserId: session.user.id,
-        messageType: input.messageType || 'FREE_TEXT',
-        content: input.content.trim(),
-        documentId: input.documentId || null,
+        messageType: 'FREE_TEXT',
+        content: input.content,
+        documentId: input.documentId,
       },
     })
 
-    // Update sender's read timestamp
-    await tx.threadRead.upsert({
+    await prisma.threadRead.upsert({
       where: {
-        threadId_userId: {
-          threadId: input.threadId,
-          userId: session.user.id,
-        },
+        threadId_userId: { threadId: input.threadId, userId: session.user.id },
       },
+      create: { threadId: input.threadId, userId: session.user.id },
       update: { lastReadAt: new Date() },
-      create: {
-        threadId: input.threadId,
-        userId: session.user.id,
-      },
     })
 
-    return newMessage
-  })
-
-  revalidatePath(`/case/${thread.caseId}`)
-  return { success: true, data: { messageId: message.id } }
+    revalidatePath(`/case/${thread.caseId}/messages`)
+    return { success: true, data: { messageId: message.id } }
+  } catch (err) {
+    console.error('Failed to send message:', err)
+    return { success: false, error: 'Failed to send message' }
+  }
 }
 
-export async function sendQuestionCard(input: {
+// ============================================================================
+// SEND QUESTION CARD
+// ============================================================================
+
+interface SendQuestionCardInput {
   threadId: string
   question: string
   options?: string[]
-}): Promise<ActionResult<{ messageId: string }>> {
-  const content: QuestionCardContent = {
-    question: input.question.trim(),
-    options: input.options?.map((o) => o.trim()).filter(Boolean),
-    answered: false,
-  }
-
-  return sendMessage({
-    threadId: input.threadId,
-    content: JSON.stringify(content),
-    messageType: 'QUESTION_CARD',
-  })
 }
 
-export async function answerQuestionCard(input: {
-  questionMessageId: string
-  answer: string
-}): Promise<ActionResult<{ messageId: string }>> {
+export async function sendQuestionCard(
+  input: SendQuestionCardInput
+): Promise<ActionResult<{ messageId: string }>> {
   const session = await auth()
   if (!session?.user?.id) {
     return { success: false, error: 'Not authenticated' }
   }
 
-  const questionMessage = await prisma.message.findUnique({
-    where: { id: input.questionMessageId },
+  const thread = await prisma.thread.findFirst({
+    where: {
+      id: input.threadId,
+      deletedAt: null,
+      OR: [
+        { participants: { some: { userId: session.user.id } } },
+        { createdById: session.user.id },
+        { participants: { none: {} } },
+      ],
+    },
+  })
+
+  if (!thread) {
+    return { success: false, error: 'Thread not found' }
+  }
+
+  const { error } = await verifyCaseAccess(thread.caseId)
+  if (error) return { success: false, error }
+
+  try {
+    const content: QuestionCardContent = {
+      question: input.question,
+      options: input.options,
+      answered: false,
+    }
+
+    const message = await prisma.message.create({
+      data: {
+        threadId: input.threadId,
+        authorUserId: session.user.id,
+        messageType: 'QUESTION_CARD',
+        content: JSON.stringify(content),
+      },
+    })
+
+    revalidatePath(`/case/${thread.caseId}/messages`)
+    return { success: true, data: { messageId: message.id } }
+  } catch (err) {
+    console.error('Failed to send question:', err)
+    return { success: false, error: 'Failed to send question' }
+  }
+}
+
+// ============================================================================
+// ANSWER QUESTION CARD
+// ============================================================================
+
+interface AnswerQuestionCardInput {
+  questionMessageId: string
+  answer: string
+}
+
+export async function answerQuestionCard(
+  input: AnswerQuestionCardInput
+): Promise<ActionResult<{ messageId: string }>> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const questionMessage = await prisma.message.findFirst({
+    where: {
+      id: input.questionMessageId,
+      messageType: 'QUESTION_CARD',
+      deletedAt: null,
+    },
     include: { thread: true },
   })
 
-  if (!questionMessage || questionMessage.deletedAt) {
+  if (!questionMessage) {
     return { success: false, error: 'Question not found' }
-  }
-
-  if (questionMessage.messageType !== 'QUESTION_CARD') {
-    return { success: false, error: 'Not a question card' }
   }
 
   const { error } = await verifyCaseAccess(questionMessage.thread.caseId)
   if (error) return { success: false, error }
 
-  // Parse and update the question card
-  let questionContent: QuestionCardContent
   try {
-    questionContent = JSON.parse(questionMessage.content)
-  } catch {
-    return { success: false, error: 'Invalid question format' }
-  }
-
-  if (questionContent.answered) {
-    return { success: false, error: 'Question already answered' }
-  }
-
-  // Update the question card
-  questionContent.answered = true
-  questionContent.answeredAt = new Date().toISOString()
-  questionContent.answeredBy = session.user.id
-
-  await prisma.$transaction(async (tx) => {
-    // Update the question message
-    await tx.message.update({
-      where: { id: input.questionMessageId },
-      data: { content: JSON.stringify(questionContent) },
-    })
-
-    // Create the answer message
-    await tx.message.create({
-      data: {
-        threadId: questionMessage.threadId,
-        authorUserId: session.user.id,
-        messageType: 'ANSWER',
-        content: input.answer.trim(),
-      },
-    })
-
-    // Update read timestamp
-    await tx.threadRead.upsert({
-      where: {
-        threadId_userId: {
+    const result = await prisma.$transaction(async (tx) => {
+      const answer = await tx.message.create({
+        data: {
           threadId: questionMessage.threadId,
-          userId: session.user.id,
+          authorUserId: session.user!.id,
+          messageType: 'ANSWER',
+          content: input.answer,
         },
-      },
-      update: { lastReadAt: new Date() },
-      create: {
-        threadId: questionMessage.threadId,
-        userId: session.user.id,
-      },
-    })
-  })
+      })
 
-  revalidatePath(`/case/${questionMessage.thread.caseId}`)
-  return { success: true, data: { messageId: input.questionMessageId } }
+      let content: QuestionCardContent
+      try {
+        content = JSON.parse(questionMessage.content)
+      } catch {
+        content = { question: questionMessage.content }
+      }
+      content.answered = true
+      content.answerId = answer.id
+
+      await tx.message.update({
+        where: { id: questionMessage.id },
+        data: { content: JSON.stringify(content) },
+      })
+
+      return { messageId: answer.id }
+    })
+
+    revalidatePath(`/case/${questionMessage.thread.caseId}/messages`)
+    return { success: true, data: result }
+  } catch (err) {
+    console.error('Failed to answer question:', err)
+    return { success: false, error: 'Failed to submit answer' }
+  }
 }
+
+// ============================================================================
+// DELETE MESSAGE
+// ============================================================================
 
 export async function deleteMessage(messageId: string): Promise<ActionResult> {
   const session = await auth()
@@ -582,38 +767,84 @@ export async function deleteMessage(messageId: string): Promise<ActionResult> {
     return { success: false, error: 'Not authenticated' }
   }
 
-  const message = await prisma.message.findUnique({
-    where: { id: messageId },
+  const message = await prisma.message.findFirst({
+    where: {
+      id: messageId,
+      deletedAt: null,
+    },
     include: { thread: true },
   })
 
-  if (!message || message.deletedAt) {
+  if (!message) {
     return { success: false, error: 'Message not found' }
   }
 
-  // Only author can delete their message
   if (message.authorUserId !== session.user.id) {
-    return { success: false, error: 'Only the author can delete this message' }
+    return { success: false, error: 'Access denied' }
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.message.update({
+  try {
+    await prisma.message.update({
       where: { id: messageId },
       data: { deletedAt: new Date() },
     })
 
-    await tx.auditEntry.create({
-      data: {
-        actorUserId: session.user.id,
-        action: 'DELETE',
-        objectType: 'Message',
-        objectId: messageId,
-      },
-    })
+    revalidatePath(`/case/${message.thread.caseId}/messages`)
+    return { success: true }
+  } catch (err) {
+    console.error('Failed to delete message:', err)
+    return { success: false, error: 'Failed to delete message' }
+  }
+}
+
+// ============================================================================
+// ADD PARTICIPANT TO THREAD
+// ============================================================================
+
+export async function addThreadParticipant(
+  threadId: string,
+  userId: string
+): Promise<ActionResult> {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  const thread = await prisma.thread.findFirst({
+    where: {
+      id: threadId,
+      deletedAt: null,
+      createdById: session.user.id,
+    },
   })
 
-  revalidatePath(`/case/${message.thread.caseId}`)
-  return { success: true }
+  if (!thread) {
+    return { success: false, error: 'Thread not found or not authorized' }
+  }
+
+  const membership = await prisma.membership.findFirst({
+    where: {
+      caseId: thread.caseId,
+      userId,
+      revokedAt: null,
+      deletedAt: null,
+    },
+  })
+
+  if (!membership) {
+    return { success: false, error: 'User does not have access to this case' }
+  }
+
+  try {
+    await prisma.threadParticipant.create({
+      data: { threadId, userId },
+    })
+
+    revalidatePath(`/case/${thread.caseId}/messages`)
+    return { success: true }
+  } catch {
+    return { success: true }
+  }
 }
 
 // ============================================================================
@@ -624,17 +855,22 @@ export async function getUnreadCountForCase(caseId: string): Promise<number> {
   const { error, userId } = await verifyCaseAccess(caseId)
   if (error || !userId) return 0
 
-  // Get all threads in the case
   const threads = await prisma.thread.findMany({
-    where: { caseId, deletedAt: null },
+    where: {
+      caseId,
+      deletedAt: null,
+      OR: [
+        { participants: { some: { userId } } },
+        { createdById: userId },
+        { participants: { none: {} } },
+      ],
+    },
     select: { id: true },
   })
 
   if (threads.length === 0) return 0
 
   const threadIds = threads.map((t) => t.id)
-
-  // Get user's read timestamps
   const reads = await prisma.threadRead.findMany({
     where: {
       threadId: { in: threadIds },
@@ -645,7 +881,6 @@ export async function getUnreadCountForCase(caseId: string): Promise<number> {
 
   const readMap = new Map(reads.map((r) => [r.threadId, r.lastReadAt]))
 
-  // Count unread messages across all threads
   let unreadCount = 0
   for (const threadId of threadIds) {
     const lastRead = readMap.get(threadId)
