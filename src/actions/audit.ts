@@ -463,7 +463,7 @@ export async function getExportHistory(caseId: string): Promise<ExportHistoryEnt
         select: { id: true, name: true },
       },
     },
-    orderBy: { addedAt: 'desc' },
+    orderBy: { createdAt: 'desc' },
   })
 
   return exports.map((e) => ({
@@ -521,5 +521,6 @@ export async function recordPermissionChange(
     },
   })
 }
+
 
 
