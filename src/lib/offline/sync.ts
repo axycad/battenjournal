@@ -482,7 +482,7 @@ async function createConflict(
 
 export async function getConflicts(caseId?: string): Promise<ConflictRecord[]> {
   const db = getOfflineDb()
-  let query = db.conflicts.where('resolvedAt').equals(undefined as unknown as Date)
+  let query = db.conflicts.filter(c => !c.resolvedAt)
 
   if (caseId) {
     return query.filter((c) => c.caseId === caseId).toArray()
@@ -610,7 +610,7 @@ export async function getSyncStatus(): Promise<SyncStatusSummary> {
   const [pending, failed, conflicts, lastSyncMeta] = await Promise.all([
     db.outbox.where('syncStatus').equals('queued').count(),
     db.outbox.where('syncStatus').equals('failed').count(),
-    db.conflicts.where('resolvedAt').equals(undefined as unknown as Date).count(),
+    db.conflicts.filter(c => !c.resolvedAt).count(),
     db.syncMeta.get('lastSync'),
   ])
 
@@ -700,3 +700,4 @@ export async function clearCache(caseId?: string): Promise<void> {
     await db.syncMeta.clear()
   }
 }
+
