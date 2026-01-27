@@ -8,7 +8,7 @@ import { formatDate } from '@/lib/utils'
 interface Invite {
   id: string
   email: string
-  familyRole: string
+  familyRole: string | null
   expiresAt: Date
   createdAt: Date
 }
@@ -26,7 +26,7 @@ export function PendingInvites({ invites }: PendingInvitesProps) {
     setCancellingId(null)
   }
 
-  function roleLabel(role: string) {
+  function roleLabel(role: string | null) {
     switch (role) {
       case 'OWNER_ADMIN':
         return 'Admin'
