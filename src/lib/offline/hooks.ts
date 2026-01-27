@@ -132,7 +132,7 @@ export function useOfflineProfile(caseId: string): UseOfflineProfileResult {
   }, [])
 
   return {
-    profile,
+    profile: profile ?? null,
     loading: profile === undefined,
     updateProfile,
     cacheFromServer,
