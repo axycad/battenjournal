@@ -104,7 +104,7 @@ export async function GET(
     const storage = getStorage()
     const buffer = await storage.read(storagePath)
     const mimeType = mediaItem?.mimeType || document?.mimeType || 'application/octet-stream'
-    const body = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+    const body = new Uint8Array(buffer)
 
     return new NextResponse(body, {
       headers: {
