@@ -1,4 +1,4 @@
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/actions/case'
@@ -27,11 +27,13 @@ function getDayKey(date: Date) {
   return date.toISOString().split('T')[0]
 }
 
-function getCheckInStatus(freeText?: string | null) {
+type CheckInStatus = 'better' | 'same' | 'worse' | 'unsure'
+
+function getCheckInStatus(freeText?: string | null): CheckInStatus | null {
   if (!freeText) return null
   const tokenMatch = freeText.match(/\[checkin:(better|same|worse|unsure)\]/)
   if (tokenMatch) {
-    return tokenMatch[1]
+    return tokenMatch[1] as CheckInStatus
   }
   const lower = freeText.toLowerCase()
   if (lower.includes('better than usual')) return 'better'
@@ -119,12 +121,10 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
   })
 
   const checkIns = eventsInRange.filter((event) => event.eventType === 'daily_checkin')
-  const checkInSummary = checkIns.reduce(
+  const checkInSummary = checkIns.reduce<Record<CheckInStatus, number>>(
     (acc, event) => {
       const status = getCheckInStatus(event.freeText)
-      if (status && acc[status] !== undefined) {
-        acc[status] += 1
-      }
+      if (status) acc[status] += 1
       return acc
     },
     { better: 0, same: 0, worse: 0, unsure: 0 }
