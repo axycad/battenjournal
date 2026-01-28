@@ -48,6 +48,7 @@ model User {
   measurements            Measurement[]
   photoRefs               PhotoReference[]
   careIntents             CareIntent[]
+  appointments            Appointment[]
   settings                UserSetting[]
   devices                 Device[]
   outboxItems             OutboxItem[]
@@ -142,6 +143,7 @@ model Case {
   labResults      LabResult[]
   documents       Document[]
   careContacts    CareContact[]
+  appointments    Appointment[]
   events          Event[]
   photoReferences PhotoReference[]
   threads         Thread[]
@@ -559,6 +561,53 @@ model CareContact {
   case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
   @@index([caseId])
+}
+
+model Appointment {
+  id              String            @id @default(cuid())
+  caseId          String
+  createdByUserId String
+  appointmentType AppointmentType
+  title           String
+  notes           String?           @db.Text
+  scheduledAt     DateTime
+  duration        Int?              // Duration in minutes
+  location        String?
+  provider        String?           // Doctor/clinic name
+  reminderTimes   String?           // JSON array of reminder offsets in minutes, e.g., "[1440, 60]" for 24hr and 1hr
+  status          AppointmentStatus @default(SCHEDULED)
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  case      Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdByUserId], references: [id])
+
+  @@index([caseId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+enum AppointmentType {
+  NEUROLOGY
+  CARDIOLOGY
+  OPHTHALMOLOGY
+  PHYSICAL_THERAPY
+  OCCUPATIONAL_THERAPY
+  SPEECH_THERAPY
+  INFUSION
+  PRIMARY_CARE
+  DENTAL
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+  RESCHEDULED
 }
 
 // ============================================================================
