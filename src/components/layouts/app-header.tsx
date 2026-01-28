@@ -39,7 +39,10 @@ export function AppHeader({ user }: AppHeaderProps) {
 
     // Persist preference for future sessions
     document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000`
-    router.replace(pathname, { locale: nextLocale })
+
+    // Force a hard refresh to load new locale
+    // With localePrefix: 'never', the URL doesn't change, so we need to reload
+    window.location.reload()
   }
 
   return (
