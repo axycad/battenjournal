@@ -32,14 +32,17 @@ export function AppHeader({ user }: AppHeaderProps) {
     []
   )
 
-  function handleLocaleChange(nextLocale: string) {
+  async function handleLocaleChange(nextLocale: string) {
     if (!routing.locales.includes(nextLocale as (typeof routing.locales)[number])) {
       return
     }
 
-    // Use the next-intl router to change locale
-    // This will automatically set the NEXT_LOCALE cookie and navigate
-    router.replace(pathname, { locale: nextLocale })
+    // Set the cookie explicitly
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=${60 * 60 * 24 * 365}`
+
+    // Force a full page reload to pick up the new locale
+    // With localePrefix: 'never', the URL stays the same, so router.replace doesn't trigger
+    window.location.reload()
   }
 
   return (
