@@ -35,7 +35,7 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params
   const messages = await getMessages({ locale })
-  const isRtl = locale === 'ar'
+  const isRtl = false // Arabic removed
 
   return (
     <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'}>

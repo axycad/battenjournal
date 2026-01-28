@@ -28,7 +28,6 @@ export function AppHeader({ user }: AppHeaderProps) {
       { value: 'pl', label: 'Polish' },
       { value: 'ro', label: 'Romanian' },
       { value: 'fr', label: 'French' },
-      { value: 'ar', label: 'Arabic' },
     ],
     []
   )
