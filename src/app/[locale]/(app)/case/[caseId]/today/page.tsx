@@ -4,7 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { auth } from '@/lib/auth'
 import { getCase } from '@/actions/case'
 import { getEventsForCase, getAllScopes } from '@/actions/event'
-import { QuickAddForm } from './quick-add-form'
+import { ImprovedQuickAddForm } from './improved-quick-add-form'
 import { TimelineWithFilters } from './timeline-with-filters'
 import { ProgressSummary } from '@/components/events/progress-summary'
 import { UpcomingAppointmentsWidget } from '@/components/appointments/upcoming-appointments-widget'
@@ -88,7 +88,7 @@ export default async function TodayPage({ params }: TodayPageProps) {
       {/* Quick add form - only for parents */}
       {canEdit && (
         <div className="mb-lg">
-          <QuickAddForm caseId={caseId} scopes={scopes} events={events} />
+          <ImprovedQuickAddForm caseId={caseId} scopes={scopes} events={events} />
         </div>
       )}
 
