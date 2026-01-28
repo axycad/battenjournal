@@ -5,6 +5,10 @@ export const routing = defineRouting({
   defaultLocale: 'en',
   localePrefix: 'never',
 
+  // Disable locale detection from browser Accept-Language header
+  // This ensures the cookie takes priority
+  localeDetection: true,
+
   // Configure the locale cookie with a long expiration
   localeCookie: {
     name: 'NEXT_LOCALE',

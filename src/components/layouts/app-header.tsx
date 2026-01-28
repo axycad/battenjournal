@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui'
 import { Link, usePathname, useRouter } from '@/navigation'
 import { routing } from '@/i18n/routing'
+import { setLocale } from '@/app/actions/locale'
 
 interface AppHeaderProps {
   user: {
@@ -37,12 +38,17 @@ export function AppHeader({ user }: AppHeaderProps) {
       return
     }
 
-    // Set the cookie explicitly
-    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=${60 * 60 * 24 * 365}`
+    try {
+      // Use server action to set cookie reliably
+      const result = await setLocale(nextLocale)
 
-    // Force a full page reload to pick up the new locale
-    // With localePrefix: 'never', the URL stays the same, so router.replace doesn't trigger
-    window.location.reload()
+      if (result.success) {
+        // Force a full page reload to pick up the new locale
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Failed to change locale:', error)
+    }
   }
 
   return (
