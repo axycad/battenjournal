@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { prisma } from '@/lib/prisma'
 import { SyncSettings } from './sync-settings'
 import { InstallPrompt } from '@/components/offline'
@@ -8,8 +9,10 @@ import { AccountPhoto } from './account-photo'
 
 export default async function SettingsPage() {
   const session = await auth()
+  const locale = await getLocale()
+  const t = await getTranslations('settings')
   if (!session) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -23,48 +26,48 @@ export default async function SettingsPage() {
           href="/dashboard"
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          ← Dashboard
+          â† {t('backToDashboard')}
         </Link>
-        <h1 className="screen-title mt-xs">Settings</h1>
+        <h1 className="screen-title mt-xs">{t('title')}</h1>
       </div>
 
       <div className="space-y-lg">
         {/* Account */}
         <section className="p-md bg-white border border-divider rounded-md">
-          <h2 className="section-header mb-md">Account</h2>
+          <h2 className="section-header mb-md">{t('accountTitle')}</h2>
           <div className="space-y-sm">
             <AccountPhoto
               initialUrl={user?.image}
-              displayName={user?.name || user?.email || 'User'}
+              displayName={user?.name || user?.email || t('userFallback')}
             />
             <div>
-              <p className="text-meta text-text-secondary">Email</p>
+              <p className="text-meta text-text-secondary">{t('email')}</p>
               <p className="text-body">{user?.email || session.user.email}</p>
             </div>
             <div>
-              <p className="text-meta text-text-secondary">Name</p>
-              <p className="text-body">{user?.name || 'Not set'}</p>
+              <p className="text-meta text-text-secondary">{t('name')}</p>
+              <p className="text-body">{user?.name || t('notSet')}</p>
             </div>
           </div>
         </section>
 
         {/* Sync & Offline */}
         <section className="p-md bg-white border border-divider rounded-md">
-          <h2 className="section-header mb-md">Sync & Offline</h2>
+          <h2 className="section-header mb-md">{t('syncTitle')}</h2>
           <SyncSettings />
         </section>
 
         {/* Email notifications */}
         <section className="p-md bg-white border border-divider rounded-md">
-          <h2 className="section-header mb-sm">Email notifications</h2>
+          <h2 className="section-header mb-sm">{t('emailNotificationsTitle')}</h2>
           <p className="text-meta text-text-secondary mb-md">
-            Configure how and when you receive email updates
+            {t('emailNotificationsDesc')}
           </p>
           <Link
             href="/settings/notifications"
             className="text-accent-primary hover:underline"
           >
-            Manage email preferences →
+            {t('emailNotificationsLink')} â†’
           </Link>
         </section>
 
@@ -80,7 +83,7 @@ export default async function SettingsPage() {
               type="submit"
               className="text-body text-semantic-critical hover:underline"
             >
-              Sign out
+              {t('signOut')}
             </button>
           </form>
         </section>

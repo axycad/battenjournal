@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { getCasesForUser } from '@/actions/case'
 import { getMyTasks } from '@/actions/tasks'
 import { getNotificationCounts, getNotificationCountsPerCase } from '@/actions/notifications'

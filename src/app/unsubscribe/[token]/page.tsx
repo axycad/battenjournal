@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { unsubscribeByToken } from '@/actions/email-notifications'
 
 interface UnsubscribePageProps {

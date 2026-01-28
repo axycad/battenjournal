@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { Button, Textarea, Input } from '@/components/ui'
 import { updateEvent, deleteEvent, type EventWithScopes } from '@/actions/event'
 import { EVENT_TYPES } from '@/lib/event-types'
@@ -38,6 +38,17 @@ function formatTime(date: Date): string {
   })
 }
 
+function extractCheckInToken(text?: string | null): string | null {
+  if (!text) return null
+  const match = text.match(/^\[checkin:(better|same|worse|unsure)\]/)
+  return match ? match[0] : null
+}
+
+function stripCheckInToken(text?: string | null): string | null {
+  if (!text) return null
+  return text.replace(/^\[checkin:(better|same|worse|unsure)\]\s*/, '')
+}
+
 export function EventCard({
   event,
   canEdit,
@@ -60,7 +71,8 @@ export function EventCard({
   const [flags, setFlags] = useState<FlagWithDetails[]>([])
   const [threadInfo, setThreadInfo] = useState<{ threadId: string; messageCount: number } | null>(null)
 
-  const [freeText, setFreeText] = useState(event.freeText || '')
+  const checkInToken = extractCheckInToken(event.freeText)
+  const [freeText, setFreeText] = useState(stripCheckInToken(event.freeText) || '')
   const [selectedScopes, setSelectedScopes] = useState<string[]>(
     event.scopes.map((s) => s.code)
   )
@@ -70,6 +82,10 @@ export function EventCard({
 
   const eventTypeConfig = EVENT_TYPES[event.eventType as keyof typeof EVENT_TYPES]
   const typeLabel = eventTypeConfig?.label || event.eventType
+  const displayText =
+    event.eventType === 'daily_checkin'
+      ? stripCheckInToken(event.freeText)
+      : event.freeText
 
   // Load clinical notes, flags, and thread info
   useEffect(() => {
@@ -99,8 +115,14 @@ export function EventCard({
     setSaving(true)
     setError('')
 
+    const trimmedText = freeText.trim()
+    const normalizedText =
+      event.eventType === 'daily_checkin' && checkInToken
+        ? `${checkInToken} ${trimmedText}`.trim()
+        : trimmedText
+
     const result = await updateEvent(event.id, {
-      freeText: freeText.trim() || undefined,
+      freeText: normalizedText || undefined,
       occurredAt: backdateTime,
       scopeCodes: selectedScopes,
     })
@@ -184,7 +206,7 @@ export function EventCard({
   }
 
   function handleCancel() {
-    setFreeText(event.freeText || '')
+    setFreeText(stripCheckInToken(event.freeText) || '')
     setSelectedScopes(event.scopes.map((s) => s.code))
     setBackdateTime(event.occurredAt.toISOString().slice(0, 16))
     setEditing(false)
@@ -207,7 +229,7 @@ export function EventCard({
         <p className="text-body mb-sm">Delete this entry?</p>
         <p className="text-meta text-text-secondary mb-md">
           {typeLabel}
-          {event.freeText && `: "${event.freeText.slice(0, 50)}..."`}
+          {displayText && `: "${displayText.slice(0, 50)}..."`}
         </p>
         {error && <p className="text-caption text-semantic-critical mb-sm">{error}</p>}
         <div className="flex gap-sm">
@@ -323,9 +345,9 @@ export function EventCard({
           </div>
 
           {/* Free text */}
-          {event.freeText && (
+          {displayText && (
             <p className="text-body text-text-primary mb-sm whitespace-pre-wrap">
-              {event.freeText}
+              {displayText}
             </p>
           )}
 

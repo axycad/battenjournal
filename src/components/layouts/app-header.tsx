@@ -1,8 +1,11 @@
 'use client'
 
-import Link from 'next/link'
+import { useMemo } from 'react'
 import { signOut } from 'next-auth/react'
+import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui'
+import { Link, usePathname, useRouter } from '@/navigation'
+import { locales } from '@/i18n'
 
 interface AppHeaderProps {
   user: {
@@ -12,14 +15,56 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ user }: AppHeaderProps) {
+  const t = useTranslations('appHeader')
+  const locale = useLocale()
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const languageOptions = useMemo(
+    () => [
+      { value: 'en', label: 'English' },
+      { value: 'es', label: 'Español' },
+      { value: 'pl', label: 'Polski' },
+      { value: 'ro', label: 'Română' },
+      { value: 'fr', label: 'Français' },
+      { value: 'ar', label: 'العربية' },
+    ],
+    []
+  )
+
+  function handleLocaleChange(nextLocale: string) {
+    if (!locales.includes(nextLocale as (typeof locales)[number])) {
+      return
+    }
+
+    // Persist preference for future sessions
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000`
+    router.replace(pathname, { locale: nextLocale })
+  }
+
   return (
     <header className="border-b border-divider bg-white">
       <div className="max-w-3xl mx-auto px-md py-sm flex items-center justify-between">
         <Link href="/dashboard" className="text-title-md font-medium text-text-primary">
-          Batten Journal
+          {t('appName')}
         </Link>
 
         <div className="flex items-center gap-sm">
+          <label className="text-meta text-text-secondary">
+            <span className="sr-only">{t('language')}</span>
+            <select
+              value={locale}
+              onChange={(event) => handleLocaleChange(event.target.value)}
+              className="text-meta text-text-secondary bg-white border border-divider rounded-sm px-xs py-1"
+              aria-label={t('language')}
+            >
+              {languageOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <span className="text-meta text-text-secondary">
             {user.name || user.email}
           </span>
@@ -27,14 +72,14 @@ export function AppHeader({ user }: AppHeaderProps) {
             href="/settings/sync"
             className="text-meta text-text-secondary hover:text-text-primary"
           >
-            Settings
+            {t('settings')}
           </Link>
           <Button
             variant="text"
-            onClick={() => signOut({ callbackUrl: '/login' })}
+            onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
             className="h-auto px-0"
           >
-            Sign out
+            {t('signOut')}
           </Button>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getThreadsForCase } from '@/actions/messaging'
 import { Button } from '@/components/ui'
@@ -19,9 +21,11 @@ export default async function MessagesPage({
   const { caseId } = await params
   const { new: showNew } = await searchParams
   const session = await auth()
+  const locale = await getLocale()
+  const t = await getTranslations('messagesPage')
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const caseData = await getCase(caseId)
@@ -43,18 +47,18 @@ export default async function MessagesPage({
           href={`/case/${caseId}`}
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          {'<-'} Back to {caseData.childDisplayName}
+          {'<-'} {t('backToChild', { name: caseData.childDisplayName })}
         </Link>
         <div className="flex items-center justify-between mt-xs">
-          <h1 className="screen-title">Messages</h1>
+          <h1 className="screen-title">{t('title')}</h1>
           {!showNew && (
             <Link href={`/case/${caseId}/messages?new=1`}>
-              <Button>New discussion</Button>
+              <Button>{t('newDiscussion')}</Button>
             </Link>
           )}
         </div>
         <p className="text-meta text-text-secondary mt-xs">
-          Discussions with your care team
+          {t('subtitle')}
         </p>
       </div>
 
@@ -66,14 +70,14 @@ export default async function MessagesPage({
             href={`/case/${caseId}/messages`}
             className="inline-block mt-sm text-meta text-text-secondary hover:text-text-primary"
           >
-            Cancel
+            {t('cancel')}
           </Link>
         </div>
       )}
 
       {/* Case-level threads */}
       <section className="mb-lg">
-        <h2 className="section-header mb-sm">General discussions</h2>
+        <h2 className="section-header mb-sm">{t('generalDiscussions')}</h2>
         <ThreadList
           threads={caseThreads}
           caseId={caseId}
@@ -84,7 +88,7 @@ export default async function MessagesPage({
       {/* Event threads */}
       {eventThreads.length > 0 && (
         <section>
-          <h2 className="section-header mb-sm">Event discussions</h2>
+          <h2 className="section-header mb-sm">{t('eventDiscussions')}</h2>
           <ThreadList
             threads={eventThreads}
             caseId={caseId}
@@ -96,10 +100,10 @@ export default async function MessagesPage({
       {threads.length === 0 && !showNew && (
         <div className="text-center py-xl">
           <p className="text-body text-text-secondary mb-md">
-            No messages yet
+            {t('emptyTitle')}
           </p>
           <Link href={`/case/${caseId}/messages?new=1`}>
-            <Button>Start a discussion</Button>
+            <Button>{t('startDiscussion')}</Button>
           </Link>
         </div>
       )}

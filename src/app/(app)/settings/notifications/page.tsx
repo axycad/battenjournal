@@ -1,14 +1,17 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { getEmailPreferences } from '@/actions/email-notifications'
 import { EmailPreferencesForm } from './email-preferences-form'
 
 export default async function NotificationSettingsPage() {
   const session = await auth()
+  const locale = await getLocale()
+  const t = await getTranslations('settingsNotifications')
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const preferences = await getEmailPreferences()
@@ -20,11 +23,11 @@ export default async function NotificationSettingsPage() {
           href="/settings"
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          ← Settings
+          â† {t('backToSettings')}
         </Link>
-        <h1 className="screen-title mt-xs">Email notifications</h1>
+        <h1 className="screen-title mt-xs">{t('title')}</h1>
         <p className="text-meta text-text-secondary">
-          Choose how and when you receive email updates
+          {t('description')}
         </p>
       </div>
 

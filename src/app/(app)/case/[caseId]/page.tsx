@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
+import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getEventsForCase } from '@/actions/event'
 import { EVENT_TYPES } from '@/lib/event-types'
@@ -39,11 +40,38 @@ function formatRelativeDay(date: Date): string {
   })
 }
 
+function getDayKey(date: Date): string {
+  return date.toISOString().split('T')[0]
+}
+
+function getCheckInSummaryText(
+  freeText: string | null | undefined,
+  t: (key: string) => string
+) {
+  if (!freeText) return null
+  const tokenMatch = freeText.match(/\[checkin:(better|same|worse|unsure)\]/)
+  if (tokenMatch) {
+    const status = tokenMatch[1]
+    if (status === 'better') return t('summaryBetter')
+    if (status === 'same') return t('summarySame')
+    if (status === 'worse') return t('summaryTougher')
+    if (status === 'unsure') return t('summaryUnsure')
+  }
+  const lower = freeText.toLowerCase()
+  if (lower.includes('better than usual')) return t('summaryBetter')
+  if (lower.includes('about the same')) return t('summarySame')
+  if (lower.includes('more challenging than usual')) return t('summaryTougher')
+  if (lower.includes('hard to say today')) return t('summaryUnsure')
+  if (lower.includes('worse than usual')) return t('summaryTougher')
+  return t('summaryLogged')
+}
+
 export default async function CasePage({ params }: CasePageProps) {
   const { caseId } = await params
-  const [caseData, recentEvents] = await Promise.all([
+  const t = await getTranslations('caseOverview')
+  const [caseData, events] = await Promise.all([
     getCase(caseId),
-    getEventsForCase(caseId, { limit: 5 }),
+    getEventsForCase(caseId, { limit: 200 }),
   ])
 
   if (!caseData) {
@@ -53,6 +81,30 @@ export default async function CasePage({ params }: CasePageProps) {
   const isAdmin = caseData.currentUserRole === 'OWNER_ADMIN'
   const isParent = caseData.currentUserMemberType === 'PARENT'
   const canEdit = caseData.currentUserRole !== 'VIEWER' && isParent
+  const recentEvents = events.slice(0, 5)
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+
+  const todayEvents = events.filter((event) => event.occurredAt >= todayStart)
+  const latestEvent = events[0]
+  const todayCheckIn = todayEvents.find((event) => event.eventType === 'daily_checkin')
+  const latestCheckIn = events.find((event) => event.eventType === 'daily_checkin')
+
+  const last7Days: Date[] = []
+  const last7Keys: string[] = []
+  const startDate = new Date(todayStart)
+  startDate.setDate(startDate.getDate() - 6)
+  for (let i = 0; i < 7; i += 1) {
+    const day = new Date(startDate)
+    day.setDate(startDate.getDate() + i)
+    last7Days.push(day)
+    last7Keys.push(getDayKey(day))
+  }
+
+  const dailyCounts = last7Keys.map((key) =>
+    events.filter((event) => getDayKey(event.occurredAt) === key).length
+  )
+  const maxDailyCount = Math.max(...dailyCounts, 1)
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
@@ -95,7 +147,81 @@ export default async function CasePage({ params }: CasePageProps) {
         {/* Quick actions - only for parents */}
         {isParent && (
           <div className="space-y-sm">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-sm">
+            <div className="p-md bg-white border border-divider rounded-md">
+              <div className="flex flex-wrap items-center justify-between gap-sm">
+                <div>
+                  <h2 className="text-title-md font-medium">{t('logToday')}</h2>
+                  <p className="text-meta text-text-secondary">
+                    {t('quickCheckInDesc')}
+                  </p>
+                </div>
+                <div className="flex gap-sm">
+                  <Link href={`/case/${caseId}/today`}>
+                    <Button>{t('quickCheckIn')}</Button>
+                  </Link>
+                  <Link href={`/case/${caseId}/trends`}>
+                    <Button variant="secondary">{t('trends')}</Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-md bg-white border border-divider rounded-md">
+              <div className="flex flex-wrap items-center justify-between gap-sm">
+                <div>
+                  <h2 className="text-title-md font-medium">{t('todaySummary')}</h2>
+                  <p className="text-meta text-text-secondary">
+                    {todayEvents.length === 0
+                      ? t('noObservations')
+                      : t('observationsLogged', { count: todayEvents.length })}
+                  </p>
+                </div>
+                <Link
+                  href={`/case/${caseId}/today`}
+                  className="text-meta text-accent-primary hover:underline"
+                >
+                  {t('goToToday')}
+                </Link>
+              </div>
+
+              <div className="mt-sm grid gap-sm sm:grid-cols-2">
+                <div className="p-sm rounded-sm bg-bg-primary">
+                  <p className="text-caption text-text-secondary">{t('latestCheckIn')}</p>
+                  <p className="text-body">
+                    {getCheckInSummaryText(todayCheckIn?.freeText, t)
+                      ?? getCheckInSummaryText(latestCheckIn?.freeText, t)
+                      ?? t('noCheckIn')}
+                  </p>
+                </div>
+                <div className="p-sm rounded-sm bg-bg-primary">
+                  <p className="text-caption text-text-secondary">{t('lastLog')}</p>
+                  <p className="text-body">
+                    {latestEvent
+                      ? latestEvent.occurredAt.toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : t('noEntries')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-sm">
+                <p className="text-caption text-text-secondary mb-xs">{t('last7Days')}</p>
+                <div className="flex items-end gap-xs h-12">
+                  {dailyCounts.map((count, index) => (
+                    <div
+                      key={`summary-${last7Keys[index]}`}
+                      className="w-2 rounded-full bg-accent-primary/60"
+                      style={{ height: `${Math.max(6, (count / maxDailyCount) * 40)}px` }}
+                      title={`${count} logs`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
               <Link
                 href={`/case/${caseId}/profile`}
                 className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
@@ -132,8 +258,6 @@ export default async function CasePage({ params }: CasePageProps) {
                   Care team discussions
                 </p>
               </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-sm">
               <Link
                 href={`/case/${caseId}/documents`}
                 className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
@@ -168,6 +292,9 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link href={`/case/${caseId}/today`}>
                 <Button variant="secondary">View timeline</Button>
+              </Link>
+              <Link href={`/case/${caseId}/trends`}>
+                <Button variant="secondary">Trends</Button>
               </Link>
               <Link href={`/case/${caseId}/profile`}>
                 <Button variant="secondary">View profile</Button>

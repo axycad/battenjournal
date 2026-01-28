@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
+import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getCliniciansForCase, getPendingClinicianInvites } from '@/actions/sharing'
 import { getAllScopes } from '@/actions/event'
@@ -13,6 +14,7 @@ interface SharingPageProps {
 
 export default async function SharingPage({ params }: SharingPageProps) {
   const { caseId } = await params
+  const locale = await getLocale()
   const caseData = await getCase(caseId)
 
   if (!caseData) {
@@ -20,7 +22,7 @@ export default async function SharingPage({ params }: SharingPageProps) {
   }
 
   if (caseData.currentUserRole !== 'OWNER_ADMIN') {
-    redirect(`/case/${caseId}`)
+    redirect(`/${locale}/case/${caseId}`)
   }
 
   const [clinicians, pendingInvites, scopes] = await Promise.all([

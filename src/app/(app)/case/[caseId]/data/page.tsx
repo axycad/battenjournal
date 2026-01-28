@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import {
   getAccessSummary,
@@ -17,9 +18,10 @@ interface DataPageProps {
 export default async function DataBoundariesPage({ params }: DataPageProps) {
   const { caseId } = await params
   const session = await auth()
+  const locale = await getLocale()
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const caseData = await getCase(caseId)
@@ -30,7 +32,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
 
   // Only parent admins can view this page
   if (caseData.currentUserRole !== 'OWNER_ADMIN' || caseData.currentUserMemberType !== 'PARENT') {
-    redirect(`/case/${caseId}`)
+    redirect(`/${locale}/case/${caseId}`)
   }
 
   const [accessSummary, permissionChanges, documentAccess, exportHistory] = await Promise.all([

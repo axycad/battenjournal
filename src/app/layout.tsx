@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Providers } from './providers'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Batten Journal',
@@ -24,18 +26,24 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+  const isRtl = locale === 'ar'
+
   return (
-    <html lang="en">
+    <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'}>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-screen bg-bg-primary antialiased">
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider messages={messages} locale={locale}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

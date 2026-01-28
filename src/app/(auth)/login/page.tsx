@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import Link from 'next-intl/link'
 import { signIn } from 'next-auth/react'
 import { Button, Input } from '@/components/ui'
+import { useRouter } from '@/navigation'
 
 export default function LoginPage() {
+  const t = useTranslations('authLogin')
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,13 +28,13 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
+        setError(t('errorInvalidCredentials'))
       } else {
         router.push('/dashboard')
         router.refresh()
       }
     } catch {
-      setError('Something went wrong')
+      setError(t('errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -40,11 +42,11 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1 className="screen-title text-center mb-lg">Sign in</h1>
+      <h1 className="screen-title text-center mb-lg">{t('title')}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-sm">
         <Input
-          label="Email"
+          label={t('email')}
           type="email"
           name="email"
           value={email}
@@ -55,7 +57,7 @@ export default function LoginPage() {
         />
 
         <Input
-          label="Password"
+          label={t('password')}
           type="password"
           name="password"
           value={password}
@@ -68,7 +70,7 @@ export default function LoginPage() {
             href="/forgot-password"
             className="text-meta text-accent-primary hover:underline"
           >
-            Forgot password?
+            {t('forgotPassword')}
           </Link>
         </div>
 
@@ -77,14 +79,14 @@ export default function LoginPage() {
         )}
 
         <Button type="submit" className="w-full" loading={loading}>
-          Sign in
+          {t('signIn')}
         </Button>
       </form>
 
       <p className="mt-md text-center text-meta text-text-secondary">
-        No account?{' '}
+        {t('noAccount')}{' '}
         <Link href="/register" className="text-accent-primary hover:underline">
-          Register
+          {t('register')}
         </Link>
       </p>
     </>

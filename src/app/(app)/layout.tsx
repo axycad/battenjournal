@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
 import { Providers } from '@/components/providers'
 import { AppHeader } from '@/components/layouts/app-header'
 import { OfflineBanner } from '@/components/offline-banner'
@@ -10,9 +11,10 @@ export default async function AppLayout({
   children: React.ReactNode
 }) {
   const session = await auth()
+  const locale = await getLocale()
 
   if (!session) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   return (

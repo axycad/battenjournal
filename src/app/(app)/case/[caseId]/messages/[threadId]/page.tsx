@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getThreadWithMessages } from '@/actions/messaging'
 import { ThreadView } from '@/components/messaging'
@@ -12,9 +14,11 @@ interface ThreadPageProps {
 export default async function ThreadPage({ params }: ThreadPageProps) {
   const { caseId, threadId } = await params
   const session = await auth()
+  const locale = await getLocale()
+  const t = await getTranslations('messagesThread')
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const caseData = await getCase(caseId)
@@ -38,7 +42,7 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
           href={`/case/${caseId}/messages`}
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          {'<-'} Back to Messages
+          {'<-'} {t('backToMessages')}
         </Link>
       </div>
 

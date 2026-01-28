@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import Link from 'next-intl/link'
 import { Button, Textarea, Input } from '@/components/ui'
+import { useRouter } from '@/navigation'
 import {
   createThread,
   sendMessage,
@@ -30,10 +31,11 @@ interface ThreadListProps {
 }
 
 export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
+  const t = useTranslations('messaging')
   if (threads.length === 0) {
     return (
       <p className="text-meta text-text-secondary italic py-md">
-        No messages yet
+        {t('noMessagesYet')}
       </p>
     )
   }
@@ -52,8 +54,8 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
                 <span className="text-body font-medium truncate">
                   {thread.subject ||
                     (thread.anchorType === 'EVENT'
-                      ? 'Event discussion'
-                      : 'General')}
+                      ? t('eventDiscussion')
+                      : t('generalDiscussion'))}
                 </span>
                 {thread.unreadCount > 0 && (
                   <span className="px-xs py-0.5 text-caption bg-accent-primary text-white rounded-full">
@@ -80,7 +82,7 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
                   ))}
                   {thread.participants.length > 3 && (
                     <span className="text-caption text-text-secondary">
-                      +{thread.participants.length - 3} more
+                      {t('participantsMore', { count: thread.participants.length - 3 })}
                     </span>
                   )}
                 </div>
@@ -94,8 +96,7 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
 
               <div className="flex items-center gap-sm mt-xs text-caption text-text-secondary">
                 <span>
-                  {thread.messageCount} message
-                  {thread.messageCount !== 1 ? 's' : ''}
+                  {t('messageCount', { count: thread.messageCount })}
                 </span>
                 {thread.lastMessageAt && (
                   <>
@@ -108,7 +109,7 @@ export function ThreadList({ threads, caseId, basePath }: ThreadListProps) {
 
             {thread.anchorType === 'EVENT' && (
               <span className="px-sm py-1 text-caption bg-bg-primary rounded text-text-secondary ml-sm">
-                Event
+                {t('eventTag')}
               </span>
             )}
           </div>
@@ -135,6 +136,7 @@ export function ParticipantPicker({
   onSelectionChange,
   currentUserId,
 }: ParticipantPickerProps) {
+  const t = useTranslations('messaging')
   const [participants, setParticipants] = useState<CaseParticipant[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -154,7 +156,7 @@ export function ParticipantPicker({
   }
 
   if (loading) {
-    return <p className="text-meta text-text-secondary">Loading team...</p>
+    return <p className="text-meta text-text-secondary">{t('loadingTeam')}</p>
   }
 
   const careTeam = participants.filter((p) => p.memberType === 'CARE_TEAM')
@@ -164,12 +166,12 @@ export function ParticipantPicker({
   return (
     <div className="space-y-sm">
       <label className="block text-meta font-medium text-text-primary">
-        Share with
+        {t('shareWith')}
       </label>
 
       {careTeam.length > 0 && (
         <div>
-          <p className="text-caption text-text-secondary mb-xs">Care Team</p>
+          <p className="text-caption text-text-secondary mb-xs">{t('careTeam')}</p>
           <div className="flex flex-wrap gap-xs">
             {careTeam.map((p) => (
               <button
@@ -192,7 +194,7 @@ export function ParticipantPicker({
 
       {researchTeam.length > 0 && (
         <div>
-          <p className="text-caption text-text-secondary mb-xs">Research Team</p>
+          <p className="text-caption text-text-secondary mb-xs">{t('researchTeam')}</p>
           <div className="flex flex-wrap gap-xs">
             {researchTeam.map((p) => (
               <button
@@ -214,7 +216,7 @@ export function ParticipantPicker({
 
       {family.length > 0 && (
         <div>
-          <p className="text-caption text-text-secondary mb-xs">Family</p>
+          <p className="text-caption text-text-secondary mb-xs">{t('family')}</p>
           <div className="flex flex-wrap gap-xs">
             {family.map((p) => (
               <button
@@ -236,7 +238,7 @@ export function ParticipantPicker({
 
       {participants.length === 0 && (
         <p className="text-meta text-text-secondary italic">
-          No other team members to share with
+          {t('noOtherMembers')}
         </p>
       )}
     </div>
@@ -254,6 +256,7 @@ interface DocumentPickerProps {
 }
 
 export function DocumentPicker({ caseId, selectedId, onSelect }: DocumentPickerProps) {
+  const t = useTranslations('messaging')
   const [documents, setDocuments] = useState<{
     id: string
     title: string
@@ -284,15 +287,15 @@ export function DocumentPicker({ caseId, selectedId, onSelect }: DocumentPickerP
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-xs text-meta text-accent-primary hover:underline"
       >
-        Attachment: {selectedDoc ? selectedDoc.title : 'None'}
+        {t('attachmentLabel', { title: selectedDoc ? selectedDoc.title : t('none') })}
       </button>
 
       {isOpen && (
         <div className="absolute bottom-full left-0 mb-xs w-72 max-h-60 overflow-y-auto bg-white border border-divider rounded-md shadow-lg z-10">
           {loading ? (
-            <p className="p-sm text-meta text-text-secondary">Loading...</p>
+            <p className="p-sm text-meta text-text-secondary">{t('loading')}</p>
           ) : documents.length === 0 ? (
-            <p className="p-sm text-meta text-text-secondary">No documents available</p>
+            <p className="p-sm text-meta text-text-secondary">{t('noDocuments')}</p>
           ) : (
             <>
               {selectedId && (
@@ -304,7 +307,7 @@ export function DocumentPicker({ caseId, selectedId, onSelect }: DocumentPickerP
                   }}
                   className="w-full px-sm py-xs text-left text-meta text-semantic-critical hover:bg-bg-primary"
                 >
-                  Remove attachment
+                  {t('removeAttachment')}
                 </button>
               )}
               {documents.map((doc) => (
@@ -354,6 +357,7 @@ export function NewThreadForm({
   onCreated,
   onCancel,
 }: NewThreadFormProps) {
+  const t = useTranslations('messaging')
   const router = useRouter()
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
@@ -364,12 +368,12 @@ export function NewThreadForm({
 
   async function handleSubmit() {
     if (!message.trim()) {
-      setError('Message is required')
+      setError(t('errorMessageRequired'))
       return
     }
 
     if (participantIds.length === 0) {
-      setError('Please select at least one person to share with')
+      setError(t('errorSelectParticipant'))
       return
     }
 
@@ -387,7 +391,7 @@ export function NewThreadForm({
     })
 
     if (!result.success) {
-      setError(result.error || 'Failed to create thread')
+      setError(result.error || t('errorCreateThread'))
       setSaving(false)
     } else {
       router.refresh()
@@ -399,8 +403,8 @@ export function NewThreadForm({
     <div className="p-md bg-white border border-divider rounded-md space-y-md">
       <h3 className="text-body font-medium">
         {anchorType === 'event'
-          ? `Discuss: ${eventTitle || 'Event'}`
-          : 'New discussion'}
+          ? t('discussEvent', { title: eventTitle || t('eventFallback') })
+          : t('newDiscussion')}
       </h3>
 
       <ParticipantPicker
@@ -414,14 +418,14 @@ export function NewThreadForm({
         <Input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          placeholder="Subject (optional)"
+          placeholder={t('subjectOptional')}
         />
       )}
 
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Write your message..."
+        placeholder={t('messagePlaceholder')}
         rows={3}
       />
 
@@ -438,11 +442,11 @@ export function NewThreadForm({
       <div className="flex gap-sm">
         {onCancel && (
           <Button variant="secondary" onClick={onCancel} disabled={saving}>
-            Cancel
+            {t('cancel')}
           </Button>
         )}
         <Button onClick={handleSubmit} loading={saving}>
-          Start discussion
+          {t('startDiscussion')}
         </Button>
       </div>
     </div>
@@ -464,6 +468,7 @@ export function MessageCard({
   currentUserId,
   onDeleted,
 }: MessageCardProps) {
+  const t = useTranslations('messaging')
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -494,9 +499,9 @@ export function MessageCard({
     return (
       <div className="p-sm bg-semantic-success/5 border-l-2 border-semantic-success rounded-r-sm">
         <div className="flex items-center gap-sm mb-xs">
-          <span className="text-caption text-semantic-success font-medium">Answer</span>
+          <span className="text-caption text-semantic-success font-medium">{t('answer')}</span>
           <span className="text-caption text-text-secondary">
-            {message.author.name || 'Unknown'}
+            {message.author.name || t('unknown')}
             {isClinician && message.author.specialty && ` - ${message.author.specialty}`}
           </span>
           <span className="text-caption text-text-secondary">
@@ -513,7 +518,7 @@ export function MessageCard({
   if (deleting) {
     return (
       <div className="p-sm bg-bg-primary rounded-sm">
-        <p className="text-meta mb-sm">Delete this message?</p>
+        <p className="text-meta mb-sm">{t('deleteConfirm')}</p>
         <div className="flex gap-sm">
           <Button
             variant="secondary"
@@ -521,7 +526,7 @@ export function MessageCard({
             disabled={saving}
             className="h-auto py-1"
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant="destructive"
@@ -529,7 +534,7 @@ export function MessageCard({
             loading={saving}
             className="h-auto py-1"
           >
-            Delete
+            {t('delete')}
           </Button>
         </div>
       </div>
@@ -541,16 +546,16 @@ export function MessageCard({
       <div className="flex items-center justify-between mb-xs">
         <div className="flex items-center gap-sm">
           <span className="text-meta font-medium">
-            {message.author.name || 'Unknown'}
+            {message.author.name || t('unknown')}
           </span>
           {isClinician && (
             <span className="px-xs py-0.5 text-caption bg-accent-primary/10 text-accent-primary rounded">
-              {message.author.specialty || 'Clinician'}
+              {message.author.specialty || t('clinician')}
             </span>
           )}
           {isResearcher && (
             <span className="px-xs py-0.5 text-caption bg-purple-100 text-purple-700 rounded">
-              Researcher
+              {t('researcher')}
             </span>
           )}
           <span className="text-caption text-text-secondary">
@@ -563,7 +568,7 @@ export function MessageCard({
             onClick={() => setDeleting(true)}
             className="text-caption text-text-secondary hover:text-semantic-critical"
           >
-            Delete
+            {t('delete')}
           </button>
         )}
       </div>
@@ -584,7 +589,7 @@ export function MessageCard({
             rel="noopener noreferrer"
             className="text-meta text-accent-primary hover:underline"
           >
-            View
+            {t('view')}
           </a>
         </div>
       )}
@@ -597,6 +602,7 @@ export function MessageCard({
 // ============================================================================
 
 function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardProps) {
+  const t = useTranslations('messaging')
   const router = useRouter()
   const [answering, setAnswering] = useState(false)
   const [answer, setAnswer] = useState('')
@@ -614,7 +620,7 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
 
   async function handleAnswer() {
     if (!answer.trim()) {
-      setError('Answer is required')
+      setError(t('errorAnswerRequired'))
       return
     }
 
@@ -627,7 +633,7 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
     })
 
     if (!result.success) {
-      setError(result.error || 'Failed to answer')
+      setError(result.error || t('errorAnswerFailed'))
     } else {
       setAnswering(false)
       setAnswer('')
@@ -641,10 +647,10 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
     <div className="p-sm bg-semantic-warning/5 border border-semantic-warning/30 rounded-sm">
       <div className="flex items-center gap-sm mb-sm">
         <span className="px-xs py-0.5 text-caption bg-semantic-warning/20 text-semantic-warning rounded font-medium">
-          Question
+          {t('question')}
         </span>
         <span className="text-meta">
-          {message.author.name || 'Unknown'}
+          {message.author.name || t('unknown')}
           {isClinician && message.author.specialty && ` - ${message.author.specialty}`}
         </span>
         <span className="text-caption text-text-secondary">
@@ -652,7 +658,7 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
         </span>
         {content.answered && (
           <span className="px-xs py-0.5 text-caption bg-semantic-success/10 text-semantic-success rounded">
-            Answered
+            {t('answered')}
           </span>
         )}
       </div>
@@ -675,7 +681,7 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
           onClick={() => setAnswering(true)}
           className="h-auto py-1"
         >
-          Answer this question
+          {t('answerThisQuestion')}
         </Button>
       )}
 
@@ -684,7 +690,7 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
           <Textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Your answer..."
+            placeholder={t('yourAnswer')}
             rows={2}
             autoFocus
           />
@@ -696,10 +702,10 @@ function QuestionCardMessage({ message, currentUserId, onDeleted }: MessageCardP
               disabled={saving}
               className="h-auto py-1"
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button onClick={handleAnswer} loading={saving} className="h-auto py-1">
-              Submit answer
+              {t('submitAnswer')}
             </Button>
           </div>
         </div>
@@ -736,6 +742,7 @@ export function ThreadView({
   anchorType,
   participants,
 }: ThreadViewProps) {
+  const t = useTranslations('messaging')
   const router = useRouter()
   const [reply, setReply] = useState('')
   const [isQuestion, setIsQuestion] = useState(false)
@@ -746,7 +753,7 @@ export function ThreadView({
 
   async function handleSend() {
     if (!reply.trim()) {
-      setError('Message is required')
+      setError(t('errorMessageRequired'))
       return
     }
 
@@ -775,7 +782,7 @@ export function ThreadView({
     }
 
     if (!result.success) {
-      setError(result.error || 'Failed to send')
+      setError(result.error || t('errorSendFailed'))
     } else {
       setReply('')
       setIsQuestion(false)
@@ -792,14 +799,14 @@ export function ThreadView({
       <div className="pb-sm border-b border-divider">
         <h2 className="text-title-md font-medium">
           {subject ||
-            (anchorType === 'EVENT' ? 'Event discussion' : 'General discussion')}
+            (anchorType === 'EVENT' ? t('eventDiscussion') : t('generalDiscussion'))}
         </h2>
         <div className="flex items-center gap-sm mt-xs flex-wrap">
           <span className="text-meta text-text-secondary">
-            {messages.length} message{messages.length !== 1 ? 's' : ''}
+            {t('messageCount', { count: messages.length })}
           </span>
           <span className="text-text-secondary">-</span>
-          <span className="text-meta text-text-secondary">Participants:</span>
+          <span className="text-meta text-text-secondary">{t('participantsLabel')}</span>
           {participants.map((p) => (
             <span
               key={p.id}
@@ -836,26 +843,26 @@ export function ThreadView({
               onChange={(e) => setIsQuestion(e.target.checked)}
               className="rounded border-divider"
             />
-            Ask a question
+            {t('askQuestion')}
           </label>
         </div>
 
         <Textarea
           value={reply}
           onChange={(e) => setReply(e.target.value)}
-          placeholder={isQuestion ? 'Your question...' : 'Write a reply...'}
+          placeholder={isQuestion ? t('yourQuestion') : t('replyPlaceholder')}
           rows={3}
         />
 
         {isQuestion && (
           <div>
             <label className="block text-meta text-text-secondary mb-xs">
-              Response options (one per line, optional)
+              {t('responseOptions')}
             </label>
             <Textarea
               value={questionOptions}
               onChange={(e) => setQuestionOptions(e.target.value)}
-              placeholder="Option 1&#10;Option 2&#10;Option 3"
+              placeholder={t('responseOptionsPlaceholder')}
               rows={3}
             />
           </div>
@@ -872,7 +879,7 @@ export function ThreadView({
         {error && <p className="text-caption text-semantic-critical">{error}</p>}
 
         <Button onClick={handleSend} loading={saving}>
-          {isQuestion ? 'Send question' : 'Send reply'}
+          {isQuestion ? t('sendQuestion') : t('sendReply')}
         </Button>
       </div>
     </div>
@@ -898,6 +905,7 @@ export function StartEventThreadButton({
   existingThreadId,
   currentUserId,
 }: StartEventThreadButtonProps) {
+  const t = useTranslations('messaging')
   const [showForm, setShowForm] = useState(false)
   const router = useRouter()
 
@@ -907,7 +915,7 @@ export function StartEventThreadButton({
         href={`/case/${caseId}/messages/${existingThreadId}`}
         className="text-meta text-accent-primary hover:underline"
       >
-        View discussion
+        {t('viewDiscussion')}
       </Link>
     )
   }
@@ -935,7 +943,7 @@ export function StartEventThreadButton({
       onClick={() => setShowForm(true)}
       className="text-meta text-accent-primary hover:underline"
     >
-      Start discussion
+      {t('startDiscussion')}
     </button>
   )
 }

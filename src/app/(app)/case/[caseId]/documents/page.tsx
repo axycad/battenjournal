@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { getCase } from '@/actions/case'
 import { getDocumentsForCase } from '@/actions/document'
 import { getAllScopes } from '@/actions/event'

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
 import {
   getNotificationCounts,
   getRecentNotifications,
@@ -9,9 +10,10 @@ import { NotificationSummary, NotificationList } from '@/components/notification
 
 export default async function NotificationsPage() {
   const session = await auth()
+  const locale = await getLocale()
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const [counts, notifications] = await Promise.all([

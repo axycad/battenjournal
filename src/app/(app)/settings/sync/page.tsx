@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
+import Link from 'next-intl/link'
 import { Button } from '@/components/ui'
 import { useOffline } from '@/lib/offline/context'
 import { ConflictList } from '@/components/conflict-resolution'
 import { clearCache } from '@/lib/offline/sync'
 
 export default function SyncSettingsPage() {
+  const t = useTranslations('settingsSync')
+  const locale = useLocale()
   const { isOnline, syncStatus, conflicts, syncNow, refreshStatus } = useOffline()
   const [syncing, setSyncing] = useState(false)
   const [clearing, setClearing] = useState(false)
@@ -43,7 +46,7 @@ export default function SyncSettingsPage() {
   }
 
   async function handleClearCache() {
-    if (!confirm('This will clear all offline data. You will need to re-download data when online.')) {
+    if (!confirm(t('confirmClearCache'))) {
       return
     }
 
@@ -67,8 +70,8 @@ export default function SyncSettingsPage() {
   }
 
   function formatDate(date: Date | undefined): string {
-    if (!date) return 'Never'
-    return new Date(date).toLocaleString('en-GB', {
+    if (!date) return t('never')
+    return new Date(date).toLocaleString(locale, {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
@@ -83,40 +86,40 @@ export default function SyncSettingsPage() {
           href="/dashboard"
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          ← Back to dashboard
+          â† {t('backToDashboard')}
         </Link>
-        <h1 className="screen-title mt-xs">Sync &amp; offline</h1>
+        <h1 className="screen-title mt-xs">{t('title')}</h1>
       </div>
 
       <div className="space-y-lg">
         {/* Status */}
         <section className="p-md bg-white border border-divider rounded-md">
-          <h2 className="section-header mb-md">Status</h2>
+          <h2 className="section-header mb-md">{t('statusTitle')}</h2>
           
           <div className="space-y-sm">
             <div className="flex items-center justify-between">
-              <span className="text-body">Connection</span>
+              <span className="text-body">{t('connection')}</span>
               <span className={`text-body ${isOnline ? 'text-semantic-success' : 'text-text-secondary'}`}>
-                {isOnline ? 'Online' : 'Offline'}
+                {isOnline ? t('online') : t('offline')}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-body">Pending items</span>
+              <span className="text-body">{t('pendingItems')}</span>
               <span className="text-body">
                 {(syncStatus?.pendingCount ?? 0) + (syncStatus?.failedCount ?? 0)}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-body">Needs review</span>
+              <span className="text-body">{t('needsReview')}</span>
               <span className={`text-body ${conflicts.length > 0 ? 'text-semantic-warning' : ''}`}>
                 {conflicts.length}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-body">Last sync</span>
+              <span className="text-body">{t('lastSync')}</span>
               <span className="text-body text-text-secondary">
                 {formatDate(syncStatus?.lastSyncTime)}
               </span>
@@ -125,10 +128,10 @@ export default function SyncSettingsPage() {
 
           <div className="flex gap-sm mt-md pt-md border-t border-divider">
             <Button onClick={handleSync} loading={syncing} disabled={!isOnline}>
-              Sync now
+              {t('syncNow')}
             </Button>
             <Button variant="secondary" onClick={handleClearCache} loading={clearing}>
-              Clear offline data
+              {t('clearOffline')}
             </Button>
           </div>
         </section>
@@ -136,9 +139,9 @@ export default function SyncSettingsPage() {
         {/* Conflicts */}
         {conflicts.length > 0 && (
           <section className="p-md bg-white border border-divider rounded-md">
-            <h2 className="section-header mb-md">Items needing review</h2>
+            <h2 className="section-header mb-md">{t('conflictsTitle')}</h2>
             <p className="text-meta text-text-secondary mb-md">
-              These items have changes from multiple devices. Choose which version to keep.
+              {t('conflictsDescription')}
             </p>
             <ConflictList conflicts={conflicts} onResolved={refreshStatus} />
           </section>
@@ -146,34 +149,34 @@ export default function SyncSettingsPage() {
 
         {/* Install app */}
         <section className="p-md bg-white border border-divider rounded-md">
-          <h2 className="section-header mb-md">Install app</h2>
+          <h2 className="section-header mb-md">{t('installTitle')}</h2>
           
           {isInstalled ? (
             <p className="text-body text-text-secondary">
-              Batten Journal is installed on this device.
+              {t('installInstalled')}
             </p>
           ) : installPrompt ? (
             <div>
               <p className="text-body text-text-secondary mb-sm">
-                Install Batten Journal on your home screen for quick access and a better offline experience.
+                {t('installPrompt')}
               </p>
-              <Button onClick={handleInstall}>Install Batten Journal</Button>
+              <Button onClick={handleInstall}>{t('installButton')}</Button>
             </div>
           ) : (
             <p className="text-body text-text-secondary">
-              To install, use your browser's "Add to Home Screen" option in the menu.
+              {t('installHint')}
             </p>
           )}
         </section>
 
         {/* How offline works */}
         <section className="p-md bg-bg-primary border border-divider rounded-md">
-          <h2 className="text-body font-medium mb-sm">How offline works</h2>
+          <h2 className="text-body font-medium mb-sm">{t('offlineTitle')}</h2>
           <ul className="space-y-xs text-meta text-text-secondary">
-            <li>Observations are saved locally and sync when online</li>
-            <li>Profile and emergency data are available offline</li>
-            <li>Documents and photos work if previously viewed</li>
-            <li>If edits conflict, you'll be asked to choose which to keep</li>
+            <li>{t('offlineItem1')}</li>
+            <li>{t('offlineItem2')}</li>
+            <li>{t('offlineItem3')}</li>
+            <li>{t('offlineItem4')}</li>
           </ul>
         </section>
       </div>

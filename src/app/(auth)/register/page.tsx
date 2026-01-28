@@ -1,13 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import Link from 'next-intl/link'
 import { signIn } from 'next-auth/react'
 import { Button, Input } from '@/components/ui'
 import { register } from '@/actions/auth'
+import { useRouter } from '@/navigation'
 
 export default function RegisterPage() {
+  const t = useTranslations('authRegister')
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -24,7 +26,7 @@ export default function RegisterPage() {
       const result = await register({ name, email, password })
 
       if (!result.success) {
-        setError(result.error || 'Registration failed')
+        setError(result.error || t('errorRegistrationFailed'))
         setLoading(false)
         return
       }
@@ -44,7 +46,7 @@ export default function RegisterPage() {
         router.refresh()
       }
     } catch {
-      setError('Something went wrong')
+      setError(t('errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -52,11 +54,11 @@ export default function RegisterPage() {
 
   return (
     <>
-      <h1 className="screen-title text-center mb-lg">Create account</h1>
+      <h1 className="screen-title text-center mb-lg">{t('title')}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-sm">
         <Input
-          label="Your name"
+          label={t('name')}
           type="text"
           name="name"
           value={name}
@@ -67,7 +69,7 @@ export default function RegisterPage() {
         />
 
         <Input
-          label="Email"
+          label={t('email')}
           type="email"
           name="email"
           value={email}
@@ -77,7 +79,7 @@ export default function RegisterPage() {
         />
 
         <Input
-          label="Password"
+          label={t('password')}
           type="password"
           name="password"
           value={password}
@@ -86,21 +88,21 @@ export default function RegisterPage() {
           autoComplete="new-password"
           minLength={8}
         />
-        <p className="text-caption text-text-secondary">At least 8 characters</p>
+        <p className="text-caption text-text-secondary">{t('passwordHint')}</p>
 
         {error && (
           <p className="text-caption text-semantic-critical">{error}</p>
         )}
 
         <Button type="submit" className="w-full" loading={loading}>
-          Create account
+          {t('createAccount')}
         </Button>
       </form>
 
       <p className="mt-md text-center text-meta text-text-secondary">
-        Already have an account?{' '}
+        {t('alreadyAccount')}{' '}
         <Link href="/login" className="text-accent-primary hover:underline">
-          Sign in
+          {t('signIn')}
         </Link>
       </p>
     </>

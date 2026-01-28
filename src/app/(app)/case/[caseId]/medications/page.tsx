@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import {
   getMedicationsWithStatus,
@@ -15,9 +16,10 @@ interface MedicationsPageProps {
 export default async function MedicationsPage({ params }: MedicationsPageProps) {
   const { caseId } = await params
   const session = await auth()
+  const locale = await getLocale()
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const caseData = await getCase(caseId)
@@ -28,7 +30,7 @@ export default async function MedicationsPage({ params }: MedicationsPageProps) 
 
   // Only parents can access medication administration
   if (caseData.currentUserMemberType !== 'PARENT') {
-    redirect(`/case/${caseId}`)
+    redirect(`/${locale}/case/${caseId}`)
   }
 
   const [medications, history] = await Promise.all([

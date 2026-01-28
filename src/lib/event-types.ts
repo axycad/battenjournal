@@ -43,6 +43,10 @@ export const EVENT_TYPES = {
     label: 'General note',
     defaultScopes: ['other'],
   },
+  daily_checkin: {
+    label: 'Daily check-in',
+    defaultScopes: ['other'],
+  },
   nothing_new: {
     label: 'Nothing new today',
     defaultScopes: [],

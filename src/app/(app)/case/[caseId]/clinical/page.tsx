@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
+import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getAllScopes } from '@/actions/event'
 import { getCaseNotes } from '@/actions/clinical-notes'
@@ -16,9 +17,10 @@ interface ClinicalPageProps {
 export default async function ClinicalPage({ params }: ClinicalPageProps) {
   const { caseId } = await params
   const session = await auth()
+  const locale = await getLocale()
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect(`/${locale}/login`)
   }
 
   const caseData = await getCase(caseId)
@@ -29,7 +31,7 @@ export default async function ClinicalPage({ params }: ClinicalPageProps) {
 
   // This page is for clinicians only
   if (caseData.currentUserMemberType !== 'CARE_TEAM') {
-    redirect(`/case/${caseId}`)
+    redirect(`/${locale}/case/${caseId}`)
   }
 
   const [notes, flags, tasks, watches, watchedUpdates, availableScopes, clinicians] = await Promise.all([

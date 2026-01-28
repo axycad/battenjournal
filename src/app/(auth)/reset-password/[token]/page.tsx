@@ -1,16 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import Link from 'next-intl/link'
 import { Button, Input } from '@/components/ui'
 import { resetPassword } from '@/actions/auth'
+import { useRouter } from '@/navigation'
 
 export default function ResetPasswordPage({
   params,
 }: {
   params: { token: string }
 }) {
+  const t = useTranslations('authReset')
   const router = useRouter()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -23,7 +25,7 @@ export default function ResetPasswordPage({
     setError('')
 
     if (password !== confirm) {
-      setError('Passwords do not match')
+      setError(t('errorMismatch'))
       return
     }
 
@@ -31,13 +33,13 @@ export default function ResetPasswordPage({
     try {
       const result = await resetPassword({ token: params.token, password })
       if (!result.success) {
-        setError(result.error || 'Unable to reset password')
+        setError(result.error || t('errorReset'))
       } else {
         setSuccess(true)
         router.refresh()
       }
     } catch {
-      setError('Something went wrong')
+      setError(t('errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -45,16 +47,16 @@ export default function ResetPasswordPage({
 
   return (
     <>
-      <h1 className="screen-title text-center mb-lg">Choose a new password</h1>
+      <h1 className="screen-title text-center mb-lg">{t('title')}</h1>
 
       {success ? (
         <>
           <p className="text-body text-text-secondary mb-md text-center">
-            Your password has been updated. You can sign in now.
+            {t('success')}
           </p>
           <p className="text-center text-meta text-text-secondary">
             <Link href="/login" className="text-accent-primary hover:underline">
-              Back to sign in
+              {t('backToSignIn')}
             </Link>
           </p>
         </>
@@ -62,7 +64,7 @@ export default function ResetPasswordPage({
         <>
           <form onSubmit={handleSubmit} className="space-y-sm">
             <Input
-              label="New password"
+              label={t('newPassword')}
               type="password"
               name="password"
               value={password}
@@ -72,7 +74,7 @@ export default function ResetPasswordPage({
               minLength={8}
             />
             <Input
-              label="Confirm new password"
+              label={t('confirmPassword')}
               type="password"
               name="confirmPassword"
               value={confirm}
@@ -87,13 +89,13 @@ export default function ResetPasswordPage({
             )}
 
             <Button type="submit" className="w-full" loading={loading}>
-              Reset password
+              {t('reset')}
             </Button>
           </form>
 
           <p className="mt-md text-center text-meta text-text-secondary">
             <Link href="/login" className="text-accent-primary hover:underline">
-              Back to sign in
+              {t('backToSignIn')}
             </Link>
           </p>
         </>

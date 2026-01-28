@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { Button, Input } from '@/components/ui'
 import { createCase } from '@/actions/case'
 

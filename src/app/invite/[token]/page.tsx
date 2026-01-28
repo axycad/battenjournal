@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import Link from 'next-intl/link'
 import { auth } from '@/lib/auth'
 import { getInviteByToken } from '@/actions/invite'
 import { getClinicianInviteByToken } from '@/actions/sharing'

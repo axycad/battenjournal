@@ -1,11 +1,13 @@
 ﻿'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import Link from 'next-intl/link'
 import { Button, Input } from '@/components/ui'
 import { requestPasswordReset } from '@/actions/auth'
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('authForgot')
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
@@ -19,12 +21,12 @@ export default function ForgotPasswordPage() {
     try {
       const result = await requestPasswordReset({ email })
       if (!result.success) {
-        setError(result.error || 'Unable to send reset email')
+        setError(result.error || t('errorSend'))
       } else {
         setSent(true)
       }
     } catch {
-      setError('Something went wrong')
+      setError(t('errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -32,16 +34,15 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <h1 className="screen-title text-center mb-lg">Reset password</h1>
+      <h1 className="screen-title text-center mb-lg">{t('title')}</h1>
 
       <p className="text-body text-text-secondary mb-md">
-        Enter the email you use for Batten Journal and we&apos;ll send you a reset
-        link.
+        {t('description')}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-sm">
         <Input
-          label="Email"
+          label={t('email')}
           type="email"
           name="email"
           value={email}
@@ -55,18 +56,18 @@ export default function ForgotPasswordPage() {
         )}
         {sent && !error && (
           <p className="text-caption text-text-secondary">
-            If an account exists for that email, a reset link is on the way.
+            {t('sent')}
           </p>
         )}
 
         <Button type="submit" className="w-full" loading={loading}>
-          Send reset link
+          {t('send')}
         </Button>
       </form>
 
       <p className="mt-md text-center text-meta text-text-secondary">
         <Link href="/login" className="text-accent-primary hover:underline">
-          Back to sign in
+          {t('backToSignIn')}
         </Link>
       </p>
     </>
