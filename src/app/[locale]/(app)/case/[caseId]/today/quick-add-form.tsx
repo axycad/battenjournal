@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Button, Input, Textarea } from '@/components/ui'
-import { createEvent } from '@/actions/event'
-import { EVENT_TYPES, type EventType } from '@/lib/event-types'
+import { Button, Input, Textarea, SeveritySlider } from '@/components/ui'
+import { createEvent, updateEvent, type EventWithScopes } from '@/actions/event'
+import { EVENT_TYPES, type EventType, type SeverityLevel } from '@/lib/event-types'
 import { useOffline } from '@/lib/offline/context'
 import { createEventOffline } from '@/lib/offline/sync'
+import { MiniTrendChart } from '@/components/events/mini-trend-chart'
 import type { Scope } from '@prisma/client'
 
 type CheckInStatus = 'better' | 'same' | 'worse' | 'unsure'
@@ -25,9 +26,10 @@ const QUICK_TYPES: EventType[] = [
 interface QuickAddFormProps {
   caseId: string
   scopes: Scope[]
+  events?: EventWithScopes[]
 }
 
-export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
+export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps) {
   const t = useTranslations('quickAdd')
   const router = useRouter()
   const { data: session } = useSession()
@@ -36,6 +38,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
 
   const [selectedType, setSelectedType] = useState<EventType | null>(null)
   const [freeText, setFreeText] = useState('')
+  const [severity, setSeverity] = useState<SeverityLevel | undefined>(undefined)
   const [checkInStatus, setCheckInStatus] = useState<CheckInStatus | null>(null)
   const [checkInNote, setCheckInNote] = useState('')
   const [checkInContexts, setCheckInContexts] = useState<string[]>([])
@@ -48,6 +51,27 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const [checkInError, setCheckInError] = useState('')
+  const [justSavedEventId, setJustSavedEventId] = useState<string | null>(null)
+  const [showAddDetails, setShowAddDetails] = useState(false)
+
+  // Load severity default from localStorage
+  function getDefaultSeverity(eventType: EventType): SeverityLevel | undefined {
+    try {
+      const stored = localStorage.getItem(`severity-default-${eventType}`)
+      return stored ? (parseInt(stored) as SeverityLevel) : undefined
+    } catch {
+      return undefined
+    }
+  }
+
+  // Save severity default to localStorage
+  function saveDefaultSeverity(eventType: EventType, severity: SeverityLevel) {
+    try {
+      localStorage.setItem(`severity-default-${eventType}`, severity.toString())
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
 
   function handleTypeSelect(type: EventType) {
     setSelectedType(type)
@@ -55,10 +79,49 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
     setSelectedScopes([...EVENT_TYPES[type].defaultScopes])
     setQuickContextScopes([])
     setFormError('')
+    setJustSavedEventId(null)
+    setShowAddDetails(false)
+
+    // Load saved severity default for this event type
+    const defaultSeverity = getDefaultSeverity(type)
+    if (defaultSeverity) {
+      setSeverity(defaultSeverity)
+    } else {
+      setSeverity(undefined)
+    }
 
     // Auto-submit "nothing new" immediately
     if (type === 'nothing_new') {
       handleSubmit(type)
+    }
+  }
+
+  async function handleSeverityChange(newSeverity: SeverityLevel) {
+    setSeverity(newSeverity)
+
+    // Save as default for this event type
+    if (selectedType) {
+      saveDefaultSeverity(selectedType, newSeverity)
+    }
+
+    // Auto-save if event type is selected and not already saved
+    if (selectedType && !justSavedEventId) {
+      // Build scope set
+      const scopeSet = new Set<string>()
+      EVENT_TYPES[selectedType].defaultScopes.forEach((code) => scopeSet.add(code))
+      quickContextScopes.forEach((code) => scopeSet.add(code))
+      const scopeCodesValue = scopeSet.size > 0 ? Array.from(scopeSet) : undefined
+
+      await saveEvent({
+        eventType: selectedType,
+        severityValue: newSeverity,
+        scopeCodesValue,
+        setError: setFormError,
+        onSuccess: (eventId) => {
+          setJustSavedEventId(eventId || null)
+          // Don't reset form - keep it ready for "Add details"
+        },
+      })
     }
   }
 
@@ -99,6 +162,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
     freeTextValue,
     occurredAtValue,
     scopeCodesValue,
+    severityValue,
     photoValue,
     onSuccess,
     setError,
@@ -107,8 +171,9 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
     freeTextValue?: string
     occurredAtValue?: string
     scopeCodesValue?: string[]
+    severityValue?: SeverityLevel
     photoValue?: File | null
-    onSuccess?: () => void
+    onSuccess?: (eventId?: string) => void
     setError: (message: string) => void
   }) {
     setSaving(true)
@@ -124,6 +189,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
           freeText: freeTextValue?.trim() || undefined,
           occurredAt: occurredAtValue || undefined,
           scopeCodes: scopeCodesValue,
+          severity: severityValue,
         })
 
         if (!result.success) {
@@ -175,7 +241,7 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
         console.log('Photo will not be uploaded - offline mode')
       }
 
-      onSuccess?.()
+      onSuccess?.(eventId)
 
       // Refresh to show new event
       router.refresh()
@@ -205,11 +271,13 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
       freeTextValue: freeText.trim() || undefined,
       occurredAtValue: backdateTime || undefined,
       scopeCodesValue,
+      severityValue: severity,
       photoValue: photo,
       setError: setFormError,
       onSuccess: () => {
         setSelectedType(null)
         setFreeText('')
+        setSeverity(undefined)
         setExpanded(false)
         setSelectedScopes([])
         setQuickContextScopes([])
@@ -220,6 +288,79 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
         }
       },
     })
+  }
+
+  async function handleUpdateDetails() {
+    if (!justSavedEventId) return
+
+    setSaving(true)
+    setFormError('')
+
+    try {
+      // Upload photo if present
+      if (photo && isOnline) {
+        try {
+          const formData = new FormData()
+          formData.append('file', photo)
+          formData.append('caseId', caseId)
+          formData.append('eventId', justSavedEventId)
+
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json()
+            console.error('Photo upload failed:', uploadResult.error)
+          }
+        } catch (e) {
+          console.error('Photo upload error:', e)
+        }
+      }
+
+      // Build scope set
+      const scopeSet = new Set<string>()
+      if (expanded && selectedScopes.length > 0) {
+        selectedScopes.forEach((code) => scopeSet.add(code))
+      } else if (selectedType) {
+        EVENT_TYPES[selectedType].defaultScopes.forEach((code) => scopeSet.add(code))
+        quickContextScopes.forEach((code) => scopeSet.add(code))
+      }
+
+      // Update the event
+      const result = await updateEvent(justSavedEventId, {
+        freeText: freeText.trim() || undefined,
+        occurredAt: backdateTime || undefined,
+        scopeCodes: scopeSet.size > 0 ? Array.from(scopeSet) : undefined,
+        severity,
+      })
+
+      if (!result.success) {
+        setFormError(result.error || t('errorFailedSave'))
+      } else {
+        // Reset form after successful update
+        setShowAddDetails(false)
+        setJustSavedEventId(null)
+        setSelectedType(null)
+        setFreeText('')
+        setSeverity(undefined)
+        setExpanded(false)
+        setSelectedScopes([])
+        setQuickContextScopes([])
+        setBackdateTime('')
+        setPhoto(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+        router.refresh()
+      }
+    } catch (e) {
+      console.error('Update error:', e)
+      setFormError(t('errorFailedSave'))
+    } finally {
+      setSaving(false)
+    }
   }
 
   const contextMarkers: { id: string; label: string; scopeCode: string }[] = [
@@ -320,11 +461,14 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
   function handleCancel() {
     setSelectedType(null)
     setFreeText('')
+    setSeverity(undefined)
     setExpanded(false)
     setSelectedScopes([])
     setQuickContextScopes([])
     setBackdateTime('')
     setPhoto(null)
+    setJustSavedEventId(null)
+    setShowAddDetails(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -495,35 +639,78 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
           </button>
         </div>
 
-        {selectedType && (
-          <div>
-            <p className="text-meta text-text-secondary mb-xs">
-              {t('contextMarkers')}
-            </p>
-            <div className="flex flex-wrap gap-xs">
-              {contextMarkers.map((context) => {
-                const isActive = quickContextScopes.includes(context.scopeCode)
-                return (
-                  <button
-                    key={context.id}
-                    type="button"
-                    onClick={() =>
-                      setQuickContextScopes((prev) =>
-                        prev.includes(context.scopeCode)
-                          ? prev.filter((code) => code !== context.scopeCode)
-                          : [...prev, context.scopeCode]
-                      )
-                    }
-                    className={`px-sm py-1 text-meta rounded-full border transition-colors ${
-                      isActive
-                        ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                        : 'border-divider text-text-secondary hover:border-accent-primary'
-                    }`}
-                  >
-                    {context.label}
-                  </button>
-                )
-              })}
+        {selectedType && !justSavedEventId && (
+          <>
+            {/* Show mini trend for repeat event types */}
+            {events.filter((e) => e.eventType === selectedType).length > 0 && (
+              <MiniTrendChart
+                events={events.map((e) => ({
+                  id: e.id,
+                  eventType: e.eventType,
+                  occurredAt: e.occurredAt,
+                  severity: e.severity,
+                }))}
+                eventType={selectedType}
+                label={`${EVENT_TYPES[selectedType].label} history`}
+              />
+            )}
+
+            <div>
+              <p className="text-meta text-text-secondary mb-xs">
+                {t('contextMarkers')}
+              </p>
+              <div className="flex flex-wrap gap-xs">
+                {contextMarkers.map((context) => {
+                  const isActive = quickContextScopes.includes(context.scopeCode)
+                  return (
+                    <button
+                      key={context.id}
+                      type="button"
+                      onClick={() =>
+                        setQuickContextScopes((prev) =>
+                          prev.includes(context.scopeCode)
+                            ? prev.filter((code) => code !== context.scopeCode)
+                            : [...prev, context.scopeCode]
+                        )
+                      }
+                      className={`px-sm py-1 text-meta rounded-full border transition-colors ${
+                        isActive
+                          ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                          : 'border-divider text-text-secondary hover:border-accent-primary'
+                      }`}
+                    >
+                      {context.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <SeveritySlider
+              value={severity}
+              onChange={handleSeverityChange}
+              label={t('severity')}
+            />
+          </>
+        )}
+
+        {/* Success message after auto-save */}
+        {justSavedEventId && !showAddDetails && (
+          <div className="p-sm bg-semantic-success/10 border border-semantic-success/30 rounded-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-sm">
+                <span className="text-body text-semantic-success">✓</span>
+                <span className="text-body text-text-primary">
+                  {t('eventSaved')}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddDetails(true)}
+                className="text-meta text-accent-primary hover:underline"
+              >
+                {t('addDetails')}
+              </button>
             </div>
           </div>
         )}
@@ -549,121 +736,136 @@ export function QuickAddForm({ caseId, scopes }: QuickAddFormProps) {
           </div>
         )}
 
-        {/* Main text input */}
-        <Textarea
-          value={freeText}
-          onChange={(e) => setFreeText(e.target.value)}
-          placeholder={
-            selectedType
-              ? t('addDetails', { type: typeConfig?.label.toLowerCase() ?? '' })
-              : t('startTyping')
-          }
-          rows={2}
-          onFocus={handleStartTyping}
-        />
-
-        {/* Photo upload */}
-        {selectedType && (
-          <div>
-            <label className="block text-meta text-text-secondary mb-xs">
-              {t('addPhoto')}
-            </label>
-            {photo ? (
-              <div className="flex items-center gap-sm">
-                <span className="text-meta text-text-primary">
-                  {photo.name}
-                </span>
-                <Button
-                  variant="text"
-                  onClick={removePhoto}
-                  className="h-auto px-0 text-meta text-text-secondary"
-                >
-                  {t('remove')}
-                </Button>
-              </div>
-            ) : (
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/heic,image/heif"
-                onChange={handlePhotoSelect}
-                className="block w-full text-body text-text-primary
-                  file:mr-sm file:py-1 file:px-sm
-                  file:rounded-sm file:border-0
-                  file:text-meta file:font-medium
-                  file:bg-accent-primary/10 file:text-accent-primary
-                  hover:file:bg-accent-primary/20"
-              />
-            )}
-          </div>
-        )}
-
-        {/* Expand/collapse for additional options */}
-        {selectedType && !expanded && (
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="text-meta text-accent-primary hover:underline"
-          >
-            {t('moreOptions')}
-          </button>
-        )}
-
-        {/* Expanded options */}
-        {selectedType && expanded && (
-          <div className="space-y-sm pt-sm border-t border-divider">
-            {/* Backdate option */}
-            <div>
-              <label className="block text-meta text-text-secondary mb-xs">
-                {t('when')}
-              </label>
-              <Input
-                type="datetime-local"
-                value={backdateTime}
-                onChange={(e) => setBackdateTime(e.target.value)}
-              />
-              <p className="text-caption text-text-secondary mt-xs">
-                {t('leaveBlank')}
-              </p>
+        {/* Add details form - shown after auto-save */}
+        {showAddDetails && justSavedEventId && (
+          <div className="space-y-sm p-sm border border-divider rounded-md bg-bg-primary">
+            <div className="flex items-center justify-between">
+              <h3 className="text-body font-medium">{t('addDetailsTitle')}</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddDetails(false)
+                  handleCancel()
+                }}
+                className="text-meta text-text-secondary hover:text-text-primary"
+              >
+                {t('done')}
+              </button>
             </div>
 
-            {/* Scope picker */}
+            {/* Notes */}
             <div>
               <label className="block text-meta text-text-secondary mb-xs">
-                {t('categories')}
+                {t('notes')}
               </label>
-              <div className="flex flex-wrap gap-xs">
-                {scopes.map((scope) => (
-                  <button
-                    key={scope.id}
-                    type="button"
-                    onClick={() => toggleScope(scope.code)}
-                    className={`px-sm py-1 text-meta rounded-sm border transition-colors ${
-                      selectedScopes.includes(scope.code)
-                        ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                        : 'border-divider text-text-secondary hover:border-accent-primary'
-                    }`}
+              <Textarea
+                value={freeText}
+                onChange={(e) => setFreeText(e.target.value)}
+                placeholder={t('addNotesPlaceholder')}
+                rows={2}
+              />
+            </div>
+
+            {/* Photo upload */}
+            <div>
+              <label className="block text-meta text-text-secondary mb-xs">
+                {t('addPhoto')}
+              </label>
+              {photo ? (
+                <div className="flex items-center gap-sm">
+                  <span className="text-meta text-text-primary">
+                    {photo.name}
+                  </span>
+                  <Button
+                    variant="text"
+                    onClick={removePhoto}
+                    className="h-auto px-0 text-meta text-text-secondary"
                   >
-                    {scope.label}
-                  </button>
-                ))}
-              </div>
+                    {t('remove')}
+                  </Button>
+                </div>
+              ) : (
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/heic,image/heif"
+                  onChange={handlePhotoSelect}
+                  className="block w-full text-body text-text-primary
+                    file:mr-sm file:py-1 file:px-sm
+                    file:rounded-sm file:border-0
+                    file:text-meta file:font-medium
+                    file:bg-accent-primary/10 file:text-accent-primary
+                    hover:file:bg-accent-primary/20"
+                />
+              )}
             </div>
+
+            {/* More options toggle */}
+            {!expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="text-meta text-accent-primary hover:underline"
+              >
+                {t('moreOptions')}
+              </button>
+            )}
+
+            {/* Expanded options */}
+            {expanded && (
+              <div className="space-y-sm pt-sm border-t border-divider">
+                {/* Backdate option */}
+                <div>
+                  <label className="block text-meta text-text-secondary mb-xs">
+                    {t('when')}
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    value={backdateTime}
+                    onChange={(e) => setBackdateTime(e.target.value)}
+                  />
+                  <p className="text-caption text-text-secondary mt-xs">
+                    {t('leaveBlank')}
+                  </p>
+                </div>
+
+                {/* Scope picker */}
+                <div>
+                  <label className="block text-meta text-text-secondary mb-xs">
+                    {t('categories')}
+                  </label>
+                  <div className="flex flex-wrap gap-xs">
+                    {scopes.map((scope) => (
+                      <button
+                        key={scope.id}
+                        type="button"
+                        onClick={() => toggleScope(scope.code)}
+                        className={`px-sm py-1 text-meta rounded-sm border transition-colors ${
+                          selectedScopes.includes(scope.code)
+                            ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
+                            : 'border-divider text-text-secondary hover:border-accent-primary'
+                        }`}
+                      >
+                        {scope.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Update button */}
+            <Button
+              onClick={handleUpdateDetails}
+              loading={saving}
+              disabled={saving}
+            >
+              {t('updateEvent')}
+            </Button>
           </div>
         )}
 
         {formError && <p className="text-caption text-semantic-critical">{formError}</p>}
-
-        {/* Submit */}
-        <div className="flex gap-sm pt-xs">
-          <Button
-            onClick={() => handleSubmit()}
-            loading={saving}
-            disabled={!selectedType || saving}
-          >
-            {t('save')}
-          </Button>
-        </div>
         </section>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { getCase } from '@/actions/case'
 import { getEventsForCase, getAllScopes } from '@/actions/event'
 import { QuickAddForm } from './quick-add-form'
 import { EventTimeline } from './event-timeline'
+import { ProgressSummary } from '@/components/events/progress-summary'
 
 interface TodayPageProps {
   params: Promise<{ caseId: string }>
@@ -136,10 +137,24 @@ export default async function TodayPage({ params }: TodayPageProps) {
         </div>
       )}
 
+      {/* Progress Summary - only for parents */}
+      {!isClinician && events.length > 0 && (
+        <div className="mb-lg">
+          <ProgressSummary
+            events={events.map((e) => ({
+              id: e.id,
+              eventType: e.eventType,
+              occurredAt: e.occurredAt,
+              severity: e.severity,
+            }))}
+          />
+        </div>
+      )}
+
       {/* Quick add form - only for parents */}
       {canEdit && (
         <div className="mb-lg">
-          <QuickAddForm caseId={caseId} scopes={scopes} />
+          <QuickAddForm caseId={caseId} scopes={scopes} events={events} />
         </div>
       )}
 

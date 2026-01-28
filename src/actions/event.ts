@@ -3,7 +3,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-import { EVENT_TYPES, type EventType } from '@/lib/event-types'
+import { EVENT_TYPES, type EventType, type SeverityLevel } from '@/lib/event-types'
 
 export type ActionResult<T = void> = {
   success: boolean
@@ -43,6 +43,7 @@ export interface CreateEventInput {
   freeText?: string
   occurredAt?: string // ISO date string, defaults to now
   scopeCodes?: string[] // Override default scopes if provided
+  severity?: SeverityLevel // 1-4 severity level
 }
 
 export async function createEvent(
@@ -73,6 +74,7 @@ export async function createEvent(
         freeText: input.freeText?.trim() || null,
         occurredAt,
         loggedAt: new Date(),
+        severity: input.severity ?? null,
       },
     })
 
@@ -118,6 +120,7 @@ export async function updateEvent(
     freeText?: string
     occurredAt?: string
     scopeCodes?: string[]
+    severity?: SeverityLevel
   }
 ): Promise<ActionResult> {
   const event = await prisma.event.findUnique({ where: { id: eventId } })
@@ -133,6 +136,7 @@ export async function updateEvent(
       data: {
         freeText: input.freeText?.trim(),
         occurredAt: input.occurredAt ? new Date(input.occurredAt) : undefined,
+        severity: input.severity !== undefined ? input.severity : undefined,
       },
     })
 
@@ -207,6 +211,7 @@ export interface EventWithScopes {
   freeText: string | null
   occurredAt: Date
   loggedAt: Date
+  severity: number | null
   author: {
     id: string
     name: string | null
@@ -338,6 +343,7 @@ export async function getEventsForCase(
       freeText: event.freeText,
       occurredAt: event.occurredAt,
       loggedAt: event.loggedAt,
+      severity: event.severity,
       author: event.author,
       scopes: visibleScopes,
       mediaItems: event.mediaItems.map((m) => ({
@@ -388,6 +394,7 @@ export async function getTodayEvents(caseId: string): Promise<EventWithScopes[]>
       freeText: event.freeText,
       occurredAt: event.occurredAt,
       loggedAt: event.loggedAt,
+      severity: event.severity,
       author: event.author,
       scopes: event.scopes.map((es) => ({
         code: es.scope.code,
@@ -408,4 +415,31 @@ export async function getAllScopes() {
   return prisma.scope.findMany({
     orderBy: { code: 'asc' },
   })
+}
+
+// Get all active event templates
+export async function getEventTemplates() {
+  const templates = await prisma.eventTemplate.findMany({
+    where: { active: true },
+    orderBy: { order: 'asc' },
+  })
+
+  return templates.map((t) => ({
+    ...t,
+    configuration: t.configuration as any, // Will be properly typed on the client
+  }))
+}
+
+// Get a single event template by type
+export async function getEventTemplate(type: string) {
+  const template = await prisma.eventTemplate.findUnique({
+    where: { type, active: true },
+  })
+
+  if (!template) return null
+
+  return {
+    ...template,
+    configuration: template.configuration as any,
+  }
 }

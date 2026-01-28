@@ -573,6 +573,7 @@ model Event {
   loggedAt      DateTime @default(now())
   eventType     String
   freeText      String?  @db.Text
+  severity      Int?     // 1=MINIMAL, 2=MILD, 3=MODERATE, 4=SEVERE
   schemaVersion String   @default("1.0")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -599,6 +600,22 @@ model EventScope {
   scope Scope @relation(fields: [scopeId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, scopeId])
+}
+
+model EventTemplate {
+  id              String   @id @default(cuid())
+  type            String   @unique  // Event type code (e.g., "seizure", "medication")
+  label           String              // Display label (e.g., "Seizure activity")
+  emoji           String?             // Optional emoji icon
+  defaultSeverity Int      @default(2) // Default severity level (1-4)
+  configuration   Json                // Field definitions, thresholds, etc.
+  active          Boolean  @default(true)
+  order           Int      @default(0) // Display order in UI
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([type])
+  @@index([active])
 }
 
 model MediaItem {

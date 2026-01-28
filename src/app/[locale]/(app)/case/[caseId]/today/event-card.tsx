@@ -3,9 +3,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {Link} from '@/navigation'
-import { Button, Textarea, Input } from '@/components/ui'
+import { Button, Textarea, Input, SeveritySlider } from '@/components/ui'
 import { updateEvent, deleteEvent, type EventWithScopes } from '@/actions/event'
-import { EVENT_TYPES } from '@/lib/event-types'
+import {
+  EVENT_TYPES,
+  SEVERITY_LABELS,
+  SEVERITY_COLORS,
+  type SeverityLevel,
+} from '@/lib/event-types'
 import { deleteMediaItem } from '@/actions/document'
 import {
   getNotesForEvent,
@@ -20,7 +25,10 @@ import {
 } from '@/components/clinical/notes'
 import { AddFlagButton, EventFlagsBadges } from '@/components/clinical/flags'
 import { StartEventThreadButton } from '@/components/messaging'
+import { ProgressBadge } from '@/components/events/progress-badge'
+import { calculateProgress } from '@/lib/progress-calculations'
 import type { Scope } from '@prisma/client'
+import type { EventType } from '@/lib/event-types'
 
 interface EventCardProps {
   event: EventWithScopes
@@ -29,6 +37,7 @@ interface EventCardProps {
   caseId: string
   isClinician?: boolean
   currentUserId?: string
+  allEvents?: EventWithScopes[]
 }
 
 function formatTime(date: Date): string {
@@ -56,6 +65,7 @@ export function EventCard({
   caseId,
   isClinician = false,
   currentUserId,
+  allEvents = [],
 }: EventCardProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -73,6 +83,9 @@ export function EventCard({
 
   const checkInToken = extractCheckInToken(event.freeText)
   const [freeText, setFreeText] = useState(stripCheckInToken(event.freeText) || '')
+  const [severity, setSeverity] = useState<SeverityLevel | undefined>(
+    event.severity ? (event.severity as SeverityLevel) : undefined
+  )
   const [selectedScopes, setSelectedScopes] = useState<string[]>(
     event.scopes.map((s) => s.code)
   )
@@ -86,6 +99,20 @@ export function EventCard({
     event.eventType === 'daily_checkin'
       ? stripCheckInToken(event.freeText)
       : event.freeText
+
+  // Calculate progress data for this event type
+  const progressData =
+    allEvents.length > 0 && event.eventType !== 'daily_checkin' && event.eventType !== 'nothing_new'
+      ? calculateProgress(
+          allEvents.map((e) => ({
+            id: e.id,
+            eventType: e.eventType,
+            occurredAt: e.occurredAt,
+            severity: e.severity,
+          })),
+          event.eventType as EventType
+        )
+      : null
 
   // Load clinical notes, flags, and thread info
   useEffect(() => {
@@ -125,6 +152,7 @@ export function EventCard({
       freeText: normalizedText || undefined,
       occurredAt: backdateTime,
       scopeCodes: selectedScopes,
+      severity,
     })
 
     if (!result.success) {
@@ -207,6 +235,7 @@ export function EventCard({
 
   function handleCancel() {
     setFreeText(stripCheckInToken(event.freeText) || '')
+    setSeverity(event.severity ? (event.severity as SeverityLevel) : undefined)
     setSelectedScopes(event.scopes.map((s) => s.code))
     setBackdateTime(event.occurredAt.toISOString().slice(0, 16))
     setEditing(false)
@@ -277,6 +306,12 @@ export function EventCard({
             rows={2}
           />
 
+          <SeveritySlider
+            value={severity}
+            onChange={setSeverity}
+            label="Severity"
+          />
+
           <div>
             <label className="block text-meta text-text-secondary mb-xs">
               When
@@ -330,6 +365,15 @@ export function EventCard({
           {/* Header: type + time + flags */}
           <div className="flex items-center gap-sm mb-xs flex-wrap">
             <span className="text-body font-medium">{typeLabel}</span>
+            {event.severity && (
+              <span
+                className={`px-xs py-0.5 text-caption font-medium rounded ${
+                  SEVERITY_COLORS[event.severity as SeverityLevel]
+                }`}
+              >
+                {SEVERITY_LABELS[event.severity as SeverityLevel]}
+              </span>
+            )}
             <span className="text-meta text-text-secondary">
               {formatTime(event.occurredAt)}
             </span>
@@ -382,7 +426,7 @@ export function EventCard({
 
           {/* Scope tags */}
           {event.scopes.length > 0 && (
-            <div className="flex flex-wrap gap-xs">
+            <div className="flex flex-wrap gap-xs mb-xs">
               {event.scopes.map((scope) => (
                 <span
                   key={scope.code}
@@ -392,6 +436,14 @@ export function EventCard({
                 </span>
               ))}
             </div>
+          )}
+
+          {/* Progress badges */}
+          {progressData && (
+            <ProgressBadge
+              frequencyData={progressData.frequency}
+              severityData={progressData.severity}
+            />
           )}
 
           {/* Partial visibility indicator */}

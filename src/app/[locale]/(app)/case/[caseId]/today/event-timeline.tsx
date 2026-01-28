@@ -106,6 +106,7 @@ export function EventTimeline({
                 caseId={caseId}
                 isClinician={isClinician}
                 currentUserId={currentUserId}
+                allEvents={events}
               />
             ))}
           </div>
