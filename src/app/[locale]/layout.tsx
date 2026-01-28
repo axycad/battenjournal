@@ -28,12 +28,13 @@ export const viewport: Viewport = {
 
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }) {
-  const messages = await getMessages()
+  const { locale } = await params
+  const messages = await getMessages({ locale })
   const isRtl = locale === 'ar'
 
   return (
