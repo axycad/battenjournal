@@ -5,38 +5,13 @@ import { Link } from '@/navigation'
 import type { AppointmentWithCreator } from '@/actions/appointment'
 import { updateAppointment } from '@/actions/appointment'
 import { generateICSFile, downloadICSFile, generateGoogleCalendarURL } from '@/lib/calendar-sync'
+import { APPOINTMENT_TYPE_LABELS, APPOINTMENT_TYPE_EMOJI } from '@/lib/appointment-types'
 
 interface UpcomingAppointmentsWidgetProps {
   appointments: AppointmentWithCreator[]
   caseId: string
   childName: string
   canEdit: boolean
-}
-
-const APPOINTMENT_TYPE_LABELS: Record<string, string> = {
-  NEUROLOGY: 'Neurology',
-  CARDIOLOGY: 'Cardiology',
-  OPHTHALMOLOGY: 'Ophthalmology',
-  PHYSICAL_THERAPY: 'Physical Therapy',
-  OCCUPATIONAL_THERAPY: 'Occupational Therapy',
-  SPEECH_THERAPY: 'Speech Therapy',
-  INFUSION: 'Infusion',
-  PRIMARY_CARE: 'Primary Care',
-  DENTAL: 'Dental',
-  OTHER: 'Other',
-}
-
-const APPOINTMENT_TYPE_EMOJI: Record<string, string> = {
-  NEUROLOGY: '🧠',
-  CARDIOLOGY: '❤️',
-  OPHTHALMOLOGY: '👁️',
-  PHYSICAL_THERAPY: '🏃',
-  OCCUPATIONAL_THERAPY: '✋',
-  SPEECH_THERAPY: '💬',
-  INFUSION: '💉',
-  PRIMARY_CARE: '🏥',
-  DENTAL: '🦷',
-  OTHER: '📅',
 }
 
 export function UpcomingAppointmentsWidget({
