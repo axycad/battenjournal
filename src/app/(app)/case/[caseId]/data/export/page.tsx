@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
 import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'

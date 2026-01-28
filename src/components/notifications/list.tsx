@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import type { NotificationItem } from '@/actions/notifications'
 import { formatDate } from '@/lib/utils'
 

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { getFullProfile } from '@/actions/profile'
 import { getCase } from '@/actions/case'
 import { Button } from '@/components/ui'

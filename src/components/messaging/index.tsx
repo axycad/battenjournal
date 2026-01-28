@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { Button, Textarea, Input } from '@/components/ui'
 import { useRouter } from '@/navigation'
 import {

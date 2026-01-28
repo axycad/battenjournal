@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { Button, Textarea, Input } from '@/components/ui'
 import { updateEvent, deleteEvent, type EventWithScopes } from '@/actions/event'
 import { EVENT_TYPES } from '@/lib/event-types'

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { signIn } from 'next-auth/react'
 import { Button, Input } from '@/components/ui'
 import { useRouter } from '@/navigation'

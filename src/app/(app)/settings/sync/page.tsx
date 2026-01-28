@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { Button } from '@/components/ui'
 import { useOffline } from '@/lib/offline/context'
 import { ConflictList } from '@/components/conflict-resolution'

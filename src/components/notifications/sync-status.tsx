@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 
 // ============================================================================
 // TYPES

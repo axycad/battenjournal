@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { getTranslations } from 'next-intl/server'
 import { auth } from '@/lib/auth'
 import { getCase } from '@/actions/case'

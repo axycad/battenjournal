@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next-intl/link'
+import {Link} from '@/navigation'
 import { createWatch, removeWatch, type WatchWithScope, type WatchedUpdate } from '@/actions/watches'
 import { formatDate } from '@/lib/utils'
 
