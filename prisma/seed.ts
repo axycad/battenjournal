@@ -329,51 +329,58 @@ async function seedDemoData() {
   const eventData = [
     {
       id: 'demo-event-001',
-      eventType: 'SEIZURE',
+      eventType: 'seizure',
       freeText: 'Myoclonic jerks on waking, lasted about 2 minutes. Settled after cuddles.',
       occurredAt: daysAgo(0, 7, 30),
+      severity: 2, // MILD
       scopes: [seizureScope?.id],
     },
     {
       id: 'demo-event-002',
-      eventType: 'SLEEP',
+      eventType: 'sleep',
       freeText: 'Slept well through the night. Woke once at 3am but settled quickly.',
       occurredAt: daysAgo(1, 8, 0),
+      severity: 2, // MILD
       scopes: [sleepScope?.id],
     },
     {
       id: 'demo-event-003',
-      eventType: 'FEEDING',
+      eventType: 'feeding',
       freeText: 'PEG feed completed without issues. Tried some pureed banana - enjoyed it!',
       occurredAt: daysAgo(1, 12, 30),
+      severity: 1, // MINIMAL
       scopes: [feedingScope?.id],
     },
     {
       id: 'demo-event-004',
-      eventType: 'SEIZURE',
+      eventType: 'seizure',
       freeText: 'Tonic-clonic seizure at school, 3 minutes. Midazolam given. Recovery in 20 mins.',
       occurredAt: daysAgo(2, 14, 15),
+      severity: 3, // MODERATE
       scopes: [seizureScope?.id],
     },
     {
       id: 'demo-event-005',
-      eventType: 'COMFORT',
+      eventType: 'comfort',
       freeText: 'Seemed uncomfortable after lunch. Position change helped. May need physio review.',
       occurredAt: daysAgo(3, 13, 0),
+      severity: 2, // MILD
       scopes: [comfortScope?.id],
     },
     {
       id: 'demo-event-006',
-      eventType: 'GENERAL',
+      eventType: 'general',
       freeText: 'Good day overall. Enjoyed music therapy session. Very responsive to favourite songs.',
       occurredAt: daysAgo(4, 16, 0),
+      severity: 1, // MINIMAL
       scopes: [comfortScope?.id],
     },
     {
       id: 'demo-event-007',
-      eventType: 'SLEEP',
+      eventType: 'sleep',
       freeText: 'Restless night, woke several times. May be teething.',
       occurredAt: daysAgo(5, 7, 0),
+      severity: 2, // MILD
       scopes: [sleepScope?.id],
     },
   ]
@@ -390,6 +397,7 @@ async function seedDemoData() {
         freeText: event.freeText,
         occurredAt: event.occurredAt,
         loggedAt: event.occurredAt,
+        severity: event.severity,
       },
     })
 
@@ -409,6 +417,64 @@ async function seedDemoData() {
   }
 
   console.log(`Created ${eventData.length} demo events`)
+
+  // Add demo appointments
+  await prisma.appointment.upsert({
+    where: { id: 'demo-appointment-001' },
+    update: {},
+    create: {
+      id: 'demo-appointment-001',
+      caseId: demoCase.id,
+      createdByUserId: parent.id,
+      appointmentType: 'NEUROLOGY',
+      title: 'Dr. Chen follow-up',
+      notes: 'Regular check-up, discuss recent seizure activity',
+      scheduledAt: daysAgo(-7, 10, 0), // 7 days from now at 10am
+      duration: 60,
+      location: 'Great Ormond Street Hospital',
+      provider: 'Dr. Emily Chen',
+      reminderTimes: JSON.stringify([1440, 60]), // 1 day and 1 hour before
+      status: 'SCHEDULED',
+    },
+  })
+
+  await prisma.appointment.upsert({
+    where: { id: 'demo-appointment-002' },
+    update: {},
+    create: {
+      id: 'demo-appointment-002',
+      caseId: demoCase.id,
+      createdByUserId: parent.id,
+      appointmentType: 'INFUSION',
+      title: 'Brineura infusion',
+      notes: 'Regular enzyme replacement therapy',
+      scheduledAt: daysAgo(-14, 9, 30), // 14 days from now at 9:30am
+      duration: 240, // 4 hours
+      location: 'Great Ormond Street Hospital - Day Unit',
+      provider: 'Infusion Team',
+      reminderTimes: JSON.stringify([4320, 1440]), // 3 days and 1 day before
+      status: 'SCHEDULED',
+    },
+  })
+
+  await prisma.appointment.upsert({
+    where: { id: 'demo-appointment-003' },
+    update: {},
+    create: {
+      id: 'demo-appointment-003',
+      caseId: demoCase.id,
+      createdByUserId: parent.id,
+      appointmentType: 'PHYSICAL_THERAPY',
+      title: 'Physio session',
+      scheduledAt: daysAgo(-2, 14, 0), // 2 days from now at 2pm
+      duration: 45,
+      location: 'Local therapy centre',
+      reminderTimes: JSON.stringify([60]), // 1 hour before
+      status: 'SCHEDULED',
+    },
+  })
+
+  console.log('Created 3 demo appointments')
   console.log('')
   console.log('=== Demo Accounts ===')
   console.log(`Parent: demo@battenjournal.com / ${DEMO_PASSWORD}`)
