@@ -12,8 +12,6 @@ import { createEventOffline } from '@/lib/offline/sync'
 import { MiniTrendChart } from '@/components/events/mini-trend-chart'
 import type { Scope } from '@prisma/client'
 
-type CheckInStatus = 'better' | 'same' | 'worse' | 'unsure'
-
 const QUICK_TYPES: EventType[] = [
   'seizure',
   'medication',
@@ -39,9 +37,6 @@ export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps)
   const [selectedType, setSelectedType] = useState<EventType | null>(null)
   const [freeText, setFreeText] = useState('')
   const [severity, setSeverity] = useState<SeverityLevel | undefined>(undefined)
-  const [checkInStatus, setCheckInStatus] = useState<CheckInStatus | null>(null)
-  const [checkInNote, setCheckInNote] = useState('')
-  const [checkInContexts, setCheckInContexts] = useState<string[]>([])
   const [quickContextScopes, setQuickContextScopes] = useState<string[]>([])
   const [expanded, setExpanded] = useState(false)
   const [showAllTypes, setShowAllTypes] = useState(false)
@@ -50,7 +45,6 @@ export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps)
   const [photo, setPhoto] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
-  const [checkInError, setCheckInError] = useState('')
   const [justSavedEventId, setJustSavedEventId] = useState<string | null>(null)
   const [showAddDetails, setShowAddDetails] = useState(false)
 
@@ -369,89 +363,6 @@ export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps)
     { id: 'illness', label: t('contextIllness'), scopeCode: 'infection' },
   ]
 
-  const checkInOptions: {
-    id: CheckInStatus
-    label: string
-    helper: string
-    activeClass: string
-  }[] = [
-    {
-      id: 'better',
-      label: t('better'),
-      helper: t('betterHelper'),
-      activeClass: 'border-semantic-success bg-semantic-success/10 text-semantic-success',
-    },
-    {
-      id: 'same',
-      label: t('steadier'),
-      helper: t('sameHelper'),
-      activeClass: 'border-accent-primary bg-accent-primary/10 text-accent-primary',
-    },
-    {
-      id: 'worse',
-      label: t('tougher'),
-      helper: t('tougherHelper'),
-      activeClass: 'border-semantic-critical bg-semantic-critical/10 text-semantic-critical',
-    },
-    {
-      id: 'unsure',
-      label: t('unsure'),
-      helper: t('unsureHelper'),
-      activeClass: 'border-divider bg-bg-primary text-text-secondary',
-    },
-  ]
-
-  function buildCheckInText(status: CheckInStatus, note: string, contexts: string[]) {
-    const option = checkInOptions.find((item) => item.id === status)
-    const baseText = option ? option.helper : t('checkInFallback')
-    const contextLabels = contexts
-      .map((contextId) => contextMarkers.find((c) => c.id === contextId)?.label)
-      .filter(Boolean) as string[]
-
-    const contextText = contextLabels.length > 0
-      ? ` ${t('contextLabel')}: ${contextLabels.join(', ')}.`
-      : ''
-
-    const token = `[checkin:${status}]`
-    if (!note.trim()) {
-      return `${token} ${t('checkInPrefix')}: ${baseText}.${contextText}`
-    }
-    return `${token} ${t('checkInPrefix')}: ${baseText}. ${note.trim()}${contextText}`
-  }
-
-  async function handleCheckInSave(statusOverride?: CheckInStatus) {
-    const status = statusOverride || checkInStatus
-    if (!status) return
-
-    const contextScopeCodes = contextMarkers
-      .filter((context) => checkInContexts.includes(context.id))
-      .map((context) => context.scopeCode)
-
-    await saveEvent({
-      eventType: 'daily_checkin',
-      freeTextValue: buildCheckInText(status, checkInNote, checkInContexts),
-      scopeCodesValue: contextScopeCodes.length > 0 ? contextScopeCodes : undefined,
-      setError: setCheckInError,
-      onSuccess: () => {
-        setCheckInStatus(null)
-        setCheckInNote('')
-        setCheckInContexts([])
-      },
-    })
-  }
-
-  async function handleNothingNew() {
-    await saveEvent({
-      eventType: 'nothing_new',
-      setError: setCheckInError,
-      onSuccess: () => {
-        setCheckInStatus(null)
-        setCheckInNote('')
-        setCheckInContexts([])
-      },
-    })
-  }
-
   function toggleScope(code: string) {
     setSelectedScopes((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
@@ -480,122 +391,6 @@ export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps)
   return (
     <div className="p-md bg-white border border-divider rounded-md">
       <div className="space-y-md">
-        <section className="space-y-sm">
-          <div>
-            <h2 className="section-header">{t('quickCheckIn')}</h2>
-            <p className="text-meta text-text-secondary">
-              {t('howAreThings')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-xs">
-            {checkInOptions.map((option) => {
-              const isActive = checkInStatus === option.id
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => {
-                    setCheckInStatus(option.id)
-                    setCheckInError('')
-                  }}
-                  disabled={saving}
-                  className={`px-sm py-2 text-meta rounded-full border transition-colors ${
-                    isActive
-                      ? option.activeClass
-                      : 'border-divider text-text-secondary hover:border-accent-primary'
-                  }`}
-                >
-                  <span className="block text-body font-medium">{option.label}</span>
-                  <span className="block text-caption">{option.helper}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {checkInStatus && (
-            <div className="space-y-sm">
-              <Textarea
-                value={checkInNote}
-                onChange={(e) => setCheckInNote(e.target.value)}
-                placeholder={t('anythingNotable')}
-                rows={2}
-              />
-              <div>
-                <p className="text-meta text-text-secondary mb-xs">
-                  {t('contextMarkers')}
-                </p>
-                <div className="flex flex-wrap gap-xs">
-                  {contextMarkers.map((context) => {
-                    const isActive = checkInContexts.includes(context.id)
-                    return (
-                      <button
-                        key={context.id}
-                        type="button"
-                        onClick={() =>
-                          setCheckInContexts((prev) =>
-                            prev.includes(context.id)
-                              ? prev.filter((id) => id !== context.id)
-                              : [...prev, context.id]
-                          )
-                        }
-                        className={`px-sm py-1 text-meta rounded-full border transition-colors ${
-                          isActive
-                            ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                            : 'border-divider text-text-secondary hover:border-accent-primary'
-                        }`}
-                      >
-                        {context.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-sm">
-                <Button
-                  onClick={() => handleCheckInSave()}
-                  loading={saving}
-                  disabled={saving}
-                >
-                  {t('saveCheckIn')}
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleNothingNew}
-                  className="text-meta text-text-secondary hover:text-accent-primary"
-                >
-                  {t('nothingNew')}
-                </button>
-                <span className="text-caption text-text-secondary">
-                  {t('missedDaysOk')}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {!checkInStatus && (
-            <div className="flex flex-wrap items-center gap-sm">
-              <button
-                type="button"
-                onClick={handleNothingNew}
-                disabled={saving}
-                className="px-sm py-2 text-meta rounded-full border border-divider text-text-secondary hover:border-accent-primary"
-              >
-                {t('nothingNew')}
-              </button>
-              <span className="text-caption text-text-secondary">
-                {t('missedDaysOk')}
-              </span>
-            </div>
-          )}
-
-          {checkInError && (
-            <p className="text-caption text-semantic-critical">{checkInError}</p>
-          )}
-        </section>
-
-        <div className="divider" />
-
         <section className="space-y-sm">
           <div className="flex items-center justify-between">
             <div>
