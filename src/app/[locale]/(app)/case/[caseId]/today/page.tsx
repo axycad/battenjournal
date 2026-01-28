@@ -137,8 +137,8 @@ export default async function TodayPage({ params }: TodayPageProps) {
         </div>
       )}
 
-      {/* Progress Summary - only for parents */}
-      {!isClinician && events.length > 0 && (
+      {/* Record Summary - only for clinicians */}
+      {isClinician && events.length > 0 && (
         <div className="mb-lg">
           <ProgressSummary
             events={events.map((e) => ({

@@ -42,7 +42,7 @@ export function ProgressSummary({ events, eventTypes }: ProgressSummaryProps) {
   return (
     <div className="p-md bg-white border border-divider rounded-md">
       <h3 className="text-body font-medium text-text-primary mb-sm">
-        Last 7 Days Progress
+        Record
       </h3>
       <div className="space-y-xs">
         {progressItems.map(({ eventType, label, frequency }) => {
