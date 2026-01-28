@@ -53,10 +53,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <>
-      <h1 className="screen-title text-center mb-lg">{t('title')}</h1>
+    <div className="space-y-md">
+      {/* Header */}
+      <div className="text-center mb-lg">
+        <h1 className="text-h2 font-bold text-text-primary mb-xs">
+          Create your account
+        </h1>
+        <p className="text-body text-text-secondary">
+          Start tracking and sharing care with your team
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-sm">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-md">
         <Input
           label={t('name')}
           type="text"
@@ -78,33 +87,65 @@ export default function RegisterPage() {
           autoComplete="email"
         />
 
-        <Input
-          label={t('password')}
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="new-password"
-          minLength={8}
-        />
-        <p className="text-caption text-text-secondary">{t('passwordHint')}</p>
+        <div>
+          <Input
+            label={t('password')}
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+            minLength={8}
+          />
+          <p className="text-caption text-text-secondary mt-xs">
+            {t('passwordHint')}
+          </p>
+        </div>
 
         {error && (
-          <p className="text-caption text-semantic-critical">{error}</p>
+          <div className="p-sm bg-red-50 border border-red-200 rounded-md">
+            <p className="text-meta text-red-700">{error}</p>
+          </div>
         )}
 
-        <Button type="submit" className="w-full" loading={loading}>
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg"
+          loading={loading}
+        >
           {t('createAccount')}
         </Button>
       </form>
 
-      <p className="mt-md text-center text-meta text-text-secondary">
-        {t('alreadyAccount')}{' '}
-        <Link href="/login" className="text-accent-primary hover:underline">
+      {/* Trust indicators */}
+      <div className="bg-purple-50 rounded-md p-sm border border-purple-100">
+        <p className="text-caption text-text-secondary text-center">
+          🔒 Free forever • No credit card required • GDPR compliant
+        </p>
+      </div>
+
+      {/* Divider */}
+      <div className="relative my-lg">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-divider"></div>
+        </div>
+        <div className="relative flex justify-center text-meta">
+          <span className="px-sm bg-white text-text-secondary">
+            Already have an account?
+          </span>
+        </div>
+      </div>
+
+      {/* Login link */}
+      <div className="text-center">
+        <Link
+          href="/login"
+          className="inline-block w-full px-lg py-sm border-2 border-purple-200 text-purple-700 rounded-md hover:border-purple-400 hover:bg-purple-50 transition-all text-body font-medium"
+        >
           {t('signIn')}
         </Link>
-      </p>
-    </>
+      </div>
+    </div>
   )
 }
