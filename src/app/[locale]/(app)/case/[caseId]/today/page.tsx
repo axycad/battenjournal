@@ -7,6 +7,9 @@ import { getEventsForCase, getAllScopes } from '@/actions/event'
 import { QuickAddForm } from './quick-add-form'
 import { TimelineWithFilters } from './timeline-with-filters'
 import { ProgressSummary } from '@/components/events/progress-summary'
+import { UpcomingAppointmentsWidget } from '@/components/appointments/upcoming-appointments-widget'
+import { getUpcomingAppointments } from '@/actions/appointment'
+import { AddAppointmentSection } from './add-appointment-section'
 
 interface TodayPageProps {
   params: Promise<{ caseId: string }>
@@ -17,10 +20,11 @@ export default async function TodayPage({ params }: TodayPageProps) {
   const session = await auth()
   const t = await getTranslations('today')
   
-  const [caseData, events, scopes] = await Promise.all([
+  const [caseData, events, scopes, upcomingAppointments] = await Promise.all([
     getCase(caseId),
     getEventsForCase(caseId, { limit: 100 }),
     getAllScopes(),
+    getUpcomingAppointments(caseId, { limit: 5 }),
   ])
 
   if (!caseData) {
@@ -85,6 +89,25 @@ export default async function TodayPage({ params }: TodayPageProps) {
       {canEdit && (
         <div className="mb-lg">
           <QuickAddForm caseId={caseId} scopes={scopes} events={events} />
+        </div>
+      )}
+
+      {/* Upcoming Appointments */}
+      {upcomingAppointments.length > 0 && (
+        <div className="mb-lg">
+          <UpcomingAppointmentsWidget
+            appointments={upcomingAppointments}
+            caseId={caseId}
+            childName={caseData.childDisplayName}
+            canEdit={canEdit}
+          />
+        </div>
+      )}
+
+      {/* Add Appointment - only for parents */}
+      {canEdit && (
+        <div className="mb-lg">
+          <AddAppointmentSection caseId={caseId} />
         </div>
       )}
 
