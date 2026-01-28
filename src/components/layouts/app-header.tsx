@@ -5,7 +5,7 @@ import { signOut } from 'next-auth/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui'
 import { Link, usePathname, useRouter } from '@/navigation'
-import { locales } from '@/i18n'
+import { routing } from '@/i18n/routing'
 
 interface AppHeaderProps {
   user: {
@@ -33,16 +33,13 @@ export function AppHeader({ user }: AppHeaderProps) {
   )
 
   function handleLocaleChange(nextLocale: string) {
-    if (!locales.includes(nextLocale as (typeof locales)[number])) {
+    if (!routing.locales.includes(nextLocale as (typeof routing.locales)[number])) {
       return
     }
 
-    // Persist preference for future sessions
-    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000`
-
-    // Force a hard refresh to load new locale
-    // With localePrefix: 'never', the URL doesn't change, so we need to reload
-    window.location.reload()
+    // Use the next-intl router to change locale
+    // This will automatically set the NEXT_LOCALE cookie and navigate
+    router.replace(pathname, { locale: nextLocale })
   }
 
   return (
