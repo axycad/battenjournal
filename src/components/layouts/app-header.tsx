@@ -39,17 +39,22 @@ export function AppHeader({ user }: AppHeaderProps) {
     }
 
     try {
-      // Set cookie on both client and server for reliability
+      // Set cookie on both client and server for maximum reliability
       document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
 
-      // Also use server action
+      // Use server action to set cookie server-side
       await setLocale(nextLocale)
 
-      // Use href assignment instead of reload for better mobile compatibility
-      window.location.href = window.location.pathname + window.location.search
+      // Navigate with locale parameter as fallback for mobile browsers
+      // The middleware will pick this up and set the cookie
+      const currentUrl = new URL(window.location.href)
+      currentUrl.searchParams.set('locale', nextLocale)
+
+      // Navigate to the URL with locale parameter
+      window.location.href = currentUrl.toString()
     } catch (error) {
       console.error('Failed to change locale:', error)
-      // Fallback to simple reload if server action fails
+      // Simple fallback
       window.location.reload()
     }
   }
