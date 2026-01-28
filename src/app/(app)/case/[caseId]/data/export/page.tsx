@@ -1,7 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getAvailableScopesForExport } from '@/actions/export'
 import { ExportForm } from './export-form'
@@ -13,10 +12,9 @@ interface ExportPageProps {
 export default async function ExportPage({ params }: ExportPageProps) {
   const { caseId } = await params
   const session = await auth()
-  const locale = await getLocale()
 
   if (!session?.user?.id) {
-    redirect(`/${locale}/login`)
+    redirect(`/login`)
   }
 
   const caseData = await getCase(caseId)
@@ -32,7 +30,7 @@ export default async function ExportPage({ params }: ExportPageProps) {
   // For now, only parent admins can export
   // Clinicians would need EXPORT permission (handled in the action)
   if (!isParent || !isAdmin) {
-    redirect(`/${locale}/case/${caseId}`)
+    redirect(`/case/${caseId}`)
   }
 
   const availableScopes = await getAvailableScopesForExport(caseId)

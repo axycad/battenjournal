@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import {Link} from '@/navigation'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { prisma } from '@/lib/prisma'
 import { SyncSettings } from './sync-settings'
 import { InstallPrompt } from '@/components/offline'
@@ -9,10 +9,9 @@ import { AccountPhoto } from './account-photo'
 
 export default async function SettingsPage() {
   const session = await auth()
-  const locale = await getLocale()
   const t = await getTranslations('settings')
   if (!session) {
-    redirect(`/${locale}/login`)
+    redirect(`/login`)
   }
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },

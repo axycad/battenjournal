@@ -23,11 +23,11 @@ export function AppHeader({ user }: AppHeaderProps) {
   const languageOptions = useMemo(
     () => [
       { value: 'en', label: 'English' },
-      { value: 'es', label: 'Español' },
-      { value: 'pl', label: 'Polski' },
-      { value: 'ro', label: 'Română' },
-      { value: 'fr', label: 'Français' },
-      { value: 'ar', label: 'العربية' },
+      { value: 'es', label: 'Spanish' },
+      { value: 'pl', label: 'Polish' },
+      { value: 'ro', label: 'Romanian' },
+      { value: 'fr', label: 'French' },
+      { value: 'ar', label: 'Arabic' },
     ],
     []
   )
@@ -76,7 +76,7 @@ export function AppHeader({ user }: AppHeaderProps) {
           </Link>
           <Button
             variant="text"
-            onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+            onClick={() => signOut({ callbackUrl: '/login' })}
             className="h-auto px-0"
           >
             {t('signOut')}

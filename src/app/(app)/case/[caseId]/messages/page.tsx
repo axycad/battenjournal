@@ -1,7 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getLocale } from 'next-intl/server'
 import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getThreadsForCase } from '@/actions/messaging'
@@ -21,11 +20,10 @@ export default async function MessagesPage({
   const { caseId } = await params
   const { new: showNew } = await searchParams
   const session = await auth()
-  const locale = await getLocale()
   const t = await getTranslations('messagesPage')
 
   if (!session?.user?.id) {
-    redirect(`/${locale}/login`)
+    redirect(`/login`)
   }
 
   const caseData = await getCase(caseId)

@@ -1,17 +1,16 @@
 import { redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { getEmailPreferences } from '@/actions/email-notifications'
 import { EmailPreferencesForm } from './email-preferences-form'
 
 export default async function NotificationSettingsPage() {
   const session = await auth()
-  const locale = await getLocale()
   const t = await getTranslations('settingsNotifications')
 
   if (!session?.user?.id) {
-    redirect(`/${locale}/login`)
+    redirect(`/login`)
   }
 
   const preferences = await getEmailPreferences()

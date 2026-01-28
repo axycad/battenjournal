@@ -1,6 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
 import {Link} from '@/navigation'
-import { getLocale } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getPendingInvites } from '@/actions/invite'
 import { InviteForm } from './invite-form'
@@ -13,7 +12,6 @@ interface SettingsPageProps {
 
 export default async function CaseSettingsPage({ params }: SettingsPageProps) {
   const { caseId } = await params
-  const locale = await getLocale()
   const caseData = await getCase(caseId)
 
   if (!caseData) {
@@ -22,7 +20,7 @@ export default async function CaseSettingsPage({ params }: SettingsPageProps) {
 
   // Only OWNER_ADMIN can access settings
   if (caseData.currentUserRole !== 'OWNER_ADMIN') {
-    redirect(`/${locale}/case/${caseId}`)
+    redirect(`/case/${caseId}`)
   }
 
   const pendingInvites = await getPendingInvites(caseId)
