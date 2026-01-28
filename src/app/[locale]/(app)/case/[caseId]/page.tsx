@@ -3,8 +3,10 @@ import {Link} from '@/navigation'
 import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/actions/case'
 import { getEventsForCase } from '@/actions/event'
+import { getUpcomingAppointments } from '@/actions/appointment'
 import { EVENT_TYPES } from '@/lib/event-types'
 import { Button } from '@/components/ui'
+import { UpcomingAppointmentsWidget } from '@/components/appointments/upcoming-appointments-widget'
 
 interface CasePageProps {
   params: Promise<{ caseId: string }>
@@ -69,9 +71,10 @@ function getCheckInSummaryText(
 export default async function CasePage({ params }: CasePageProps) {
   const { caseId } = await params
   const t = await getTranslations('caseOverview')
-  const [caseData, events] = await Promise.all([
+  const [caseData, events, upcomingAppointments] = await Promise.all([
     getCase(caseId),
     getEventsForCase(caseId, { limit: 200 }),
+    getUpcomingAppointments(caseId, { limit: 3 }),
   ])
 
   if (!caseData) {
@@ -147,80 +150,41 @@ export default async function CasePage({ params }: CasePageProps) {
         {/* Quick actions - only for parents */}
         {isParent && (
           <div className="space-y-sm">
+            {/* Quick actions bar */}
             <div className="p-md bg-white border border-divider rounded-md">
               <div className="flex flex-wrap items-center justify-between gap-sm">
                 <div>
-                  <h2 className="text-title-md font-medium">{t('logToday')}</h2>
+                  <h2 className="text-title-md font-medium">Quick actions</h2>
                   <p className="text-meta text-text-secondary">
-                    {t('quickCheckInDesc')}
+                    {todayEvents.length === 0
+                      ? 'No observations logged today'
+                      : `${todayEvents.length} observation${todayEvents.length > 1 ? 's' : ''} logged today`}
                   </p>
                 </div>
                 <div className="flex gap-sm">
                   <Link href={`/case/${caseId}/today`}>
-                    <Button>{t('quickCheckIn')}</Button>
+                    <Button>Log observation</Button>
                   </Link>
                   <Link href={`/case/${caseId}/trends`}>
-                    <Button variant="secondary">{t('trends')}</Button>
+                    <Button variant="secondary">View trends</Button>
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="p-md bg-white border border-divider rounded-md">
-              <div className="flex flex-wrap items-center justify-between gap-sm">
-                <div>
-                  <h2 className="text-title-md font-medium">{t('todaySummary')}</h2>
-                  <p className="text-meta text-text-secondary">
-                    {todayEvents.length === 0
-                      ? t('noObservations')
-                      : t('observationsLogged', { count: todayEvents.length })}
-                  </p>
-                </div>
-                <Link
-                  href={`/case/${caseId}/today`}
-                  className="text-meta text-accent-primary hover:underline"
-                >
-                  {t('goToToday')}
-                </Link>
+            {/* Upcoming appointments */}
+            {upcomingAppointments.length > 0 && (
+              <div className="p-md bg-white border border-divider rounded-md">
+                <UpcomingAppointmentsWidget
+                  appointments={upcomingAppointments}
+                  caseId={caseId}
+                  childName={caseData.childDisplayName}
+                  canEdit={canEdit}
+                />
               </div>
+            )}
 
-              <div className="mt-sm grid gap-sm sm:grid-cols-2">
-                <div className="p-sm rounded-sm bg-bg-primary">
-                  <p className="text-caption text-text-secondary">{t('latestCheckIn')}</p>
-                  <p className="text-body">
-                    {getCheckInSummaryText(todayCheckIn?.freeText, t)
-                      ?? getCheckInSummaryText(latestCheckIn?.freeText, t)
-                      ?? t('noCheckIn')}
-                  </p>
-                </div>
-                <div className="p-sm rounded-sm bg-bg-primary">
-                  <p className="text-caption text-text-secondary">{t('lastLog')}</p>
-                  <p className="text-body">
-                    {latestEvent
-                      ? latestEvent.occurredAt.toLocaleTimeString('en-GB', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : t('noEntries')}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-sm">
-                <p className="text-caption text-text-secondary mb-xs">{t('last7Days')}</p>
-                <div className="flex items-end gap-xs h-12">
-                  {dailyCounts.map((count, index) => (
-                    <div
-                      key={`summary-${last7Keys[index]}`}
-                      className="w-2 rounded-full bg-accent-primary/60"
-                      style={{ height: `${Math.max(6, (count / maxDailyCount) * 40)}px` }}
-                      title={`${count} logs`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
+            {/* Main navigation grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
               <Link
                 href={`/case/${caseId}/profile`}
@@ -238,6 +202,15 @@ export default async function CasePage({ params }: CasePageProps) {
                 <h2 className="text-title-md font-medium mb-xs">Today</h2>
                 <p className="text-meta text-text-secondary">
                   Log observations
+                </p>
+              </Link>
+              <Link
+                href={`/case/${caseId}/appointments`}
+                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+              >
+                <h2 className="text-title-md font-medium mb-xs">Appointments</h2>
+                <p className="text-meta text-text-secondary">
+                  Upcoming and past
                 </p>
               </Link>
               <Link

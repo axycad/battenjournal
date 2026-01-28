@@ -148,18 +148,10 @@ export function TimelineExport({ events, caseId, childName }: TimelineExportProp
               </button>
               <button
                 type="button"
-                onClick={exportAsPDF}
-                disabled={exporting}
-                className="w-full px-md py-sm text-left text-body hover:bg-bg-primary disabled:opacity-50"
-              >
-                📄 Export as PDF
-              </button>
-              <button
-                type="button"
                 onClick={printTimeline}
                 className="w-full px-md py-sm text-left text-body hover:bg-bg-primary"
               >
-                🖨️ Print
+                🖨️ Print timeline
               </button>
               <div className="h-px bg-divider my-xs" />
               <button
