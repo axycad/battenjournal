@@ -27,15 +27,15 @@ export default async function NotificationsPage() {
       <div className="mb-lg">
         <Link
           href="/dashboard"
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Dashboard
         </Link>
-        <h1 className="screen-title mt-xs">Notifications</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Notifications</h1>
       </div>
 
       {/* Summary */}
-      <section className="mb-lg p-md bg-white border border-divider rounded-md">
+      <section className="mb-lg p-md bg-white border border-purple-100 rounded-lg shadow-sm">
         <h2 className="section-header mb-sm">Summary</h2>
         <NotificationSummary counts={counts} />
       </section>

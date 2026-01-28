@@ -17,7 +17,7 @@ export default async function AppLayout({
 
   return (
     <Providers>
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50/30 via-white to-pink-50/30">
         <AppHeader user={session.user} />
         <OfflineBanner />
         <main className="flex-1">{children}</main>

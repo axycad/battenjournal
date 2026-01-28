@@ -47,15 +47,20 @@ export default function ResetPasswordPage({
 
   return (
     <>
-      <h1 className="screen-title text-center mb-lg">{t('title')}</h1>
+      <h1 className="text-h2 font-bold text-text-primary text-center mb-lg">{t('title')}</h1>
 
       {success ? (
         <>
-          <p className="text-body text-text-secondary mb-md text-center">
-            {t('success')}
-          </p>
+          <div className="p-md bg-green-50 border border-green-200 rounded-md mb-md">
+            <div className="flex gap-sm items-center justify-center">
+              <span className="text-xl">✓</span>
+              <p className="text-body font-medium text-green-800">
+                {t('success')}
+              </p>
+            </div>
+          </div>
           <p className="text-center text-meta text-text-secondary">
-            <Link href="/login" className="text-accent-primary hover:underline">
+            <Link href="/login" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
               {t('backToSignIn')}
             </Link>
           </p>
@@ -85,16 +90,18 @@ export default function ResetPasswordPage({
             />
 
             {error && (
-              <p className="text-caption text-semantic-critical">{error}</p>
+              <div className="p-sm bg-red-50 border border-red-200 rounded-md">
+                <p className="text-meta text-red-700">{error}</p>
+              </div>
             )}
 
-            <Button type="submit" className="w-full" loading={loading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg" loading={loading}>
               {t('reset')}
             </Button>
           </form>
 
           <p className="mt-md text-center text-meta text-text-secondary">
-            <Link href="/login" className="text-accent-primary hover:underline">
+            <Link href="/login" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
               {t('backToSignIn')}
             </Link>
           </p>

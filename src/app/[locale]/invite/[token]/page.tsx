@@ -26,11 +26,11 @@ export default async function InvitePage({ params }: InvitePageProps) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-md">
         <div className="max-w-sm text-center">
-          <h1 className="screen-title mb-sm">Invite not found</h1>
+          <h1 className="text-h2 font-bold text-text-primary mb-sm">Invite not found</h1>
           <p className="text-body text-text-secondary mb-md">
             This invite link may have expired or already been used.
           </p>
-          <Link href="/login" className="text-accent-primary hover:underline">
+          <Link href="/login" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
             Go to login
           </Link>
         </div>
@@ -42,11 +42,11 @@ export default async function InvitePage({ params }: InvitePageProps) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-md">
         <div className="max-w-sm text-center">
-          <h1 className="screen-title mb-sm">Invite already used</h1>
+          <h1 className="text-h2 font-bold text-text-primary mb-sm">Invite already used</h1>
           <p className="text-body text-text-secondary mb-md">
             This invite has already been accepted.
           </p>
-          <Link href="/dashboard" className="text-accent-primary hover:underline">
+          <Link href="/dashboard" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
             Go to dashboard
           </Link>
         </div>
@@ -58,11 +58,11 @@ export default async function InvitePage({ params }: InvitePageProps) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-md">
         <div className="max-w-sm text-center">
-          <h1 className="screen-title mb-sm">Invite expired</h1>
+          <h1 className="text-h2 font-bold text-text-primary mb-sm">Invite expired</h1>
           <p className="text-body text-text-secondary mb-md">
             This invite link has expired. Please ask for a new one.
           </p>
-          <Link href="/login" className="text-accent-primary hover:underline">
+          <Link href="/login" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
             Go to login
           </Link>
         </div>
@@ -77,7 +77,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-md">
         <div className="max-w-sm text-center">
-          <h1 className="screen-title mb-sm">You're invited</h1>
+          <h1 className="text-h2 font-bold text-text-primary mb-sm">You're invited</h1>
           <p className="text-body text-text-secondary mb-md">
             {invite.invitedByName} has invited you to{' '}
             {isClinician ? 'view records for' : 'help care for'}{' '}
@@ -89,13 +89,13 @@ export default async function InvitePage({ params }: InvitePageProps) {
           <div className="space-y-sm">
             <Link
               href={`/register?redirect=/invite/${token}`}
-              className="block w-full btn-primary text-center"
+              className="block w-full px-lg py-sm rounded-md bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg transition-all text-body font-medium text-center"
             >
               Create account
             </Link>
             <Link
               href={`/login?redirect=/invite/${token}`}
-              className="block w-full btn-secondary text-center"
+              className="block w-full px-lg py-sm border-2 border-purple-200 text-purple-700 rounded-md hover:border-purple-400 hover:bg-purple-50 transition-all text-body font-medium text-center"
             >
               Sign in
             </Link>
@@ -113,7 +113,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-md">
         <div className="max-w-sm text-center">
-          <h1 className="screen-title mb-sm">Wrong account</h1>
+          <h1 className="text-h2 font-bold text-text-primary mb-sm">Wrong account</h1>
           <p className="text-body text-text-secondary mb-md">
             This invite was sent to <span className="font-medium">{invite.email}</span>,
             but you're signed in as <span className="font-medium">{session.user.email}</span>.
@@ -121,7 +121,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
           <p className="text-body text-text-secondary mb-lg">
             Sign out and try again with the correct account.
           </p>
-          <Link href="/dashboard" className="text-accent-primary hover:underline">
+          <Link href="/dashboard" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
             Go to dashboard
           </Link>
         </div>
@@ -135,7 +135,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
       <main className="min-h-screen flex flex-col items-center justify-center p-md">
         <div className="max-w-sm">
           <div className="text-center mb-lg">
-            <h1 className="screen-title mb-sm">Accept clinical access</h1>
+            <h1 className="text-h2 font-bold text-text-primary mb-sm">Accept clinical access</h1>
             <p className="text-body text-text-secondary">
               {invite.invitedByName} has invited you to view records for{' '}
               <span className="font-medium">{invite.childDisplayName}</span>.

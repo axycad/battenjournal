@@ -36,11 +36,11 @@ export default async function SharingPage({ params }: SharingPageProps) {
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Back to {caseData.childDisplayName}
         </Link>
-        <h1 className="screen-title mt-xs">Sharing</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Sharing</h1>
         <p className="text-body text-text-secondary mt-xs">
           Control who can see {caseData.childDisplayName}'s records
         </p>
@@ -49,7 +49,7 @@ export default async function SharingPage({ params }: SharingPageProps) {
       <div className="space-y-lg">
         {/* Current clinicians */}
         {activeClinicians.length > 0 && (
-          <section className="p-md bg-white border border-divider rounded-md">
+          <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <h2 className="section-header mb-md">Care team access</h2>
             <ClinicianList
               caseId={caseId}
@@ -61,7 +61,7 @@ export default async function SharingPage({ params }: SharingPageProps) {
 
         {/* Pending invites */}
         {pendingInvites.length > 0 && (
-          <section className="p-md bg-white border border-divider rounded-md">
+          <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <h2 className="section-header mb-md">Pending invites</h2>
             <PendingClinicianInvites caseId={caseId} invites={pendingInvites} />
           </section>
@@ -74,7 +74,7 @@ export default async function SharingPage({ params }: SharingPageProps) {
         </section>
 
         {/* Info about consent */}
-        <section className="p-md bg-bg-primary border border-divider rounded-md">
+        <section className="p-md bg-purple-50 border border-purple-100 rounded-lg">
           <h2 className="text-body font-medium mb-sm">How sharing works</h2>
           <ul className="space-y-xs text-meta text-text-secondary">
             <li>You control exactly what each clinician can see</li>

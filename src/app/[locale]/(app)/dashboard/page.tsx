@@ -23,7 +23,6 @@ export default async function DashboardPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50/30 via-white to-pink-50/30">
       <div className="max-w-4xl mx-auto px-md py-lg">
         {/* Header */}
         <div className="mb-xl">
@@ -190,6 +189,5 @@ export default async function DashboardPage() {
           </p>
         </div>
       </div>
-    </div>
   )
 }

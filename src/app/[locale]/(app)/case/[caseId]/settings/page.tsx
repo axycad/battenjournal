@@ -30,16 +30,16 @@ export default async function CaseSettingsPage({ params }: SettingsPageProps) {
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Back to {caseData.childDisplayName}
         </Link>
-        <h1 className="screen-title mt-xs">Settings</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Settings</h1>
       </div>
 
       <div className="space-y-lg">
         {/* Family members */}
-        <section className="p-md bg-white border border-divider rounded-md">
+        <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
           <h2 className="section-header mb-md">Family members</h2>
           <MemberList
             caseId={caseId}
@@ -49,14 +49,14 @@ export default async function CaseSettingsPage({ params }: SettingsPageProps) {
 
         {/* Pending invites */}
         {pendingInvites.length > 0 && (
-          <section className="p-md bg-white border border-divider rounded-md">
+          <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <h2 className="section-header mb-md">Pending invites</h2>
             <PendingInvites invites={pendingInvites} />
           </section>
         )}
 
         {/* Invite new member */}
-        <section className="p-md bg-white border border-divider rounded-md">
+        <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
           <h2 className="section-header mb-md">Invite family member</h2>
           <InviteForm caseId={caseId} childName={caseData.childDisplayName} />
         </section>

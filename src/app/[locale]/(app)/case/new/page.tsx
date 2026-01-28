@@ -38,7 +38,7 @@ export default function NewCasePage() {
 
   return (
     <div className="max-w-sm mx-auto px-md py-lg">
-      <h1 className="screen-title mb-lg">Add child</h1>
+      <h1 className="text-h2 font-bold text-text-primary mb-lg">Add child</h1>
 
       <form onSubmit={handleSubmit} className="space-y-sm">
         <Input
@@ -61,11 +61,11 @@ export default function NewCasePage() {
 
         <div className="flex gap-sm pt-sm">
           <Link href="/dashboard" className="flex-1">
-            <Button variant="secondary" type="button" className="w-full">
+            <Button variant="secondary" type="button" className="w-full border-purple-200 hover:border-purple-400 hover:bg-purple-50">
               Cancel
             </Button>
           </Link>
-          <Button type="submit" className="flex-1" loading={loading}>
+          <Button type="submit" className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg" loading={loading}>
             Add child
           </Button>
         </div>

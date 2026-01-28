@@ -135,22 +135,22 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           â† {t('backToChild', { name: caseData.childDisplayName })}
         </Link>
-        <h1 className="screen-title mt-xs">{t('title')}</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">{t('title')}</h1>
         <div className="mt-sm flex flex-wrap gap-sm">
           <Link
             href={`/case/${caseId}/today`}
-            className="text-meta text-text-secondary hover:text-accent-primary"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             {t('today')}
           </Link>
           <span className="text-meta text-text-secondary">Â·</span>
           <Link
             href={`/case/${caseId}`}
-            className="text-meta text-text-secondary hover:text-accent-primary"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             {t('overview')}
           </Link>
@@ -164,8 +164,8 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
             href={`/case/${caseId}/trends?range=${days}`}
             className={`px-sm py-1 text-meta rounded-full border transition-colors ${
               rangeDays === days
-                ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                : 'border-divider text-text-secondary hover:border-accent-primary'
+                ? 'border-purple-600 bg-purple-50 text-purple-700 font-medium'
+                : 'border-purple-200 text-text-secondary hover:border-purple-400 hover:bg-purple-50'
             }`}
           >
             {t('days', { count: days })}
@@ -174,7 +174,7 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
       </div>
 
       <div className="space-y-md">
-        <div className="p-md bg-white border border-divider rounded-md">
+        <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
           <h2 className="section-header">{t('dailyCheckIns')}</h2>
           <p className="text-meta text-text-secondary">
             {t('checkInsCount', { count: checkIns.length, days: rangeDays })}
@@ -232,7 +232,7 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
                     {card.counts.map((count, index) => (
                       <div key={`${card.type}-${rangeDayKeys[index]}`} className="flex flex-col items-center">
                         <div
-                          className="w-2 rounded-full bg-accent-primary/60"
+                          className="w-2 rounded-full bg-gradient-to-t from-purple-500 to-pink-500"
                           style={{ height: `${Math.max(6, (count / card.maxCount) * 64)}px` }}
                         />
                       </div>

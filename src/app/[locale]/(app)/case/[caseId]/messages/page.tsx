@@ -43,15 +43,15 @@ export default async function MessagesPage({
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
-          {'<-'} {t('backToChild', { name: caseData.childDisplayName })}
+          ← {t('backToChild', { name: caseData.childDisplayName })}
         </Link>
         <div className="flex items-center justify-between mt-xs">
-          <h1 className="screen-title">{t('title')}</h1>
+          <h1 className="text-h2 font-bold text-text-primary">{t('title')}</h1>
           {!showNew && (
             <Link href={`/case/${caseId}/messages?new=1`}>
-              <Button>{t('newDiscussion')}</Button>
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg">{t('newDiscussion')}</Button>
             </Link>
           )}
         </div>
@@ -66,7 +66,7 @@ export default async function MessagesPage({
           <NewThreadFormWrapper caseId={caseId} currentUserId={session.user.id} />
           <Link
             href={`/case/${caseId}/messages`}
-            className="inline-block mt-sm text-meta text-text-secondary hover:text-text-primary"
+            className="inline-block mt-sm text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             {t('cancel')}
           </Link>
@@ -101,7 +101,7 @@ export default async function MessagesPage({
             {t('emptyTitle')}
           </p>
           <Link href={`/case/${caseId}/messages?new=1`}>
-            <Button>{t('startDiscussion')}</Button>
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg">{t('startDiscussion')}</Button>
           </Link>
         </div>
       )}

@@ -47,11 +47,11 @@ export default async function ClinicalPage({ params }: ClinicalPageProps) {
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Back to {caseData.childDisplayName}
         </Link>
-        <h1 className="screen-title mt-xs">Clinical overview</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Clinical overview</h1>
         <p className="text-meta text-text-secondary">
           Notes, flags, tasks, and watches for {caseData.childDisplayName}
         </p>

@@ -115,11 +115,11 @@ export default async function CasePage({ params }: CasePageProps) {
         <div>
           <Link
             href="/dashboard"
-            className="text-meta text-text-secondary hover:text-accent-primary"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             ← Dashboard
           </Link>
-          <h1 className="screen-title mt-xs">{caseData.childDisplayName}</h1>
+          <h1 className="text-h2 font-bold text-text-primary mt-xs">{caseData.childDisplayName}</h1>
           {!isParent && (
             <p className="text-meta text-text-secondary">
               Clinical access
@@ -128,18 +128,18 @@ export default async function CasePage({ params }: CasePageProps) {
         </div>
         <div className="flex flex-wrap gap-sm">
           <Link href={`/case/${caseId}/emergency`}>
-            <Button variant="secondary">Emergency Card</Button>
+            <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">Emergency Card</Button>
           </Link>
           {isAdmin && (
             <>
               <Link href={`/case/${caseId}/sharing`}>
-                <Button variant="secondary">Sharing</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">Sharing</Button>
               </Link>
               <Link href={`/case/${caseId}/data`}>
-                <Button variant="secondary">Data</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">Data</Button>
               </Link>
               <Link href={`/case/${caseId}/settings`}>
-                <Button variant="secondary">Settings</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">Settings</Button>
               </Link>
             </>
           )}
@@ -151,10 +151,10 @@ export default async function CasePage({ params }: CasePageProps) {
         {isParent && (
           <div className="space-y-sm">
             {/* Quick actions bar */}
-            <div className="p-md bg-white border border-divider rounded-md">
+            <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
               <div className="flex flex-wrap items-center justify-between gap-sm">
                 <div>
-                  <h2 className="text-title-md font-medium">Quick actions</h2>
+                  <h2 className="text-title-md font-semibold text-text-primary">Quick actions</h2>
                   <p className="text-meta text-text-secondary">
                     {todayEvents.length === 0
                       ? 'No observations logged today'
@@ -163,10 +163,10 @@ export default async function CasePage({ params }: CasePageProps) {
                 </div>
                 <div className="flex gap-sm">
                   <Link href={`/case/${caseId}/today`}>
-                    <Button>Log observation</Button>
+                    <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg">Log observation</Button>
                   </Link>
                   <Link href={`/case/${caseId}/trends`}>
-                    <Button variant="secondary">View trends</Button>
+                    <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">View trends</Button>
                   </Link>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default async function CasePage({ params }: CasePageProps) {
 
             {/* Upcoming appointments */}
             {upcomingAppointments.length > 0 && (
-              <div className="p-md bg-white border border-divider rounded-md">
+              <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
                 <UpcomingAppointmentsWidget
                   appointments={upcomingAppointments}
                   caseId={caseId}
@@ -188,7 +188,7 @@ export default async function CasePage({ params }: CasePageProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm">
               <Link
                 href={`/case/${caseId}/profile`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Profile</h2>
                 <p className="text-meta text-text-secondary">
@@ -197,7 +197,7 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link
                 href={`/case/${caseId}/today`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Today</h2>
                 <p className="text-meta text-text-secondary">
@@ -206,7 +206,7 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link
                 href={`/case/${caseId}/appointments`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Appointments</h2>
                 <p className="text-meta text-text-secondary">
@@ -215,7 +215,7 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link
                 href={`/case/${caseId}/medications`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Medications</h2>
                 <p className="text-meta text-text-secondary">
@@ -224,7 +224,7 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link
                 href={`/case/${caseId}/messages`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Messages</h2>
                 <p className="text-meta text-text-secondary">
@@ -233,7 +233,7 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link
                 href={`/case/${caseId}/documents`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Documents</h2>
                 <p className="text-meta text-text-secondary">
@@ -242,7 +242,7 @@ export default async function CasePage({ params }: CasePageProps) {
               </Link>
               <Link
                 href={`/case/${caseId}/emergency`}
-                className="p-md bg-white border border-divider rounded-md hover:border-accent-primary transition-colors"
+                className="p-md bg-white border-2 border-purple-100 rounded-lg hover:border-purple-300 hover:shadow-md transition-all"
               >
                 <h2 className="text-title-md font-medium mb-xs">Emergency card</h2>
                 <p className="text-meta text-text-secondary">
@@ -255,25 +255,25 @@ export default async function CasePage({ params }: CasePageProps) {
 
         {/* Clinician view - simplified navigation */}
         {!isParent && (
-          <div className="p-md bg-white border border-divider rounded-md">
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <p className="text-meta text-text-secondary mb-sm">
               You have view access to this patient's records based on your specialty.
             </p>
             <div className="flex flex-wrap gap-sm">
               <Link href={`/case/${caseId}/clinical`}>
-                <Button variant="primary">Clinical overview</Button>
+                <Button variant="primary" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg">Clinical overview</Button>
               </Link>
               <Link href={`/case/${caseId}/today`}>
-                <Button variant="secondary">View timeline</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">View timeline</Button>
               </Link>
               <Link href={`/case/${caseId}/trends`}>
-                <Button variant="secondary">Trends</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">Trends</Button>
               </Link>
               <Link href={`/case/${caseId}/profile`}>
-                <Button variant="secondary">View profile</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">View profile</Button>
               </Link>
               <Link href={`/case/${caseId}/messages`}>
-                <Button variant="secondary">Messages</Button>
+                <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">Messages</Button>
               </Link>
             </div>
           </div>
@@ -281,13 +281,13 @@ export default async function CasePage({ params }: CasePageProps) {
 
         {/* Allergies (critical display) */}
         {caseData.allergies.length > 0 && (
-          <div className="p-md bg-white border border-divider rounded-md">
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <div className="flex items-center justify-between mb-sm">
               <h2 className="section-header">Allergies</h2>
               {canEdit && (
                 <Link
                   href={`/case/${caseId}/profile`}
-                  className="text-meta text-accent-primary hover:underline"
+                  className="text-meta text-purple-600 hover:text-purple-700 hover:underline font-medium"
                 >
                   Edit
                 </Link>
@@ -311,13 +311,13 @@ export default async function CasePage({ params }: CasePageProps) {
 
         {/* Active medications */}
         {caseData.medications.length > 0 && (
-          <div className="p-md bg-white border border-divider rounded-md">
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <div className="flex items-center justify-between mb-sm">
               <h2 className="section-header">Active medications</h2>
               {canEdit && (
                 <Link
                   href={`/case/${caseId}/profile`}
-                  className="text-meta text-accent-primary hover:underline"
+                  className="text-meta text-purple-600 hover:text-purple-700 hover:underline font-medium"
                 >
                   Edit
                 </Link>
@@ -382,13 +382,13 @@ export default async function CasePage({ params }: CasePageProps) {
 
         {/* Family members summary - only for parents */}
         {isParent && (
-          <div className="p-md bg-white border border-divider rounded-md">
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <div className="flex items-center justify-between mb-sm">
               <h2 className="section-header">Family members</h2>
               {isAdmin && (
                 <Link
                   href={`/case/${caseId}/settings`}
-                  className="text-meta text-accent-primary hover:underline"
+                  className="text-meta text-purple-600 hover:text-purple-700 hover:underline font-medium"
                 >
                   Manage
                 </Link>

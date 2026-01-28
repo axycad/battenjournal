@@ -30,17 +30,17 @@ export default async function DocumentsPage({ params }: DocumentsPageProps) {
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Back to {caseData.childDisplayName}
         </Link>
-        <h1 className="screen-title mt-xs">Documents</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Documents</h1>
       </div>
 
       <div className="space-y-lg">
         {/* Upload form */}
         {canEdit && (
-          <section className="p-md bg-white border border-divider rounded-md">
+          <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <h2 className="section-header mb-md">Upload document</h2>
             <DocumentUploadForm caseId={caseId} scopes={scopes} />
           </section>

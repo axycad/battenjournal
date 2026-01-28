@@ -59,19 +59,24 @@ export function AppHeader({ user }: AppHeaderProps) {
   }
 
   return (
-    <header className="border-b border-divider bg-white">
-      <div className="max-w-3xl mx-auto px-md py-sm flex items-center justify-between">
-        <Link href="/dashboard" className="text-title-md font-medium text-text-primary">
-          {t('appName')}
+    <header className="border-b border-purple-100 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <div className="max-w-6xl mx-auto px-md py-sm flex items-center justify-between">
+        <Link href="/dashboard" className="flex items-center gap-sm hover:opacity-80 transition-opacity">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-bold">B</span>
+          </div>
+          <span className="text-title-md font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {t('appName')}
+          </span>
         </Link>
 
-        <div className="flex items-center gap-sm">
-          <label className="text-meta text-text-secondary">
+        <div className="flex items-center gap-md">
+          <label className="text-meta">
             <span className="sr-only">{t('language')}</span>
             <select
               value={locale}
               onChange={(event) => handleLocaleChange(event.target.value)}
-              className="text-meta text-text-secondary bg-white border border-divider rounded-sm px-xs py-1"
+              className="text-meta text-text-secondary bg-white border border-purple-200 rounded-md px-sm py-1 hover:border-purple-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
               aria-label={t('language')}
             >
               {languageOptions.map((option) => (
@@ -81,19 +86,19 @@ export function AppHeader({ user }: AppHeaderProps) {
               ))}
             </select>
           </label>
-          <span className="text-meta text-text-secondary">
+          <span className="text-meta text-text-secondary hidden sm:inline">
             {user.name || user.email}
           </span>
           <Link
-            href="/settings/sync"
-            className="text-meta text-text-secondary hover:text-text-primary"
+            href="/settings"
+            className="text-meta text-purple-600 hover:text-purple-700 font-medium"
           >
             {t('settings')}
           </Link>
           <Button
             variant="text"
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="h-auto px-0"
+            className="h-auto px-0 text-meta text-text-secondary hover:text-purple-700"
           >
             {t('signOut')}
           </Button>

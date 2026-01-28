@@ -31,7 +31,7 @@ export default async function UnsubscribePage({ params }: UnsubscribePageProps) 
               </svg>
             </div>
 
-            <h1 className="screen-title mb-sm">Unsubscribed</h1>
+            <h1 className="text-h2 font-bold text-text-primary mb-sm">Unsubscribed</h1>
             <p className="text-body text-text-secondary mb-lg">
               You've been unsubscribed from email notifications. You can change this anytime in your settings.
             </p>
@@ -39,13 +39,13 @@ export default async function UnsubscribePage({ params }: UnsubscribePageProps) 
             <div className="space-y-sm">
               <Link
                 href="/settings/notifications"
-                className="block text-accent-primary hover:underline"
+                className="block text-purple-600 hover:text-purple-700 hover:underline font-medium"
               >
                 Manage email preferences
               </Link>
               <Link
                 href="/dashboard"
-                className="block text-text-secondary hover:text-text-primary"
+                className="block text-purple-600 hover:text-purple-700 hover:underline"
               >
                 Go to dashboard
               </Link>
@@ -69,14 +69,14 @@ export default async function UnsubscribePage({ params }: UnsubscribePageProps) 
               </svg>
             </div>
 
-            <h1 className="screen-title mb-sm">Invalid link</h1>
+            <h1 className="text-h2 font-bold text-text-primary mb-sm">Invalid link</h1>
             <p className="text-body text-text-secondary mb-lg">
               This unsubscribe link is invalid or has expired.
             </p>
 
             <Link
               href="/login"
-              className="text-accent-primary hover:underline"
+              className="text-purple-600 hover:text-purple-700 hover:underline font-medium"
             >
               Log in to manage your preferences
             </Link>

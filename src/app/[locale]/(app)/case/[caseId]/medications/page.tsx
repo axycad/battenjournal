@@ -41,11 +41,11 @@ export default async function MedicationsPage({ params }: MedicationsPageProps) 
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Back to {caseData.childDisplayName}
         </Link>
-        <h1 className="screen-title mt-xs">Medications</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Medications</h1>
         <p className="text-meta text-text-secondary">
           Track medication administration for {caseData.childDisplayName}
         </p>
@@ -57,7 +57,7 @@ export default async function MedicationsPage({ params }: MedicationsPageProps) 
           <h2 className="section-header">Active medications</h2>
           <Link
             href={`/case/${caseId}/profile#medications`}
-            className="text-meta text-accent-primary hover:underline"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline font-medium"
           >
             Edit medications →
           </Link>

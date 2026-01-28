@@ -41,29 +41,29 @@ export default async function TodayPage({ params }: TodayPageProps) {
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← {t('backToChild', { name: caseData.childDisplayName })}
         </Link>
-        <h1 className="screen-title mt-xs">
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">
           {isClinician ? t('timelineTitle') : t('title')}
         </h1>
         {isClinician && (
           <p className="text-meta text-text-secondary">
-            {t('clinicianView')} · <Link href={`/case/${caseId}/clinical`} className="text-accent-primary hover:underline">{t('clinicalOverview')}</Link>
+            {t('clinicianView')} · <Link href={`/case/${caseId}/clinical`} className="text-purple-600 hover:text-purple-700 hover:underline font-medium">{t('clinicalOverview')}</Link>
           </p>
         )}
         <div className="mt-sm flex flex-wrap gap-sm">
           <Link
             href={`/case/${caseId}`}
-            className="text-meta text-text-secondary hover:text-accent-primary"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             {t('overview')}
           </Link>
-          <span className="text-meta text-text-secondary">Â·</span>
+          <span className="text-meta text-text-secondary">·</span>
           <Link
             href={`/case/${caseId}/trends`}
-            className="text-meta text-text-secondary hover:text-accent-primary"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             {t('trends')}
           </Link>

@@ -43,11 +43,11 @@ export default async function AppointmentsPage({
       <div className="mb-lg">
         <Link
           href={`/case/${caseId}/today`}
-          className="text-meta text-text-secondary hover:text-accent-primary"
+          className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
           ← Back to Today
         </Link>
-        <h1 className="screen-title mt-xs">Appointments</h1>
+        <h1 className="text-h2 font-bold text-text-primary mt-xs">Appointments</h1>
         <p className="text-meta text-text-secondary">
           Manage upcoming and past appointments
         </p>
@@ -66,7 +66,7 @@ export default async function AppointmentsPage({
           Upcoming ({upcoming.length})
         </h2>
         {upcoming.length === 0 ? (
-          <div className="p-md bg-white border border-divider rounded-md text-center text-text-secondary">
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm text-center text-text-secondary">
             No upcoming appointments scheduled
           </div>
         ) : (
@@ -89,7 +89,7 @@ export default async function AppointmentsPage({
           Past ({past.length})
         </h2>
         {past.length === 0 ? (
-          <div className="p-md bg-white border border-divider rounded-md text-center text-text-secondary">
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm text-center text-text-secondary">
             No past appointments
           </div>
         ) : (
@@ -124,10 +124,10 @@ function AppointmentCard({ appointment, caseId, canEdit, isPast }: AppointmentCa
 
   return (
     <div
-      className={`p-md bg-white border rounded-md ${
+      className={`p-md bg-white border-2 rounded-lg shadow-sm ${
         isPast || isCompleted || isCancelled
-          ? 'border-divider opacity-75'
-          : 'border-accent-primary/20'
+          ? 'border-purple-100 opacity-75'
+          : 'border-purple-300'
       }`}
     >
       <div className="flex items-start gap-sm">
@@ -201,7 +201,7 @@ function AppointmentCard({ appointment, caseId, canEdit, isPast }: AppointmentCa
               <a
                 href={`/api/appointments/${appointment.id}/calendar`}
                 download={`${appointment.title}.ics`}
-                className="text-meta text-accent-primary hover:underline"
+                className="text-meta text-purple-600 hover:text-purple-700 hover:underline font-medium"
               >
                 📥 Download .ics
               </a>

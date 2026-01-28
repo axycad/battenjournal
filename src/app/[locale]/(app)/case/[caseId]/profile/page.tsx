@@ -35,14 +35,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <div>
           <Link
             href={`/case/${caseId}`}
-            className="text-meta text-text-secondary hover:text-accent-primary"
+            className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
           >
             ← Back to {caseData.childDisplayName}
           </Link>
-          <h1 className="screen-title mt-xs">Profile</h1>
+          <h1 className="text-h2 font-bold text-text-primary mt-xs">Profile</h1>
         </div>
         <Link href={`/case/${caseId}/emergency`}>
-          <Button variant="secondary">View Emergency Card</Button>
+          <Button variant="secondary" className="border-purple-200 hover:border-purple-400 hover:bg-purple-50">View Emergency Card</Button>
         </Link>
       </div>
 
