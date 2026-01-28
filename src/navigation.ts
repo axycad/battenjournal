@@ -3,5 +3,5 @@ import { locales } from './i18n'
 
 export const { Link, usePathname, useRouter } = createNavigation({
   locales,
-  localePrefix: 'always',
+  localePrefix: 'never',
 })
