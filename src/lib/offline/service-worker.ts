@@ -20,42 +20,14 @@ export function useServiceWorker(): ServiceWorkerState {
       return
     }
 
-    setIsSupported(true)
+    // Service worker disabled - PWA functionality removed
+    // Offline support still works via IndexedDB (Dexie)
+    setIsSupported(false)
+    setIsRegistered(false)
 
-    // Register service worker
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((reg) => {
-        setRegistration(reg)
-        setIsRegistered(true)
-
-        // Check for updates
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setIsUpdateAvailable(true)
-              }
-            })
-          }
-        })
-      })
-      .catch((error) => {
-        console.error('Service worker registration failed:', error)
-      })
-
-    // Listen for controller change (update applied)
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      window.location.reload()
-    })
-
-    // Listen for sync messages
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data?.type === 'SYNC_REQUESTED') {
-        // Trigger sync from the offline module
-        window.dispatchEvent(new CustomEvent('sync-requested'))
-      }
+    // Unregister any existing service workers from previous PWA setup
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => registration.unregister())
     })
   }, [])
 
