@@ -4,6 +4,8 @@ import { auth } from '@/lib/auth'
 import { getTranslations } from 'next-intl/server'
 import { getEmailPreferences } from '@/actions/email-notifications'
 import { EmailPreferencesForm } from './email-preferences-form'
+import { getUserReminderPreferences } from '@/actions/notification'
+import { ReminderPreferences } from '@/components/notifications/reminder-preferences'
 
 export default async function NotificationSettingsPage() {
   const session = await auth()
@@ -13,7 +15,10 @@ export default async function NotificationSettingsPage() {
     redirect(`/login`)
   }
 
-  const preferences = await getEmailPreferences()
+  const [emailPreferences, reminderPreferences] = await Promise.all([
+    getEmailPreferences(),
+    getUserReminderPreferences(),
+  ])
 
   return (
     <div className="max-w-2xl mx-auto px-md py-lg">
@@ -22,7 +27,7 @@ export default async function NotificationSettingsPage() {
           href="/settings"
           className="text-meta text-text-secondary hover:text-accent-primary"
         >
-          â† {t('backToSettings')}
+          ← {t('backToSettings')}
         </Link>
         <h1 className="screen-title mt-xs">{t('title')}</h1>
         <p className="text-meta text-text-secondary">
@@ -30,7 +35,25 @@ export default async function NotificationSettingsPage() {
         </p>
       </div>
 
-      <EmailPreferencesForm initialPreferences={preferences} />
+      <div className="space-y-lg">
+        {/* Reminder Preferences */}
+        <div className="p-md bg-white border border-divider rounded-md">
+          <ReminderPreferences
+            initialPreferences={{
+              medicationReminders: reminderPreferences?.medicationReminders ?? true,
+              appointmentReminders: reminderPreferences?.appointmentReminders ?? true,
+              dailyLoggingNudges: reminderPreferences?.dailyLoggingNudges ?? false,
+              quietHoursStart: reminderPreferences?.quietHoursStart ?? null,
+              quietHoursEnd: reminderPreferences?.quietHoursEnd ?? null,
+            }}
+          />
+        </div>
+
+        {/* Email Preferences */}
+        <div className="p-md bg-white border border-divider rounded-md">
+          <EmailPreferencesForm initialPreferences={emailPreferences} />
+        </div>
+      </div>
     </div>
   )
 }

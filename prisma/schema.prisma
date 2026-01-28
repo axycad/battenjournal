@@ -51,6 +51,7 @@ model User {
   appointments            Appointment[]
   settings                UserSetting[]
   devices                 Device[]
+  notifications           Notification[]
   outboxItems             OutboxItem[]
   exportJobs              ExportJob[]
   auditEntries            AuditEntry[]
@@ -931,6 +932,11 @@ model EmailPreference {
   watchAlerts            Boolean         @default(true)
   taskReminders          Boolean         @default(true)
   messageNotifications   Boolean         @default(true)
+  medicationReminders    Boolean         @default(true)
+  appointmentReminders   Boolean         @default(true)
+  dailyLoggingNudges     Boolean         @default(false)
+  quietHoursStart        String?         // HH:MM format, e.g., "22:00"
+  quietHoursEnd          String?         // HH:MM format, e.g., "08:00"
   unsubscribeToken       String          @unique @default(cuid())
   lastDigestSentAt       DateTime?
   createdAt              DateTime        @default(now())
@@ -965,6 +971,48 @@ enum Platform {
   IOS
   ANDROID
   WEB
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String
+  type       NotificationType
+  title      String
+  body       String
+  actionUrl  String?          // Optional link to navigate to
+  metadata   Json?            // Additional data (e.g., appointmentId, medicationId)
+  readAt     DateTime?
+  createdAt  DateTime         @default(now())
+  deletedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  MEDICATION_REMINDER
+  APPOINTMENT_REMINDER
+  DAILY_LOGGING_NUDGE
+  MESSAGE
+  WATCH_ALERT
+  TASK_REMINDER
+  GENERAL
+}
+
+model ReminderLog {
+  id               String   @id @default(cuid())
+  userId           String
+  reminderType     String   // "MEDICATION" | "APPOINTMENT" | "DAILY_LOGGING"
+  referenceId      String   // medicationId or appointmentId
+  scheduledFor     DateTime // When the reminder was scheduled for
+  sentAt           DateTime @default(now())
+
+  @@unique([userId, reminderType, referenceId, scheduledFor])
+  @@index([userId])
+  @@index([scheduledFor])
 }
 
 // ============================================================================
