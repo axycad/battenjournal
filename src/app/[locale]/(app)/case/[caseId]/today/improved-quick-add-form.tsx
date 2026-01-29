@@ -200,9 +200,9 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
   const quickPhrases = selectedType ? QUICK_PHRASES[selectedType] || [] : []
 
   return (
-    <div className="p-md bg-white border border-divider rounded-md">
+    <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
       <div className="space-y-md">
-        {/* Header with mode toggle */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-h3 font-semibold text-text-primary">Log observation</h2>
@@ -210,13 +210,15 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
               Quick capture • Every detail helps
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setDetailMode(!detailMode)}
-            className="text-meta text-accent-primary hover:underline"
-          >
-            {detailMode ? 'Quick mode' : 'Detailed mode'}
-          </button>
+          {selectedType && (
+            <button
+              type="button"
+              onClick={() => setDetailMode(!detailMode)}
+              className="text-meta text-purple-600 hover:text-purple-700 hover:underline font-medium"
+            >
+              {detailMode ? '← Quick mode' : 'Detailed mode →'}
+            </button>
+          )}
         </div>
 
         {/* Event type selector - Visual grid */}
@@ -350,8 +352,8 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
                   onClick={() => setAfterSleep(!afterSleep)}
                   className={`px-sm py-1 text-meta rounded-full border transition-colors ${
                     afterSleep
-                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                      : 'border-divider text-text-secondary hover:border-accent-primary'
+                      ? 'border-purple-600 bg-purple-50 text-purple-700'
+                      : 'border-divider text-text-secondary hover:border-purple-300'
                   }`}
                 >
                   😴 After sleep
@@ -361,8 +363,8 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
                   onClick={() => setAfterMeds(!afterMeds)}
                   className={`px-sm py-1 text-meta rounded-full border transition-colors ${
                     afterMeds
-                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                      : 'border-divider text-text-secondary hover:border-accent-primary'
+                      ? 'border-purple-600 bg-purple-50 text-purple-700'
+                      : 'border-divider text-text-secondary hover:border-purple-300'
                   }`}
                 >
                   💊 After medication
@@ -372,8 +374,8 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
                   onClick={() => setWhileIll(!whileIll)}
                   className={`px-sm py-1 text-meta rounded-full border transition-colors ${
                     whileIll
-                      ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                      : 'border-divider text-text-secondary hover:border-accent-primary'
+                      ? 'border-purple-600 bg-purple-50 text-purple-700'
+                      : 'border-divider text-text-secondary hover:border-purple-300'
                   }`}
                 >
                   🦠 While unwell
@@ -391,7 +393,7 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
                       key={phrase}
                       type="button"
                       onClick={() => handleQuickPhrase(phrase)}
-                      className="px-sm py-1 text-meta border border-divider rounded-md hover:border-accent-primary hover:bg-accent-primary/5"
+                      className="px-sm py-1 text-meta border border-divider rounded-md hover:border-purple-300 hover:bg-purple-50"
                     >
                       + {phrase}
                     </button>
@@ -452,8 +454,8 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
                         }
                         className={`px-sm py-1 text-meta rounded-sm border transition-colors ${
                           selectedScopes.includes(scope.code)
-                            ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                            : 'border-divider text-text-secondary hover:border-accent-primary'
+                            ? 'border-purple-600 bg-purple-50 text-purple-700 font-medium'
+                            : 'border-divider text-text-secondary hover:border-purple-300'
                         }`}
                       >
                         {scope.label}
