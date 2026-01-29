@@ -91,7 +91,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
     <ul className="divide-y divide-divider">
       {clinicians.map((clinician) => {
         const isEditing = editingId === clinician.userId
-        const isConfirming = confirmAction?.userId === clinician.userId
+        const isConfirming = confirmAction?.membershipId === clinician.id
 
         if (isConfirming) {
           const actionLabel =
