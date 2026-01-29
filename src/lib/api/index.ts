@@ -9,6 +9,7 @@ export * from './appointments'
 export * from './clinical'
 export * from './messaging'
 export * from './medications'
+export * from './invites'
 
 // Re-export the API client and error class
 export { apiClient, ApiError } from '../api-client'

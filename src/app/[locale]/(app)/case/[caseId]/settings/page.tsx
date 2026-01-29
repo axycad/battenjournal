@@ -1,29 +1,76 @@
-import { notFound, redirect } from 'next/navigation'
-import {Link} from '@/navigation'
-import { getCase } from '@/actions/case'
-import { getPendingInvites } from '@/actions/invite'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { Link } from '@/navigation'
+import { getCaseAPI, getPendingInvitesAPI, type Invite } from '@/lib/api'
 import { InviteForm } from './invite-form'
 import { MemberList } from './member-list'
 import { PendingInvites } from './pending-invites'
 
-interface SettingsPageProps {
-  params: Promise<{ caseId: string }>
+interface CaseData {
+  id: string
+  childDisplayName: string
+  currentUserRole: string
 }
 
-export default async function CaseSettingsPage({ params }: SettingsPageProps) {
-  const { caseId } = await params
-  const caseData = await getCase(caseId)
+export default function CaseSettingsPage() {
+  const params = useParams()
+  const router = useRouter()
+  const caseId = params.caseId as string
 
-  if (!caseData) {
-    notFound()
+  const [caseData, setCaseData] = useState<CaseData | null>(null)
+  const [pendingInvites, setPendingInvites] = useState<Invite[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const caseDataRes = await getCaseAPI(caseId)
+        setCaseData(caseDataRes as any)
+
+        // Only OWNER_ADMIN can access settings
+        if ((caseDataRes as any).currentUserRole !== 'OWNER_ADMIN') {
+          router.push(`/case/${caseId}`)
+          return
+        }
+
+        const invitesRes = await getPendingInvitesAPI(caseId)
+        setPendingInvites(invitesRes)
+      } catch (err) {
+        console.error('Failed to load settings:', err)
+        setError('Failed to load settings. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId, router])
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="flex items-center justify-center py-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+            <p className="text-body text-text-secondary">Loading settings...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  // Only OWNER_ADMIN can access settings
-  if (caseData.currentUserRole !== 'OWNER_ADMIN') {
-    redirect(`/case/${caseId}`)
+  if (error || !caseData) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md">
+          <p className="text-body text-red-700">{error || 'Access denied'}</p>
+        </div>
+      </div>
+    )
   }
-
-  const pendingInvites = await getPendingInvites(caseId)
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
