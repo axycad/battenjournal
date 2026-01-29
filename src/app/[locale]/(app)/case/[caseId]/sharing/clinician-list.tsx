@@ -21,7 +21,7 @@ interface ClinicianListProps {
 export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmAction, setConfirmAction] = useState<{
-    userId: string
+    membershipId: string
     action: 'pause' | 'resume' | 'revoke'
   } | null>(null)
   const [selectedScopes, setSelectedScopes] = useState<string[]>([])
@@ -60,17 +60,17 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
     setSaving(false)
   }
 
-  async function handleAction(userId: string, action: 'pause' | 'resume' | 'revoke') {
+  async function handleAction(membershipId: string, action: 'pause' | 'resume' | 'revoke') {
     setSaving(true)
     setError('')
 
     let result
     if (action === 'pause') {
-      result = await pauseClinicianAccessAPI(caseId, userId)
+      result = await pauseClinicianAccessAPI(membershipId)
     } else if (action === 'resume') {
-      result = await resumeClinicianAccessAPI(caseId, userId)
+      result = await resumeClinicianAccessAPI(membershipId)
     } else {
-      result = await revokeClinicianAccessAPI(caseId, userId)
+      result = await revokeClinicianAccessAPI(membershipId)
     }
 
     if (!result.success) {
@@ -127,7 +127,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
                 </Button>
                 <Button
                   variant={confirmAction.action === 'revoke' ? 'destructive' : 'primary'}
-                  onClick={() => handleAction(clinician.userId, confirmAction.action)}
+                  onClick={() => handleAction(confirmAction.membershipId, confirmAction.action)}
                   loading={saving}
                   className="h-auto py-2"
                 >
@@ -237,7 +237,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
                   <Button
                     variant="text"
                     onClick={() =>
-                      setConfirmAction({ userId: clinician.userId, action: 'pause' })
+                      setConfirmAction({ membershipId: clinician.id, action: 'pause' })
                     }
                     className="h-auto px-0 text-meta text-text-secondary"
                   >
@@ -247,7 +247,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
                   <Button
                     variant="text"
                     onClick={() =>
-                      setConfirmAction({ userId: clinician.userId, action: 'resume' })
+                      setConfirmAction({ membershipId: clinician.id, action: 'resume' })
                     }
                     className="h-auto px-0 text-meta text-accent-primary"
                   >
@@ -257,7 +257,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
                 <Button
                   variant="text"
                   onClick={() =>
-                    setConfirmAction({ userId: clinician.userId, action: 'revoke' })
+                    setConfirmAction({ membershipId: clinician.id, action: 'revoke' })
                   }
                   className="h-auto px-0 text-meta text-text-secondary"
                 >
