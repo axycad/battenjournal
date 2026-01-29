@@ -1,32 +1,77 @@
-import { notFound } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import { Link } from '@/navigation'
-import { auth } from '@/lib/auth'
-import { getTranslations } from 'next-intl/server'
-import { getCase } from '@/actions/case'
-import { getAppointmentsForCase } from '@/actions/appointment'
+import { useTranslations } from 'next-intl'
+import { getCaseAPI, getAppointmentsAPI, type Appointment } from '@/lib/api'
 import { AddAppointmentSection } from '../today/add-appointment-section'
 import { format } from 'date-fns'
 import { APPOINTMENT_TYPE_EMOJI, APPOINTMENT_TYPE_LABELS } from '@/lib/appointment-types'
 
-export default async function AppointmentsPage({
-  params,
-}: {
-  params: Promise<{ caseId: string; locale: string }>
-}) {
-  const session = await auth()
-  const { caseId } = await params
-  const t = await getTranslations('appointments')
+interface CaseData {
+  id: string
+  childDisplayName: string
+  currentUserRole: string
+  currentUserMemberType: string
+}
 
-  const caseData = await getCase(caseId)
-  if (!caseData) {
-    notFound()
+export default function AppointmentsPage() {
+  const params = useParams()
+  const caseId = params.caseId as string
+  const t = useTranslations('appointments')
+
+  const [caseData, setCaseData] = useState<CaseData | null>(null)
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [caseDataRes, appointmentsRes] = await Promise.all([
+          getCaseAPI(caseId),
+          getAppointmentsAPI(caseId),
+        ])
+
+        setCaseData(caseDataRes as any)
+        setAllAppointments(appointmentsRes)
+      } catch (err) {
+        console.error('Failed to load appointments:', err)
+        setError('Failed to load appointments. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId])
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-md py-lg">
+        <div className="flex items-center justify-center py-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+            <p className="text-body text-text-secondary">Loading appointments...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !caseData) {
+    return (
+      <div className="max-w-4xl mx-auto px-md py-lg">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md">
+          <p className="text-body text-red-700">{error || 'Case not found'}</p>
+        </div>
+      </div>
+    )
   }
 
   const isParent = caseData.currentUserMemberType === 'PARENT'
   const canEdit = caseData.currentUserRole !== 'VIEWER' && isParent
-
-  // Get all appointments
-  const allAppointments = await getAppointmentsForCase(caseId)
 
   // Separate into upcoming and past
   const now = new Date()
@@ -111,7 +156,7 @@ export default async function AppointmentsPage({
 }
 
 interface AppointmentCardProps {
-  appointment: Awaited<ReturnType<typeof getAppointmentsForCase>>[0]
+  appointment: Appointment
   caseId: string
   canEdit: boolean
   isPast?: boolean
