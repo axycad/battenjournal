@@ -8,7 +8,14 @@ export interface Document {
   mimeType: string
   blobUrl: string
   uploadedAt: Date
-  uploadedBy: string
+  uploadedBy: {
+    id: string
+    name: string | null
+  }
+  visibleScopes?: Array<{
+    code: string
+    label: string
+  }>
 }
 
 export interface UploadDocumentInput {
