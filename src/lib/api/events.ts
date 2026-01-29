@@ -60,3 +60,15 @@ export async function updateEventAPI(
 export async function deleteEventAPI(eventId: string): Promise<void> {
   return apiClient.delete(`/api/sync/events/${eventId}`)
 }
+
+// Get all scopes
+export interface Scope {
+  id: string
+  code: string
+  label: string
+  description?: string
+}
+
+export async function getAllScopesAPI(): Promise<Scope[]> {
+  return apiClient.get('/api/scopes')
+}

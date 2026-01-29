@@ -1,40 +1,96 @@
-import { notFound } from 'next/navigation'
-import {Link} from '@/navigation'
-import { getTranslations } from 'next-intl/server'
-import { auth } from '@/lib/auth'
-import { getCase } from '@/actions/case'
-import { getEventsForCase, getAllScopes } from '@/actions/event'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Link } from '@/navigation'
+import { useTranslations } from 'next-intl'
+import { useSession } from 'next-auth/react'
+import {
+  getCaseAPI,
+  getEventsAPI,
+  getAllScopesAPI,
+  getUpcomingAppointmentsAPI,
+  type Scope,
+  type Appointment,
+  type Event,
+} from '@/lib/api'
 import { ImprovedQuickAddForm } from './improved-quick-add-form'
 import { TimelineWithFilters } from './timeline-with-filters'
 import { ProgressSummary } from '@/components/events/progress-summary'
 import { UpcomingAppointmentsWidget } from '@/components/appointments/upcoming-appointments-widget'
-import { getUpcomingAppointments } from '@/actions/appointment'
 import { AddAppointmentSection } from './add-appointment-section'
 
-interface TodayPageProps {
-  params: Promise<{ caseId: string }>
+interface CaseData {
+  id: string
+  childDisplayName: string
+  currentUserMemberType: string
+  currentUserRole: string
 }
 
-export default async function TodayPage({ params }: TodayPageProps) {
-  const { caseId } = await params
-  const session = await auth()
-  const t = await getTranslations('today')
-  
-  const [caseData, events, scopes, upcomingAppointments] = await Promise.all([
-    getCase(caseId),
-    getEventsForCase(caseId, { limit: 100 }),
-    getAllScopes(),
-    getUpcomingAppointments(caseId, { limit: 5 }),
-  ])
+export default function TodayPage() {
+  const params = useParams()
+  const caseId = params.caseId as string
+  const { data: session } = useSession()
+  const t = useTranslations('today')
 
-  if (!caseData) {
-    notFound()
+  const [caseData, setCaseData] = useState<CaseData | null>(null)
+  const [events, setEvents] = useState<any[]>([])
+  const [scopes, setScopes] = useState<Scope[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [caseDataRes, eventsRes, scopesRes, appointmentsRes] = await Promise.all([
+          getCaseAPI(caseId),
+          getEventsAPI(caseId, { limit: 100 }),
+          getAllScopesAPI(),
+          getUpcomingAppointmentsAPI(caseId, { limit: 5 }),
+        ])
+
+        setCaseData(caseDataRes as any)
+        setEvents(eventsRes)
+        setScopes(scopesRes)
+        setUpcomingAppointments(appointmentsRes)
+      } catch (err) {
+        console.error('Failed to load today page:', err)
+        setError('Failed to load page. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId])
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="flex items-center justify-center py-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+            <p className="text-body text-text-secondary">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !caseData) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md">
+          <p className="text-body text-red-700">{error || 'Case not found'}</p>
+        </div>
+      </div>
+    )
   }
 
   const isParent = caseData.currentUserMemberType === 'PARENT'
   const isClinician = caseData.currentUserMemberType === 'CARE_TEAM'
   const canEdit = caseData.currentUserRole !== 'VIEWER' && isParent
-
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
@@ -50,7 +106,13 @@ export default async function TodayPage({ params }: TodayPageProps) {
         </h1>
         {isClinician && (
           <p className="text-meta text-text-secondary">
-            {t('clinicianView')} · <Link href={`/case/${caseId}/clinical`} className="text-purple-600 hover:text-purple-700 hover:underline font-medium">{t('clinicalOverview')}</Link>
+            {t('clinicianView')} ·{' '}
+            <Link
+              href={`/case/${caseId}/clinical`}
+              className="text-purple-600 hover:text-purple-700 hover:underline font-medium"
+            >
+              {t('clinicalOverview')}
+            </Link>
           </p>
         )}
         <div className="mt-sm flex flex-wrap gap-sm">
@@ -69,7 +131,6 @@ export default async function TodayPage({ params }: TodayPageProps) {
           </Link>
         </div>
       </div>
-
 
       {/* Record Summary - only for clinicians */}
       {isClinician && events.length > 0 && (

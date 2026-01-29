@@ -1,13 +1,15 @@
-import {Link} from '@/navigation'
-import { notFound } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
-import { getCase } from '@/actions/case'
-import { getEventsForCase } from '@/actions/event'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
+import { Link } from '@/navigation'
+import { useTranslations } from 'next-intl'
+import { getCaseAPI, getEventsAPI } from '@/lib/api'
 import { EVENT_TYPES } from '@/lib/event-types'
 
-interface TrendsPageProps {
-  params: Promise<{ caseId: string }>
-  searchParams?: Promise<{ range?: string }>
+interface CaseData {
+  id: string
+  childDisplayName: string
 }
 
 function getRangeDays(rangeParam?: string) {
@@ -44,19 +46,61 @@ function getCheckInStatus(freeText?: string | null): CheckInStatus | null {
   return null
 }
 
-export default async function TrendsPage({ params, searchParams }: TrendsPageProps) {
-  const { caseId } = await params
-  const { range } = (await searchParams) || {}
+export default function TrendsPage() {
+  const params = useParams()
+  const searchParams = useSearchParams()
+  const caseId = params.caseId as string
+  const range = searchParams.get('range') || undefined
   const rangeDays = getRangeDays(range)
-  const t = await getTranslations('trends')
+  const t = useTranslations('trends')
 
-  const [caseData, events] = await Promise.all([
-    getCase(caseId),
-    getEventsForCase(caseId, { limit: 500 }),
-  ])
+  const [caseData, setCaseData] = useState<CaseData | null>(null)
+  const [events, setEvents] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  if (!caseData) {
-    notFound()
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [caseDataRes, eventsRes] = await Promise.all([
+          getCaseAPI(caseId),
+          getEventsAPI(caseId, { limit: 500 }),
+        ])
+
+        setCaseData(caseDataRes as any)
+        setEvents(eventsRes)
+      } catch (err) {
+        console.error('Failed to load trends:', err)
+        setError('Failed to load trends. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId])
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="flex items-center justify-center py-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+            <p className="text-body text-text-secondary">Loading trends...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !caseData) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md">
+          <p className="text-body text-red-700">{error || 'Case not found'}</p>
+        </div>
+      </div>
+    )
   }
 
   const today = new Date()
@@ -77,31 +121,28 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
     rangeDayKeys.push(getDayKey(date))
   }
 
-  const eventsInWindow = events.filter((event) => event.occurredAt >= prevStartDate)
-  const eventsInRange = events.filter((event) => event.occurredAt >= startDate)
+  const eventsInWindow = events.filter((event) => new Date(event.occurredAt) >= prevStartDate)
+  const eventsInRange = events.filter((event) => new Date(event.occurredAt) >= startDate)
 
   const eventTypes = Array.from(
     new Set(eventsInRange.map((event) => event.eventType))
   ).filter((type) => !['daily_checkin', 'nothing_new'].includes(type))
 
   const trendCards = eventTypes.map((type) => {
-    const countsByDay = new Map<string, number>()
-    for (const dayKey of rangeDayKeys) {
-      countsByDay.set(dayKey, 0)
-    }
+    const countsByDay = new Map<string, number>(rangeDayKeys.map(key => [key, 0]))
 
     const rangeCount = eventsInRange.filter((event) => event.eventType === type).length
     const prevCount = eventsInWindow.filter(
       (event) =>
         event.eventType === type &&
-        event.occurredAt >= prevStartDate &&
-        event.occurredAt < startDate
+        new Date(event.occurredAt) >= prevStartDate &&
+        new Date(event.occurredAt) < startDate
     ).length
 
     eventsInRange
       .filter((event) => event.eventType === type)
       .forEach((event) => {
-        const dayKey = getDayKey(event.occurredAt)
+        const dayKey = getDayKey(new Date(event.occurredAt))
         if (countsByDay.has(dayKey)) {
           countsByDay.set(dayKey, (countsByDay.get(dayKey) || 0) + 1)
         }
@@ -137,7 +178,7 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
           href={`/case/${caseId}`}
           className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
-          ← {t('backToChild', { name: caseData.childDisplayName })}
+          ← {t('backToChild', { name: caseData.childDisplayName })}
         </Link>
         <h1 className="text-h2 font-bold text-text-primary mt-xs">{t('title')}</h1>
         <div className="mt-sm flex flex-wrap gap-sm">
@@ -260,15 +301,18 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
                   <div>
                     <h3 className="text-title-lg font-semibold text-text-primary">{card.label}</h3>
                     <p className="text-meta text-text-secondary">
-                      <span className="font-medium text-text-primary">{card.rangeCount}</span> {card.rangeCount === 1 ? 'event' : 'events'} in last {rangeDays} days
+                      <span className="font-medium text-text-primary">{card.rangeCount}</span>{' '}
+                      {card.rangeCount === 1 ? 'event' : 'events'} in last {rangeDays} days
                     </p>
                   </div>
                   {!isStable && (
-                    <span className={`px-sm py-xs rounded-full text-caption font-medium ${
-                      isIncrease
-                        ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                        : 'bg-green-50 text-green-700 border border-green-200'
-                    }`}>
+                    <span
+                      className={`px-sm py-xs rounded-full text-caption font-medium ${
+                        isIncrease
+                          ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                          : 'bg-green-50 text-green-700 border border-green-200'
+                      }`}
+                    >
                       {isIncrease ? '↑' : '↓'} {Math.abs(changePercent)}% vs previous period
                     </span>
                   )}
@@ -292,7 +336,9 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
                           <div
                             className="w-full rounded-full bg-gradient-to-t from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-colors cursor-pointer"
                             style={{ height: `${Math.max(4, (count / card.maxCount) * 64)}px` }}
-                            title={`${formatDayLabel(rangeDaysList[index])}: ${count} ${count === 1 ? 'event' : 'events'}`}
+                            title={`${formatDayLabel(rangeDaysList[index])}: ${count} ${
+                              count === 1 ? 'event' : 'events'
+                            }`}
                           />
                         </div>
                       ))}
