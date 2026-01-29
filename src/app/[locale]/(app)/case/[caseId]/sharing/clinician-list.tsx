@@ -110,7 +110,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
           return (
             <li key={clinician.userId} className="py-md">
               <p className="text-body mb-sm">
-                {actionLabel} access for {clinician.userName || clinician.userEmail}?
+                {actionLabel} access for {clinician.user.name || clinician.user.email}?
               </p>
               <p className="text-meta text-text-secondary mb-md">
                 This will {actionDesc}.
@@ -144,7 +144,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
               <div className="flex items-center justify-between mb-sm">
                 <div>
                   <p className="text-body font-medium">
-                    {clinician.userName || clinician.userEmail}
+                    {clinician.user.name || clinician.user.email}
                   </p>
                   <p className="text-meta text-text-secondary">
                     {getSpecialtyLabel(clinician.specialty)}
@@ -200,7 +200,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
               <div className="flex-1">
                 <div className="flex items-center gap-sm">
                   <p className="text-body font-medium">
-                    {clinician.userName || clinician.userEmail}
+                    {clinician.user.name || clinician.user.email}
                   </p>
                   {clinician.status === 'PAUSED' && (
                     <span className="px-sm py-0.5 text-caption bg-semantic-warning/20 text-semantic-warning rounded">
