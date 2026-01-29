@@ -23,7 +23,7 @@ export function ClinicianInviteForm({ caseId, childName }: ClinicianInviteFormPr
     setLoading(true)
 
     try {
-      const result = await createClinicianInviteAPI(caseId, email)
+      const result = await createClinicianInviteAPI({ caseId, email }) as { success: boolean; error?: string; data?: { inviteLink: string } }
 
       if (!result.success) {
         setError(result.error || 'Failed to create invite')

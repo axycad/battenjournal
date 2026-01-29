@@ -7,7 +7,9 @@
       "Bash(npm run build:*)",
       "Bash(DATABASE_URL=\"postgresql://neondb_owner:npg_9xNjueK2rJiM@ep-nameless-bird-abfeeisx-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require\" SEED_DEMO=true npx prisma db seed:*)",
       "Bash(wc:*)",
-      "Bash(npm run build:capacitor:*)"
+      "Bash(npm run build:capacitor:*)",
+      "Bash(npx cap:*)",
+      "Bash(find:*)"
     ]
   }
 }

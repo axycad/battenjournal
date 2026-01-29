@@ -58,21 +58,22 @@ export function ProfileSection({
     setSaving(true)
     setError('')
 
-    const result = await updateProfileAPI(caseId, {
-      legalName: legalName || undefined,
-      dateOfBirth: dateOfBirth || undefined,
-      sex: sex || undefined,
-      bloodType: bloodType || undefined,
-      nationalId: nationalId || undefined,
-      insuranceProvider: insuranceProvider || undefined,
-      insuranceNumber: insuranceNumber || undefined,
-    })
+    try {
+      await updateProfileAPI(caseId, {
+        legalName: legalName || undefined,
+        dateOfBirth: dateOfBirth || undefined,
+        sex: sex || undefined,
+        bloodType: bloodType || undefined,
+        nationalId: nationalId || undefined,
+        insuranceProvider: insuranceProvider || undefined,
+        insuranceNumber: insuranceNumber || undefined,
+      } as any)
 
-    if (!result.success) {
-      setError(result.error || 'Failed to save')
-    } else {
       setEditing(false)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save')
     }
+
     setSaving(false)
   }
 

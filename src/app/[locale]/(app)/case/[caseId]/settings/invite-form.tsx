@@ -11,7 +11,7 @@ interface InviteFormProps {
 
 export function InviteForm({ caseId, childName }: InviteFormProps) {
   const [email, setEmail] = useState('')
-  const [role, setRole] = useState<'EDITOR' | 'VIEWER'>('EDITOR')
+  const [role, setRole] = useState<'PARENT' | 'SIBLING' | 'GRANDPARENT' | 'OTHER_FAMILY'>('PARENT')
   const [inviteLink, setInviteLink] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,7 +28,7 @@ export function InviteForm({ caseId, childName }: InviteFormProps) {
         caseId,
         email,
         familyRole: role,
-      })
+      }) as { success: boolean; error?: string; data?: { inviteLink: string } }
 
       if (!result.success) {
         setError(result.error || 'Failed to create invite')
@@ -90,36 +90,52 @@ export function InviteForm({ caseId, childName }: InviteFormProps) {
 
       <div>
         <label className="block text-meta text-text-secondary mb-xs">
-          Permission level
+          Relationship
         </label>
-        <div className="flex gap-sm">
+        <div className="grid grid-cols-2 gap-sm">
           <button
             type="button"
-            onClick={() => setRole('EDITOR')}
-            className={`flex-1 px-sm py-2 border rounded-sm text-body ${
-              role === 'EDITOR'
+            onClick={() => setRole('PARENT')}
+            className={`px-sm py-2 border rounded-sm text-body ${
+              role === 'PARENT'
                 ? 'border-accent-primary bg-accent-primary/10'
                 : 'border-divider'
             }`}
           >
-            Editor
-            <span className="block text-caption text-text-secondary">
-              Can add and edit entries
-            </span>
+            Parent
           </button>
           <button
             type="button"
-            onClick={() => setRole('VIEWER')}
-            className={`flex-1 px-sm py-2 border rounded-sm text-body ${
-              role === 'VIEWER'
+            onClick={() => setRole('SIBLING')}
+            className={`px-sm py-2 border rounded-sm text-body ${
+              role === 'SIBLING'
                 ? 'border-accent-primary bg-accent-primary/10'
                 : 'border-divider'
             }`}
           >
-            Viewer
-            <span className="block text-caption text-text-secondary">
-              Can view only
-            </span>
+            Sibling
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole('GRANDPARENT')}
+            className={`px-sm py-2 border rounded-sm text-body ${
+              role === 'GRANDPARENT'
+                ? 'border-accent-primary bg-accent-primary/10'
+                : 'border-divider'
+            }`}
+          >
+            Grandparent
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole('OTHER_FAMILY')}
+            className={`px-sm py-2 border rounded-sm text-body ${
+              role === 'OTHER_FAMILY'
+                ? 'border-accent-primary bg-accent-primary/10'
+                : 'border-divider'
+            }`}
+          >
+            Other Family
           </button>
         </div>
       </div>

@@ -31,9 +31,9 @@ export function MeasurementsSection({
     setError('')
 
     const result = await addMeasurementAPI(caseId, {
-      type: 'WEIGHT',
-      value: parseFloat(weight),
-    })
+      weightKg: parseFloat(weight),
+      measuredAt: new Date(),
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to save')
@@ -50,9 +50,9 @@ export function MeasurementsSection({
     setError('')
 
     const result = await addMeasurementAPI(caseId, {
-      type: 'HEIGHT',
-      value: parseFloat(height),
-    })
+      heightCm: parseFloat(height),
+      measuredAt: new Date(),
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to save')

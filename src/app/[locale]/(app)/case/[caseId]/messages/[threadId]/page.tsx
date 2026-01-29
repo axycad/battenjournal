@@ -49,7 +49,12 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
         currentUserId={session.user.id}
         subject={thread.subject}
         anchorType={thread.anchorType as 'CASE' | 'EVENT'}
-        participants={thread.participants}
+        participants={thread.participants.map(p => ({
+          id: p.user.id,
+          name: p.user.name,
+          email: p.user.email,
+          memberType: p.user.memberType,
+        }))}
       />
     </div>
   )

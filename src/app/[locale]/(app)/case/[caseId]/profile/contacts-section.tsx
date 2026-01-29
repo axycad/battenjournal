@@ -54,7 +54,7 @@ export function ContactsSection({
       name: name.trim(),
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to add')
@@ -75,7 +75,7 @@ export function ContactsSection({
       name: name.trim(),
       phone: phone.trim() || undefined,
       address: address.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to update')
@@ -88,7 +88,7 @@ export function ContactsSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteCareContactAPI(id)
+    const result = await deleteCareContactAPI(id) as { success: boolean; error?: string }
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }

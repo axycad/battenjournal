@@ -36,7 +36,7 @@ export function CareIntentSection({
       avoidList: avoidList.trim() || undefined,
       communicationNotes: communicationNotes.trim() || undefined,
       keyEquipment: keyEquipment.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to save')

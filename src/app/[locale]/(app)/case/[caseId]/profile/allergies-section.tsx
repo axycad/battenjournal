@@ -62,7 +62,7 @@ export function AllergiesSection({
       substance: substance.trim(),
       reaction: reaction.trim() || undefined,
       severity: severity || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to add')
@@ -82,7 +82,7 @@ export function AllergiesSection({
       substance: substance.trim(),
       reaction: reaction.trim() || undefined,
       severity: severity || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to update')
@@ -95,7 +95,7 @@ export function AllergiesSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteAllergyAPI(id)
+    const result = await deleteAllergyAPI(id) as { success: boolean; error?: string }
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }

@@ -45,7 +45,7 @@ export function MedicationsSection({
       dose: dose.trim() || undefined,
       route: route.trim() || undefined,
       schedule: schedule.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to add')
@@ -66,7 +66,7 @@ export function MedicationsSection({
       dose: dose.trim() || undefined,
       route: route.trim() || undefined,
       schedule: schedule.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to update')
@@ -79,7 +79,7 @@ export function MedicationsSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteMedicationAPI(id)
+    const result = await deleteMedicationAPI(id) as { success: boolean; error?: string }
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }

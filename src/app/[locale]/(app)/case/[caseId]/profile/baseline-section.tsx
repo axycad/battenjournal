@@ -84,7 +84,7 @@ export function BaselineSection({
       mobilityStatus: mobility,
       communicationStatus: communication,
       feedingStatus: feeding,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to save')
@@ -98,12 +98,7 @@ export function BaselineSection({
     setConfirming(true)
     setError('')
 
-    const result = await confirmBaselineUnchangedAPI(caseId, [
-      'vision',
-      'mobility',
-      'communication',
-      'feeding',
-    ])
+    const result = await confirmBaselineUnchangedAPI(caseId) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to confirm')

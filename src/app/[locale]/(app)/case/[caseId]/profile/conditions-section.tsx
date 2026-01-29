@@ -39,7 +39,7 @@ export function ConditionsSection({
     const result = await addConditionAPI(caseId, {
       name: name.trim(),
       notes: notes.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to add')
@@ -58,7 +58,7 @@ export function ConditionsSection({
     const result = await updateConditionAPI(id, {
       name: name.trim(),
       notes: notes.trim() || undefined,
-    })
+    }) as { success: boolean; error?: string }
 
     if (!result.success) {
       setError(result.error || 'Failed to update')
@@ -71,7 +71,7 @@ export function ConditionsSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteConditionAPI(id)
+    const result = await deleteConditionAPI(id) as { success: boolean; error?: string }
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }
