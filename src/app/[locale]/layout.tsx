@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#B58A71',
+  themeColor: '#9333EA', // purple-600
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -42,20 +42,6 @@ export default async function LocaleLayout({
       <head>
         <meta charSet="utf-8" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    registrations.forEach((registration) => registration.unregister());
-  });
-  if (window.caches) {
-    caches.keys().then((keys) => keys.forEach((key) => caches.delete(key)));
-  }
-}
-`,
-          }}
-        />
       </head>
       <body className="min-h-screen bg-bg-primary antialiased">
         <NextIntlClientProvider messages={messages} locale={locale}>

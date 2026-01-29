@@ -5,6 +5,7 @@ import { OfflineProvider } from '@/lib/offline'
 import { OfflineBanner } from '@/components/offline'
 import { useServiceWorker } from '@/lib/offline/service-worker'
 import { triggerSync } from '@/lib/offline'
+import { PWAPrompt } from '@/components/pwa-prompt'
 
 interface ProvidersProps {
   children: ReactNode
@@ -43,6 +44,9 @@ export function Providers({ children }: ProvidersProps) {
           </button>
         </div>
       )}
+
+      {/* PWA install prompt */}
+      <PWAPrompt />
 
       {/* Main content with top padding when offline banner is shown */}
       <div className="offline-content-wrapper">{children}</div>
