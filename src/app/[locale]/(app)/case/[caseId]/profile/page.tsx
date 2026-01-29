@@ -1,7 +1,9 @@
-import { notFound } from 'next/navigation'
-import {Link} from '@/navigation'
-import { getFullProfile } from '@/actions/profile'
-import { getCase } from '@/actions/case'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Link } from '@/navigation'
+import { getCaseAPI, getFullProfileAPI, type FullProfileData } from '@/lib/api'
 import { Button } from '@/components/ui'
 import { ProfileSection } from './profile-section'
 import { BaselineSection } from './baseline-section'
@@ -12,19 +14,63 @@ import { ContactsSection } from './contacts-section'
 import { CareIntentSection } from './care-intent-section'
 import { MeasurementsSection } from './measurements-section'
 
-interface ProfilePageProps {
-  params: Promise<{ caseId: string }>
+interface CaseData {
+  id: string
+  childDisplayName: string
+  currentUserRole: string
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
-  const { caseId } = await params
-  const [caseData, fullProfile] = await Promise.all([
-    getCase(caseId),
-    getFullProfile(caseId),
-  ])
+export default function ProfilePage() {
+  const params = useParams()
+  const caseId = params.caseId as string
 
-  if (!caseData || !fullProfile) {
-    notFound()
+  const [caseData, setCaseData] = useState<CaseData | null>(null)
+  const [fullProfile, setFullProfile] = useState<FullProfileData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [caseDataRes, fullProfileRes] = await Promise.all([
+          getCaseAPI(caseId),
+          getFullProfileAPI(caseId),
+        ])
+
+        setCaseData(caseDataRes as any)
+        setFullProfile(fullProfileRes)
+      } catch (err) {
+        console.error('Failed to load profile:', err)
+        setError('Failed to load profile. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId])
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="flex items-center justify-center py-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+            <p className="text-body text-text-secondary">Loading profile...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !caseData || !fullProfile) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md">
+          <p className="text-body text-red-700">{error || 'Profile not found'}</p>
+        </div>
+      </div>
+    )
   }
 
   const canEdit = caseData.currentUserRole !== 'VIEWER'
