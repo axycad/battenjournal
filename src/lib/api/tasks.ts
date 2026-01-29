@@ -1,15 +1,32 @@
 import { apiClient } from '@/lib/api-client'
 
+export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CANCELED'
+
 export interface Task {
   id: string
   caseId: string
   title: string
   description?: string
-  dueDate?: Date
+  status?: TaskStatus
+  dueAt?: Date
   completed: boolean
   completedAt?: Date
   createdAt: Date
   updatedAt: Date
+}
+
+export interface TaskWithCase extends Task {
+  caseName: string
+  anchorType: string
+  anchorId: string
+  createdBy: {
+    id: string
+    name: string | null
+  }
+  assignedTo: {
+    id: string
+    name: string | null
+  } | null
 }
 
 export interface CreateTaskInput {
@@ -66,4 +83,9 @@ export async function completeTaskAPI(taskId: string): Promise<Task> {
     completed: true,
     completedAt: new Date().toISOString(),
   })
+}
+
+// Get tasks assigned to current user (for clinicians)
+export async function getMyTasksAPI(): Promise<TaskWithCase[]> {
+  return apiClient.get('/api/tasks/my-tasks')
 }
