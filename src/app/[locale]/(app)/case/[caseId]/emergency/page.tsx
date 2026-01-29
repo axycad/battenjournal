@@ -1,11 +1,10 @@
-import { notFound } from 'next/navigation'
-import {Link} from '@/navigation'
-import { getFullProfile } from '@/actions/profile'
-import { formatDate } from '@/lib/utils'
+'use client'
 
-interface EmergencyPageProps {
-  params: Promise<{ caseId: string }>
-}
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Link } from '@/navigation'
+import { getFullProfileAPI, type FullProfileData } from '@/lib/api'
+import { formatDate } from '@/lib/utils'
 
 function formatStatus(status: string | null | undefined): string {
   if (!status || status === 'UNKNOWN') return 'Unknown'
@@ -24,17 +23,54 @@ function severityOrder(severity: string | null): number {
   return 4
 }
 
-export default async function EmergencyCardPage({ params }: EmergencyPageProps) {
-  const { caseId } = await params
-  const profile = await getFullProfile(caseId)
+export default function EmergencyCardPage() {
+  const params = useParams()
+  const caseId = params.caseId as string
 
-  if (!profile || !profile.profile) {
-    notFound()
+  const [profile, setProfile] = useState<FullProfileData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const profileRes = await getFullProfileAPI(caseId)
+        setProfile(profileRes)
+      } catch (err) {
+        console.error('Failed to load emergency card:', err)
+        setError('Failed to load emergency card. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+          <p className="text-body text-text-secondary">Loading emergency card...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !profile || !profile.profile) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-md">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md max-w-md">
+          <p className="text-body text-red-700">{error || 'Emergency card not found'}</p>
+        </div>
+      </div>
+    )
   }
 
   const p = profile.profile
   const intent = profile.careIntent
-  const name = p.legalName || profile.childDisplayName
+  const name = p.legalName || (profile as any).childDisplayName
 
   // Sort allergies by severity
   const sortedAllergies = [...profile.allergies].sort(
