@@ -25,13 +25,11 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
     notFound()
   }
 
-  const data = await getThreadWithMessages(threadId)
+  const thread = await getThreadWithMessages(threadId)
 
-  if (!data) {
+  if (!thread) {
     notFound()
   }
-
-  const { thread, messages } = data
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
@@ -47,7 +45,7 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
       <ThreadView
         threadId={threadId}
         caseId={caseId}
-        messages={messages}
+        messages={thread.messages}
         currentUserId={session.user.id}
         subject={thread.subject}
         anchorType={thread.anchorType}
