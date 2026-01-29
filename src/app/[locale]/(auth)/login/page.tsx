@@ -99,26 +99,17 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="relative my-lg">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-divider"></div>
-        </div>
-        <div className="relative flex justify-center text-meta">
-          <span className="px-sm bg-white text-text-secondary">
-            New to Batten Journal?
-          </span>
-        </div>
-      </div>
-
-      {/* Register link */}
-      <div className="text-center">
-        <Link
-          href="/register"
-          className="inline-block w-full px-lg py-sm border-2 border-purple-200 text-purple-700 rounded-md hover:border-purple-400 hover:bg-purple-50 transition-all text-body font-medium"
-        >
-          {t('register')}
-        </Link>
+      {/* Register link - subtle */}
+      <div className="text-center pt-md">
+        <p className="text-meta text-text-secondary">
+          New to Batten Journal?{' '}
+          <Link
+            href="/register"
+            className="text-purple-600 hover:text-purple-700 hover:underline font-medium"
+          >
+            {t('register')}
+          </Link>
+        </p>
       </div>
     </div>
   )
