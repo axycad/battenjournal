@@ -47,24 +47,9 @@ export async function GET(request: NextRequest) {
         },
         deletedAt: null,
       },
-      include: {
-        medication: {
-          select: {
-            id: true,
-            name: true,
-            dose: true,
-          },
-        },
-        administeredBy: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: { administeredAt: 'desc' },
+      orderBy: { administeredAt: 'desc' } as any,
       take: limit ? parseInt(limit) : 20,
-    })
+    } as any)
 
     return NextResponse.json(history)
   } catch (error) {

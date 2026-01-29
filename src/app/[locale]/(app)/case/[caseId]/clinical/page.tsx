@@ -8,7 +8,7 @@ import {
   getCaseAPI,
   getClinicalNotesAPI,
   getFlagsAPI,
-  getCaseTasksAPI,
+  getClinicalCaseTasksAPI,
   getWatchesAPI,
   getWatchedUpdatesAPI,
   getAvailableScopesForWatchAPI,
@@ -67,7 +67,7 @@ export default function ClinicalPage() {
           await Promise.all([
             getClinicalNotesAPI(caseId),
             getFlagsAPI(caseId, { includeResolved: true }),
-            getCaseTasksAPI(caseId, { includeCompleted: false }),
+            getClinicalCaseTasksAPI(caseId, { includeCompleted: false }),
             getWatchesAPI(caseId),
             getWatchedUpdatesAPI(caseId),
             getAvailableScopesForWatchAPI(caseId),

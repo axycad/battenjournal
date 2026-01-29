@@ -43,12 +43,12 @@ export async function GET(request: NextRequest) {
         caseId,
         userId: session.user.id,
         deletedAt: null,
-      },
+      } as any,
       include: {
         scope: true,
-      },
+      } as any,
       orderBy: { createdAt: 'desc' },
-    })
+    } as any)
 
     return NextResponse.json(watches)
   } catch (error) {

@@ -31,9 +31,9 @@ export class ApiClient {
   ): Promise<T> {
     const { requireAuth = true, ...fetchOptions } = options
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...fetchOptions.headers,
+      ...(fetchOptions.headers as Record<string, string>),
     }
 
     // Get auth token based on platform
@@ -47,8 +47,8 @@ export class ApiClient {
       } else {
         // Web app: use NextAuth session
         const session = await getSession()
-        if (session?.accessToken) {
-          headers['Authorization'] = `Bearer ${session.accessToken}`
+        if ((session as any)?.accessToken) {
+          headers['Authorization'] = `Bearer ${(session as any).accessToken}`
         }
       }
     }

@@ -157,7 +157,7 @@ export default function TodayPage() {
       {upcomingAppointments.length > 0 && (
         <div className="mb-lg">
           <UpcomingAppointmentsWidget
-            appointments={upcomingAppointments}
+            appointments={upcomingAppointments as any}
             caseId={caseId}
             childName={caseData.childDisplayName}
             canEdit={canEdit}

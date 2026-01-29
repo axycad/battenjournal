@@ -96,7 +96,7 @@ export default function ProfilePage() {
         {/* Basic information */}
         <ProfileSection
           caseId={caseId}
-          profile={fullProfile.profile}
+          profile={fullProfile.profile as any}
           childDisplayName={caseData.childDisplayName}
           canEdit={canEdit}
         />
@@ -104,49 +104,49 @@ export default function ProfilePage() {
         {/* Measurements */}
         <MeasurementsSection
           caseId={caseId}
-          profile={fullProfile.profile}
+          profile={fullProfile.profile as any}
           canEdit={canEdit}
         />
 
         {/* Baseline status */}
         <BaselineSection
           caseId={caseId}
-          profile={fullProfile.profile}
+          profile={fullProfile.profile as any}
           canEdit={canEdit}
         />
 
         {/* Allergies */}
         <AllergiesSection
           caseId={caseId}
-          allergies={fullProfile.allergies}
+          allergies={fullProfile.allergies as any}
           canEdit={canEdit}
         />
 
         {/* Active medications */}
         <MedicationsSection
           caseId={caseId}
-          medications={fullProfile.medications}
+          medications={fullProfile.medications as any}
           canEdit={canEdit}
         />
 
         {/* Conditions */}
         <ConditionsSection
           caseId={caseId}
-          conditions={fullProfile.conditions}
+          conditions={fullProfile.conditions as any}
           canEdit={canEdit}
         />
 
         {/* Care contacts */}
         <ContactsSection
           caseId={caseId}
-          contacts={fullProfile.careContacts}
+          contacts={fullProfile.careContacts as any}
           canEdit={canEdit}
         />
 
         {/* Care intent / emergency preferences */}
         <CareIntentSection
           caseId={caseId}
-          careIntent={fullProfile.careIntent}
+          careIntent={fullProfile.careIntent as any}
           canEdit={canEdit}
         />
       </div>

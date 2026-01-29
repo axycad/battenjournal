@@ -1,10 +1,9 @@
-import { CapacitorConfig } from '@capacitor/core'
+import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'com.battenjournal.app',
   appName: 'Batten Journal',
   webDir: 'out', // Next.js static export directory
-  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
   },

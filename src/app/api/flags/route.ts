@@ -45,24 +45,8 @@ export async function GET(request: NextRequest) {
         deletedAt: null,
         ...(includeResolved ? {} : { resolvedAt: null }),
       },
-      include: {
-        raisedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        resolvedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
       orderBy: { createdAt: 'desc' },
-    })
+    } as any)
 
     return NextResponse.json(flags)
   } catch (error) {

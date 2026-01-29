@@ -78,7 +78,7 @@ export interface CaseTask {
   } | null
 }
 
-export async function getCaseTasksAPI(
+export async function getClinicalCaseTasksAPI(
   caseId: string,
   options?: { includeCompleted?: boolean }
 ): Promise<CaseTask[]> {

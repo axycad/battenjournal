@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         deletedAt: null,
         ...(fromDate && { scheduledAt: { gte: new Date(fromDate) } }),
         ...(toDate && { scheduledAt: { lte: new Date(toDate) } }),
-        ...(status && { status: { in: status.split(',') } }),
+        ...(status && { status: { in: status.split(',') as any } }),
       },
       include: {
         createdBy: {

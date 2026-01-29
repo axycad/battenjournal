@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Link } from '@/navigation'
 import { useTranslations } from 'next-intl'
-import { getCaseAPI, getEventsAPI, getUpcomingAppointmentsAPI, type Event } from '@/lib/api'
+import { getCaseAPI, getEventsAPI, getUpcomingAppointmentsAPI, type Event, type Appointment } from '@/lib/api'
 import { EVENT_TYPES } from '@/lib/event-types'
 import { Button } from '@/components/ui'
 import { UpcomingAppointmentsWidget } from '@/components/appointments/upcoming-appointments-widget'
@@ -22,14 +22,6 @@ interface CaseData {
     familyRole: string
     user: { name: string | null; email: string }
   }>
-}
-
-interface Appointment {
-  id: string
-  scheduledAt: Date
-  type: string
-  location: string | null
-  notes: string | null
 }
 
 function formatTime(date: Date): string {
@@ -240,7 +232,7 @@ export default function CasePage() {
             {upcomingAppointments.length > 0 && (
               <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
                 <UpcomingAppointmentsWidget
-                  appointments={upcomingAppointments}
+                  appointments={upcomingAppointments as any}
                   caseId={caseId}
                   childName={caseData.childDisplayName}
                   canEdit={canEdit}
@@ -432,7 +424,7 @@ export default function CasePage() {
                         {event.freeText}
                       </p>
                     )}
-                    {event.isPartiallyHidden && (
+                    {(event as any).isPartiallyHidden && (
                       <p className="text-caption text-text-secondary italic mt-xs">
                         Some details not shared
                       </p>

@@ -54,8 +54,8 @@ export async function GET() {
         where: {
           threadId: { in: threadIds },
           membershipId: { in: membershipIds },
-        },
-      })
+        } as any,
+      } as any)
 
       const readMap = new Map(reads.map((r) => [r.threadId, r]))
 
@@ -75,9 +75,9 @@ export async function GET() {
           caseId: { in: caseIds },
           deletedAt: null,
           createdByUserId: userId,
-        },
+        } as any,
         select: { id: true },
-      })
+      } as any)
 
       const eventIds = events.map((e) => e.id)
 
@@ -88,11 +88,11 @@ export async function GET() {
               anchorType: 'EVENT',
               anchorId: { in: eventIds },
               deletedAt: null,
-            },
+            } as any,
             senderId: { not: userId },
             deletedAt: null,
-          },
-        })
+          } as any,
+        } as any)
       }
     }
 

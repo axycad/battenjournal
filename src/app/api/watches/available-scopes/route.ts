@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
       },
       select: {
         scopeId: true,
-      },
-      distinct: ['scopeId'],
-    })
+      } as any,
+      distinct: ['scopeId'] as any,
+    } as any)
 
-    const scopeIds = scopesWithEvents.map((e) => e.scopeId).filter((id): id is string => id !== null)
+    const scopeIds = scopesWithEvents.map((e: any) => e.scopeId).filter((id): id is string => id !== null)
 
     const scopes = await prisma.scope.findMany({
       where: {

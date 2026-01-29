@@ -90,7 +90,7 @@ export default function CaseSettingsPage() {
           <h2 className="section-header mb-md">Family members</h2>
           <MemberList
             caseId={caseId}
-            members={caseData.memberships}
+            members={(caseData as any).memberships}
           />
         </section>
 
@@ -98,7 +98,7 @@ export default function CaseSettingsPage() {
         {pendingInvites.length > 0 && (
           <section className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
             <h2 className="section-header mb-md">Pending invites</h2>
-            <PendingInvites invites={pendingInvites} />
+            <PendingInvites invites={pendingInvites as any} />
           </section>
         )}
 

@@ -36,7 +36,7 @@ export async function GET() {
       createdAt: t.createdAt,
       completedAt: t.completedAt,
       completed: t.status === 'DONE',
-      updatedAt: t.updatedAt,
+      updatedAt: (t as any).updatedAt,
       anchorType: t.anchorType,
       anchorId: t.anchorId,
       createdBy: t.createdBy,

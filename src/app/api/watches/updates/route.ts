@@ -44,12 +44,12 @@ export async function GET(request: NextRequest) {
         caseId,
         userId: session.user.id,
         deletedAt: null,
-      },
+      } as any,
       select: {
         scopeId: true,
         lastViewedAt: true,
-      },
-    })
+      } as any,
+    } as any)
 
     if (watches.length === 0) {
       return NextResponse.json([])
@@ -58,20 +58,20 @@ export async function GET(request: NextRequest) {
     // Build query to find new events matching watched scopes
     const watchedScopeIds = watches.map((w) => w.scopeId)
     const updates = await Promise.all(
-      watches.map(async (watch) => {
+      watches.map(async (watch: any) => {
         const newEvents = await prisma.event.findMany({
           where: {
             caseId,
             scopeId: watch.scopeId,
             occurredAt: { gt: watch.lastViewedAt },
             deletedAt: null,
-          },
+          } as any,
           orderBy: { occurredAt: 'desc' },
           take: 5,
           include: {
             scope: true,
-          },
-        })
+          } as any,
+        } as any)
 
         return {
           scopeId: watch.scopeId,

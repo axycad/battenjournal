@@ -28,9 +28,9 @@ export async function isOnline(): Promise<boolean> {
  * Add listener for network status changes
  * Returns a cleanup function to remove the listener
  */
-export function addNetworkListener(callback: (status: ConnectionStatus) => void): () => void {
+export async function addNetworkListener(callback: (status: ConnectionStatus) => void): Promise<() => void> {
   if (Capacitor.isNativePlatform()) {
-    const listener = Network.addListener('networkStatusChange', callback)
+    const listener = await Network.addListener('networkStatusChange', callback)
     return () => listener.remove()
   } else {
     // Web fallback

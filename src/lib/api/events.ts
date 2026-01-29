@@ -1,6 +1,9 @@
 import { apiClient } from '@/lib/api-client'
 import type { Event } from '@prisma/client'
 
+// Re-export types
+export type { Event }
+
 export interface CreateEventInput {
   eventType: string
   occurredAt: Date

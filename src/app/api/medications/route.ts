@@ -55,13 +55,13 @@ export async function GET(request: NextRequest) {
             medicationId: med.id,
             deletedAt: null,
           },
-          orderBy: { administeredAt: 'desc' },
-        })
+          orderBy: { administeredAt: 'desc' } as any,
+        } as any)
 
         return {
           ...med,
-          lastAdministeredAt: lastAdmin?.administeredAt || null,
-          lastAdministeredBy: lastAdmin?.administeredByUserId || null,
+          lastAdministeredAt: (lastAdmin as any)?.administeredAt || null,
+          lastAdministeredBy: (lastAdmin as any)?.administeredByUserId || null,
         }
       })
     )

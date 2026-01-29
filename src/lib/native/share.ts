@@ -18,15 +18,17 @@ export async function shareText(text: string, title?: string): Promise<boolean> 
       console.error('Failed to share text:', error)
       return false
     }
-  } else {
+  } else if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && (navigator as any).clipboard) {
     // Fallback to clipboard
     try {
-      await navigator.clipboard.writeText(text)
+      await (navigator as any).clipboard.writeText(text)
       return true
     } catch (error) {
       console.error('Failed to copy to clipboard:', error)
       return false
     }
+  } else {
+    return false
   }
 }
 
@@ -47,15 +49,17 @@ export async function shareUrl(url: string, title?: string, text?: string): Prom
       console.error('Failed to share URL:', error)
       return false
     }
-  } else {
+  } else if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && (navigator as any).clipboard) {
     // Fallback to clipboard
     try {
-      await navigator.clipboard.writeText(url)
+      await (navigator as any).clipboard.writeText(url)
       return true
     } catch (error) {
       console.error('Failed to copy URL to clipboard:', error)
       return false
     }
+  } else {
+    return false
   }
 }
 

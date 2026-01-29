@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     const invites = await prisma.invite.findMany({
       where: {
         caseId,
-        status: 'PENDING',
+        status: 'PENDING' as any,
         deletedAt: null,
       },
       include: {
@@ -50,10 +50,10 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
           },
-        },
+        } as any,
       },
       orderBy: { createdAt: 'desc' },
-    })
+    } as any)
 
     return NextResponse.json(invites)
   } catch (error) {

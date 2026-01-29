@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: [
-        { dueDate: 'asc' },
+        { dueAt: 'asc' },
         { createdAt: 'desc' },
       ],
     })
