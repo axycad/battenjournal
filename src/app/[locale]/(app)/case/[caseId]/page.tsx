@@ -1,15 +1,35 @@
-import { notFound } from 'next/navigation'
-import {Link} from '@/navigation'
-import { getTranslations } from 'next-intl/server'
-import { getCase } from '@/actions/case'
-import { getEventsForCase } from '@/actions/event'
-import { getUpcomingAppointments } from '@/actions/appointment'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Link } from '@/navigation'
+import { useTranslations } from 'next-intl'
+import { getCaseAPI, getEventsAPI, getUpcomingAppointmentsAPI, type Event } from '@/lib/api'
 import { EVENT_TYPES } from '@/lib/event-types'
 import { Button } from '@/components/ui'
 import { UpcomingAppointmentsWidget } from '@/components/appointments/upcoming-appointments-widget'
 
-interface CasePageProps {
-  params: Promise<{ caseId: string }>
+interface CaseData {
+  id: string
+  childDisplayName: string
+  currentUserRole: string
+  currentUserMemberType: string
+  allergies: Array<{ id: string; substance: string; reaction: string | null }>
+  medications: Array<{ id: string; name: string; dose: string | null }>
+  memberships: Array<{
+    id: string
+    memberType: string
+    familyRole: string
+    user: { name: string | null; email: string }
+  }>
+}
+
+interface Appointment {
+  id: string
+  scheduledAt: Date
+  type: string
+  location: string | null
+  notes: string | null
 }
 
 function formatTime(date: Date): string {
@@ -68,17 +88,61 @@ function getCheckInSummaryText(
   return t('summaryLogged')
 }
 
-export default async function CasePage({ params }: CasePageProps) {
-  const { caseId } = await params
-  const t = await getTranslations('caseOverview')
-  const [caseData, events, upcomingAppointments] = await Promise.all([
-    getCase(caseId),
-    getEventsForCase(caseId, { limit: 200 }),
-    getUpcomingAppointments(caseId, { limit: 3 }),
-  ])
+export default function CasePage() {
+  const params = useParams()
+  const caseId = params.caseId as string
+  const t = useTranslations('caseOverview')
 
-  if (!caseData) {
-    notFound()
+  const [caseData, setCaseData] = useState<CaseData | null>(null)
+  const [events, setEvents] = useState<Event[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [caseDataRes, eventsRes, appointmentsRes] = await Promise.all([
+          getCaseAPI(caseId),
+          getEventsAPI(caseId, { limit: 200 }),
+          getUpcomingAppointmentsAPI(caseId, { limit: 3 }),
+        ])
+
+        setCaseData(caseDataRes as any)
+        setEvents(eventsRes)
+        setUpcomingAppointments(appointmentsRes)
+      } catch (err) {
+        console.error('Failed to load case overview:', err)
+        setError('Failed to load case overview. Please refresh.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [caseId])
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="flex items-center justify-center py-xl">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-md"></div>
+            <p className="text-body text-text-secondary">Loading case overview...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !caseData) {
+    return (
+      <div className="max-w-3xl mx-auto px-md py-lg">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-md">
+          <p className="text-body text-red-700">{error || 'Case not found'}</p>
+        </div>
+      </div>
+    )
   }
 
   const isAdmin = caseData.currentUserRole === 'OWNER_ADMIN'
