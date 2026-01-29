@@ -137,7 +137,7 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
           href={`/case/${caseId}`}
           className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
         >
-          â† {t('backToChild', { name: caseData.childDisplayName })}
+          ← {t('backToChild', { name: caseData.childDisplayName })}
         </Link>
         <h1 className="text-h2 font-bold text-text-primary mt-xs">{t('title')}</h1>
         <div className="mt-sm flex flex-wrap gap-sm">
@@ -147,7 +147,7 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
           >
             {t('today')}
           </Link>
-          <span className="text-meta text-text-secondary">Â·</span>
+          <span className="text-meta text-text-secondary">·</span>
           <Link
             href={`/case/${caseId}`}
             className="text-meta text-purple-600 hover:text-purple-700 hover:underline"
@@ -201,30 +201,33 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
       )}
 
       <div className="space-y-md">
-        <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
-          <h2 className="section-header">{t('dailyCheckIns')}</h2>
-          <p className="text-meta text-text-secondary">
-            {t('checkInsCount', { count: checkIns.length, days: rangeDays })}
-          </p>
-          <div className="mt-sm grid gap-sm sm:grid-cols-4">
-            <div className="p-sm rounded-md bg-green-50 border border-green-200">
-              <p className="text-caption text-green-700 font-medium">{t('better')}</p>
-              <p className="text-title-lg font-semibold text-green-800">{checkInSummary.better}</p>
-            </div>
-            <div className="p-sm rounded-md bg-blue-50 border border-blue-200">
-              <p className="text-caption text-blue-700 font-medium">{t('steadier')}</p>
-              <p className="text-title-lg font-semibold text-blue-800">{checkInSummary.same}</p>
-            </div>
-            <div className="p-sm rounded-md bg-orange-50 border border-orange-200">
-              <p className="text-caption text-orange-700 font-medium">{t('tougherDays')}</p>
-              <p className="text-title-lg font-semibold text-orange-800">{checkInSummary.worse}</p>
-            </div>
-            <div className="p-sm rounded-md bg-gray-50 border border-gray-200">
-              <p className="text-caption text-gray-700 font-medium">{t('notSure')}</p>
-              <p className="text-title-lg font-semibold text-gray-800">{checkInSummary.unsure}</p>
+        {/* Daily check-ins - only show if there are check-ins */}
+        {checkIns.length > 0 && (
+          <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
+            <h2 className="section-header">{t('dailyCheckIns')}</h2>
+            <p className="text-meta text-text-secondary">
+              {t('checkInsCount', { count: checkIns.length, days: rangeDays })}
+            </p>
+            <div className="mt-sm grid gap-sm sm:grid-cols-4">
+              <div className="p-sm rounded-md bg-green-50 border border-green-200">
+                <p className="text-caption text-green-700 font-medium">{t('better')}</p>
+                <p className="text-title-lg font-semibold text-green-800">{checkInSummary.better}</p>
+              </div>
+              <div className="p-sm rounded-md bg-blue-50 border border-blue-200">
+                <p className="text-caption text-blue-700 font-medium">{t('steadier')}</p>
+                <p className="text-title-lg font-semibold text-blue-800">{checkInSummary.same}</p>
+              </div>
+              <div className="p-sm rounded-md bg-orange-50 border border-orange-200">
+                <p className="text-caption text-orange-700 font-medium">{t('tougherDays')}</p>
+                <p className="text-title-lg font-semibold text-orange-800">{checkInSummary.worse}</p>
+              </div>
+              <div className="p-sm rounded-md bg-gray-50 border border-gray-200">
+                <p className="text-caption text-gray-700 font-medium">{t('notSure')}</p>
+                <p className="text-title-lg font-semibold text-gray-800">{checkInSummary.unsure}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {trendCards.length === 0 ? (
           <div className="p-xl bg-white border border-purple-100 rounded-lg shadow-sm text-center">
