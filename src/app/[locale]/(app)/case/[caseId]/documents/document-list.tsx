@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input, Select } from '@/components/ui'
-import { updateDocument, deleteDocument, type DocumentWithScopes } from '@/actions/document'
+import { updateDocumentAPI, deleteDocumentAPI, type DocumentWithScopes } from '@/lib/api/documents'
 import { formatDate } from '@/lib/utils'
 import type { Scope } from '@prisma/client'
 
@@ -47,8 +47,8 @@ export function DocumentList({ documents, canEdit, scopes }: DocumentListProps) 
   function startEdit(doc: DocumentWithScopes) {
     setEditingId(doc.id)
     setTitle(doc.title)
-    setKind(doc.kind)
-    setSelectedScopes(doc.scopes.map((s) => s.code))
+    setKind(doc.kind || 'OTHER')
+    setSelectedScopes(doc.visibleScopes.map((s) => s.code))
     setError('')
   }
 
@@ -75,7 +75,7 @@ export function DocumentList({ documents, canEdit, scopes }: DocumentListProps) 
     setSaving(true)
     setError('')
 
-    const result = await updateDocument(docId, {
+    const result = await updateDocumentAPI(docId, {
       title,
       kind,
       scopeCodes: selectedScopes,
@@ -93,7 +93,7 @@ export function DocumentList({ documents, canEdit, scopes }: DocumentListProps) 
     setSaving(true)
     setError('')
 
-    const result = await deleteDocument(docId)
+    const result = await deleteDocumentAPI(docId)
 
     if (!result.success) {
       setError(result.error || 'Failed to delete')
@@ -208,26 +208,21 @@ export function DocumentList({ documents, canEdit, scopes }: DocumentListProps) 
               <div className="flex-1">
                 <div className="flex items-center gap-sm">
                   <a
-                    href={doc.url}
+                    href={doc.blobUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-body font-medium text-accent-primary hover:underline"
                   >
                     {doc.title}
                   </a>
-                  {doc.isCritical && (
-                    <span className="px-sm py-0.5 text-caption bg-semantic-critical/10 text-semantic-critical rounded">
-                      Critical
-                    </span>
-                  )}
                 </div>
                 <p className="text-meta text-text-secondary">
-                  {kindLabel(doc.kind)} · {formatSize(doc.size)} · {formatDate(doc.uploadedAt)}
+                  {doc.kind && `${kindLabel(doc.kind)} · `}{formatDate(doc.uploadedAt)}
                 </p>
 
                 {/* Scope chips */}
                 <div className="flex flex-wrap gap-xs mt-sm">
-                  {doc.scopes.map((scope) => (
+                  {doc.visibleScopes.map((scope) => (
                     <span
                       key={scope.code}
                       className="px-sm py-0.5 text-caption bg-bg-primary rounded-sm text-text-secondary"
@@ -240,9 +235,9 @@ export function DocumentList({ documents, canEdit, scopes }: DocumentListProps) 
                 {/* Preview for images */}
                 {isImage(doc.mimeType) && (
                   <div className="mt-sm">
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                    <a href={doc.blobUrl} target="_blank" rel="noopener noreferrer">
                       <img
-                        src={doc.url}
+                        src={doc.blobUrl}
                         alt={doc.title}
                         className="max-w-xs max-h-32 rounded-sm border border-divider"
                       />

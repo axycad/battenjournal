@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
-import { createInvite } from '@/actions/invite'
+import { createInviteAPI } from '@/lib/api/invites'
 
 interface InviteFormProps {
   caseId: string
@@ -24,7 +24,7 @@ export function InviteForm({ caseId, childName }: InviteFormProps) {
     setLoading(true)
 
     try {
-      const result = await createInvite({
+      const result = await createInviteAPI({
         caseId,
         email,
         familyRole: role,

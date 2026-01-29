@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui'
-import { revokeMembership } from '@/actions/invite'
+import { revokeMembershipAPI } from '@/lib/api/invites'
 
 interface Member {
   id: string
@@ -27,7 +27,7 @@ export function MemberList({ caseId, members }: MemberListProps) {
 
   async function handleRemove(membershipId: string) {
     setRemovingId(membershipId)
-    await revokeMembership(membershipId)
+    await revokeMembershipAPI(membershipId)
     setRemovingId(null)
     setConfirmId(null)
   }

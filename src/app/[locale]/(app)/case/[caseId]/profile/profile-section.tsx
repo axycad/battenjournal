@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { Button, Input, Select } from '@/components/ui'
-import { updateProfile } from '@/actions/profile'
+import { updateProfileAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
 import type { PatientProfile } from '@prisma/client'
 
@@ -58,7 +58,7 @@ export function ProfileSection({
     setSaving(true)
     setError('')
 
-    const result = await updateProfile(caseId, {
+    const result = await updateProfileAPI(caseId, {
       legalName: legalName || undefined,
       dateOfBirth: dateOfBirth || undefined,
       sex: sex || undefined,

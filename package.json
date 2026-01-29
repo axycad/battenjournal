@@ -16,7 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "build:capacitor": "cross-env NEXT_CONFIG_FILE=next.config.capacitor.js SKIP_ENV_VALIDATION=true next build",
+    "build:capacitor": "node scripts/build-capacitor.js",
     "export:capacitor": "npm run build:capacitor && npx cap sync",
     "cap:ios": "npm run export:capacitor && npx cap open ios",
     "cap:android": "npm run export:capacitor && npx cap open android",

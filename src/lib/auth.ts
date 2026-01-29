@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 import { loginSchema } from './validations'
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const nextAuthConfig = NextAuth({
   adapter: PrismaAdapter(prisma) as Adapter,
   session: {
     strategy: 'jwt',
@@ -79,3 +79,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 })
+
+export const { handlers, signIn, signOut } = nextAuthConfig
+
+// Wrapped auth function that handles Capacitor build time
+export async function auth() {
+  // During Capacitor build, return null to avoid calling headers()
+  if (process.env.CAPACITOR_BUILD === 'true') {
+    return null
+  }
+
+  try {
+    return await nextAuthConfig.auth()
+  } catch (error) {
+    // Gracefully handle auth failures during build
+    console.warn('Auth call failed during build:', error)
+    return null
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
-import { addMedication, updateMedication, deleteMedication } from '@/actions/profile'
+import { addMedicationAPI, updateMedicationAPI, deleteMedicationAPI } from '@/lib/api/profile'
 import type { Medication } from '@prisma/client'
 
 interface MedicationsSectionProps {
@@ -40,7 +40,7 @@ export function MedicationsSection({
     setSaving(true)
     setError('')
 
-    const result = await addMedication(caseId, {
+    const result = await addMedicationAPI(caseId, {
       name: name.trim(),
       dose: dose.trim() || undefined,
       route: route.trim() || undefined,
@@ -61,7 +61,7 @@ export function MedicationsSection({
     setSaving(true)
     setError('')
 
-    const result = await updateMedication(id, {
+    const result = await updateMedicationAPI(id, {
       name: name.trim(),
       dose: dose.trim() || undefined,
       route: route.trim() || undefined,
@@ -79,7 +79,7 @@ export function MedicationsSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteMedication(id)
+    const result = await deleteMedicationAPI(id)
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }

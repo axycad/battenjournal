@@ -18,6 +18,14 @@ export interface Document {
   }>
 }
 
+export interface DocumentWithScopes extends Document {
+  kind: string | null
+  visibleScopes: Array<{
+    code: string
+    label: string
+  }>
+}
+
 export interface UploadDocumentInput {
   caseId: string
   title: string
@@ -63,7 +71,20 @@ export async function uploadDocumentAPI(
   return response.json()
 }
 
+// Update a document
+export async function updateDocumentAPI(
+  documentId: string,
+  data: { title?: string; description?: string; kind?: string; scopeCodes?: string[]; visibleScopes?: string[] }
+): Promise<{ success: boolean; error?: string }> {
+  return apiClient.post(`/api/documents/${documentId}`, data)
+}
+
 // Delete a document
-export async function deleteDocumentAPI(documentId: string): Promise<void> {
+export async function deleteDocumentAPI(documentId: string): Promise<{ success: boolean; error?: string }> {
   return apiClient.delete(`/api/documents/${documentId}`)
+}
+
+// Delete a media item (attached to an event)
+export async function deleteMediaItemAPI(mediaId: string): Promise<{ success: boolean; error?: string }> {
+  return apiClient.delete(`/api/media/${mediaId}`)
 }

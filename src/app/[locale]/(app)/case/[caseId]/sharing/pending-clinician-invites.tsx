@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui'
-import { cancelInvite } from '@/actions/invite'
+import { cancelInviteAPI } from '@/lib/api/invites'
 import { formatDate } from '@/lib/utils'
 
 interface Invite {
@@ -22,7 +22,7 @@ export function PendingClinicianInvites({ caseId, invites }: PendingClinicianInv
 
   async function handleCancel(inviteId: string) {
     setCancellingId(inviteId)
-    await cancelInvite(inviteId)
+    await cancelInviteAPI(inviteId)
     setCancellingId(null)
   }
 

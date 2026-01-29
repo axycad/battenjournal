@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui'
-import type { EventWithScopes } from '@/actions/event'
+import type { EventWithScopes } from '@/lib/api/events'
 
 interface TimelineExportProps {
   events: EventWithScopes[]

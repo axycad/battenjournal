@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
-import { addMeasurement } from '@/actions/profile'
+import { addMeasurementAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
 import type { PatientProfile } from '@prisma/client'
 
@@ -30,7 +30,7 @@ export function MeasurementsSection({
     setSaving(true)
     setError('')
 
-    const result = await addMeasurement(caseId, {
+    const result = await addMeasurementAPI(caseId, {
       type: 'WEIGHT',
       value: parseFloat(weight),
     })
@@ -49,7 +49,7 @@ export function MeasurementsSection({
     setSaving(true)
     setError('')
 
-    const result = await addMeasurement(caseId, {
+    const result = await addMeasurementAPI(caseId, {
       type: 'HEIGHT',
       value: parseFloat(height),
     })

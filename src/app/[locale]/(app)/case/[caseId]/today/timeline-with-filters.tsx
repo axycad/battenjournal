@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { EventTimeline } from './event-timeline'
 import { TimelineFiltersComponent, type TimelineFilters } from '@/components/events/timeline-filters'
 import { TimelineExport } from '@/components/events/timeline-export'
-import type { EventWithScopes } from '@/actions/event'
+import type { Event } from '@/lib/api/events'
 import type { Scope } from '@prisma/client'
 import type { EventType, SeverityLevel } from '@/lib/event-types'
 

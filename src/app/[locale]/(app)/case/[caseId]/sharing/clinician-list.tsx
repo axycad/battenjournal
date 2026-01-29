@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui'
 import {
-  updateClinicianScopes,
-  pauseClinicianAccess,
-  resumeClinicianAccess,
-  revokeClinicianAccess,
+  updateClinicianScopesAPI,
+  pauseClinicianAccessAPI,
+  resumeClinicianAccessAPI,
+  revokeClinicianAccessAPI,
   type ClinicianShare,
-} from '@/actions/sharing'
+} from '@/lib/api/invites'
 import { SPECIALTIES } from '@/lib/specialties'
 import type { Scope } from '@prisma/client'
 
@@ -50,7 +50,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
     setSaving(true)
     setError('')
 
-    const result = await updateClinicianScopes(caseId, userId, selectedScopes)
+    const result = await updateClinicianScopesAPI(caseId, userId, selectedScopes)
 
     if (!result.success) {
       setError(result.error || 'Failed to update')
@@ -66,11 +66,11 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
 
     let result
     if (action === 'pause') {
-      result = await pauseClinicianAccess(caseId, userId)
+      result = await pauseClinicianAccessAPI(caseId, userId)
     } else if (action === 'resume') {
-      result = await resumeClinicianAccess(caseId, userId)
+      result = await resumeClinicianAccessAPI(caseId, userId)
     } else {
-      result = await revokeClinicianAccess(caseId, userId)
+      result = await revokeClinicianAccessAPI(caseId, userId)
     }
 
     if (!result.success) {

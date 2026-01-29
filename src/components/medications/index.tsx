@@ -10,7 +10,7 @@ import {
   updateMedicationReminders,
   type MedicationWithAdministrations,
   type AdministrationRecord,
-} from '@/actions/medication-admin'
+} from '@/lib/api/medications'
 import { formatDate } from '@/lib/utils'
 
 // ============================================================================

@@ -1,5 +1,5 @@
 import {Link} from '@/navigation'
-import { unsubscribeByToken } from '@/actions/email-notifications'
+import { unsubscribeByToken } from '@/lib/api/notifications'
 
 interface UnsubscribePageProps {
   params: Promise<{ token: string }>
@@ -8,7 +8,25 @@ interface UnsubscribePageProps {
 export default async function UnsubscribePage({ params }: UnsubscribePageProps) {
   const { token } = await params
 
-  const result = await unsubscribeByToken(token)
+  // During build, API calls will fail - return a loading shell
+  let result = { success: false, error: 'Loading...' }
+
+  try {
+    result = await unsubscribeByToken(token)
+  } catch (error) {
+    // During build, return a minimal shell
+    if (process.env.CAPACITOR_BUILD === 'true' || token === '_placeholder_') {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-md">
+          <div className="max-w-md w-full text-center">
+            <div className="animate-pulse">Loading...</div>
+          </div>
+        </div>
+      )
+    }
+    // At runtime, show error
+    result = { success: false, error: 'Failed to process unsubscribe request' }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-md">
@@ -85,4 +103,12 @@ export default async function UnsubscribePage({ params }: UnsubscribePageProps) 
       </div>
     </div>
   )
+}
+
+// For Capacitor static export - generate a placeholder
+// The actual token will be determined client-side from the URL
+export const dynamicParams = true
+export async function generateStaticParams() {
+  // Return a placeholder path
+  return [{ token: '_placeholder_' }]
 }

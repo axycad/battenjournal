@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input, Textarea } from '@/components/ui'
-import { updateCareIntent } from '@/actions/profile'
+import { updateCareIntentAPI } from '@/lib/api/profile'
 import type { CareIntent } from '@prisma/client'
 
 interface CareIntentSectionProps {
@@ -30,7 +30,7 @@ export function CareIntentSection({
     setSaving(true)
     setError('')
 
-    const result = await updateCareIntent(caseId, {
+    const result = await updateCareIntentAPI(caseId, {
       preferredHospital: preferredHospital.trim() || undefined,
       emergencyPreferences: emergencyPreferences.trim() || undefined,
       avoidList: avoidList.trim() || undefined,

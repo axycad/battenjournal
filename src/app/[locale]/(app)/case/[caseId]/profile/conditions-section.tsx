@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input, Textarea } from '@/components/ui'
-import { addCondition, updateCondition, deleteCondition } from '@/actions/profile'
+import { addConditionAPI, updateConditionAPI, deleteConditionAPI } from '@/lib/api/profile'
 import type { Condition } from '@prisma/client'
 
 interface ConditionsSectionProps {
@@ -36,7 +36,7 @@ export function ConditionsSection({
     setSaving(true)
     setError('')
 
-    const result = await addCondition(caseId, {
+    const result = await addConditionAPI(caseId, {
       name: name.trim(),
       notes: notes.trim() || undefined,
     })
@@ -55,7 +55,7 @@ export function ConditionsSection({
     setSaving(true)
     setError('')
 
-    const result = await updateCondition(id, {
+    const result = await updateConditionAPI(id, {
       name: name.trim(),
       notes: notes.trim() || undefined,
     })
@@ -71,7 +71,7 @@ export function ConditionsSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteCondition(id)
+    const result = await deleteConditionAPI(id)
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }

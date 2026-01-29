@@ -10,7 +10,7 @@ import {
   deleteFlag,
   type FlagLabel,
   type FlagWithDetails,
-} from '@/actions/flags'
+} from '@/lib/api/clinical'
 import { formatDate } from '@/lib/utils'
 
 const FLAG_OPTIONS: { value: FlagLabel; label: string; color: string }[] = [

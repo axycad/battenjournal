@@ -27,6 +27,19 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
+export const dynamicParams = true
+
+export async function generateStaticParams() {
+  // Return all supported locales for static export
+  return [
+    { locale: 'en' },
+    { locale: 'es' },
+    { locale: 'pl' },
+    { locale: 'ro' },
+    { locale: 'fr' },
+  ]
+}
+
 export default async function LocaleLayout({
   children,
   params,

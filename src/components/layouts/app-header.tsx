@@ -6,7 +6,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Button } from '@/components/ui'
 import { Link, usePathname, useRouter } from '@/navigation'
 import { routing } from '@/i18n/routing'
-import { setLocale } from '@/app/actions/locale'
 
 interface AppHeaderProps {
   user: {
@@ -38,13 +37,10 @@ export function AppHeader({ user }: AppHeaderProps) {
     }
 
     try {
-      // Set cookie on both client and server for maximum reliability
+      // Set cookie on client side
       document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
 
-      // Use server action to set cookie server-side
-      await setLocale(nextLocale)
-
-      // Navigate with locale parameter as fallback for mobile browsers
+      // Navigate with locale parameter for mobile browsers
       // The middleware will pick this up and set the cookie
       const currentUrl = new URL(window.location.href)
       currentUrl.searchParams.set('locale', nextLocale)

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
-import { createClinicianInvite } from '@/actions/sharing'
+import { createClinicianInviteAPI } from '@/lib/api/invites'
 
 interface ClinicianInviteFormProps {
   caseId: string
@@ -23,7 +23,7 @@ export function ClinicianInviteForm({ caseId, childName }: ClinicianInviteFormPr
     setLoading(true)
 
     try {
-      const result = await createClinicianInvite(caseId, email)
+      const result = await createClinicianInviteAPI(caseId, email)
 
       if (!result.success) {
         setError(result.error || 'Failed to create invite')

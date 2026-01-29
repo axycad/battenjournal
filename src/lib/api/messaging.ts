@@ -141,3 +141,64 @@ export interface CreateThreadInput {
 export async function createThreadAPI(input: CreateThreadInput): Promise<ThreadWithMessages> {
   return apiClient.post('/api/messages/threads', input)
 }
+
+// Get thread for a specific event
+export async function getThreadForEventAPI(eventId: string): Promise<ThreadWithMessages | null> {
+  return apiClient.get(`/api/messages/threads/event/${eventId}`)
+}
+
+// Alias for server component compatibility
+export const getThreadWithMessages = getThreadAPI
+
+// Delete a message
+export async function deleteMessageAPI(messageId: string): Promise<{ success: boolean; error?: string }> {
+  return apiClient.delete(`/api/messages/${messageId}`)
+}
+
+// Send a question card
+export async function sendQuestionCardAPI(threadId: string, question: string, options: string[]) {
+  return apiClient.post('/api/messages/question-card', { threadId, question, options })
+}
+
+// Answer a question card
+export async function answerQuestionCardAPI(cardId: string, answerId: string) {
+  return apiClient.post(`/api/messages/question-card/${cardId}/answer`, { answerId })
+}
+
+// Get case participants (for messaging)
+export async function getCaseParticipantsAPI(caseId: string): Promise<Array<{
+  id: string
+  userId: string
+  user: {
+    id: string
+    name: string | null
+    email: string
+    role: string
+    memberType: string
+  }
+}>> {
+  return apiClient.get(`/api/cases/${caseId}/participants`)
+}
+
+// Get case documents (for messaging attachments)
+export async function getCaseDocumentsAPI(caseId: string): Promise<Array<{
+  id: string
+  fileName: string
+  mimeType: string
+  fileSize: number
+  uploadedAt: Date
+}>> {
+  return apiClient.get(`/api/documents?caseId=${caseId}`)
+}
+
+// Aliases for compatibility
+export const getThreads = getThreadsAPI
+export const getThread = getThreadAPI
+export const createThread = createThreadAPI
+export const sendMessage = sendMessageAPI
+export const deleteMessage = deleteMessageAPI
+export const sendQuestionCard = sendQuestionCardAPI
+export const answerQuestionCard = answerQuestionCardAPI
+export const getCaseParticipants = getCaseParticipantsAPI
+export const getCaseDocuments = getCaseDocumentsAPI
+export const getThreadForEvent = getThreadForEventAPI

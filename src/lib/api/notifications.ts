@@ -1,5 +1,14 @@
 import { apiClient } from '@/lib/api-client'
 
+export type DigestFrequency = 'DAILY' | 'WEEKLY' | 'NEVER'
+
+export interface EmailPreferences {
+  digestFrequency: DigestFrequency
+  watchAlerts: boolean
+  taskReminders: boolean
+  messageNotifications: boolean
+}
+
 export interface NotificationCounts {
   unreadMessages: number
   watchedUpdates: number
@@ -58,3 +67,44 @@ export async function markNotificationReadAPI(notificationId: string): Promise<v
 export async function markAllNotificationsReadAPI(): Promise<void> {
   return apiClient.post('/api/notifications/mark-all-read')
 }
+
+// Get recent notifications (alias for getNotificationsAPI with limit)
+export async function getRecentNotificationsAPI(limit: number = 50): Promise<NotificationItem[]> {
+  return getNotificationsAPI({ limit })
+}
+
+// Get email preferences
+export async function getEmailPreferencesAPI() {
+  return apiClient.get('/api/notifications/email-preferences')
+}
+
+// Update email preferences
+export async function updateEmailPreferencesAPI(preferences: any) {
+  return apiClient.post('/api/notifications/email-preferences', preferences)
+}
+
+// Get user reminder preferences
+export async function getUserReminderPreferencesAPI() {
+  return apiClient.get('/api/notifications/reminder-preferences')
+}
+
+// Update user reminder preferences
+export async function updateUserReminderPreferencesAPI(preferences: any) {
+  return apiClient.post('/api/notifications/reminder-preferences', preferences)
+}
+
+// Unsubscribe by token
+export async function unsubscribeByTokenAPI(token: string): Promise<{ success: boolean; error?: string }> {
+  return apiClient.post('/api/notifications/unsubscribe', { token }, { requireAuth: false })
+}
+
+// Server component alias
+export const unsubscribeByToken = unsubscribeByTokenAPI
+
+// Update reminder preferences
+export async function updateReminderPreferencesAPI(preferences: any) {
+  return apiClient.post('/api/notifications/reminders', preferences)
+}
+
+// Alias
+export const updateReminderPreferences = updateReminderPreferencesAPI

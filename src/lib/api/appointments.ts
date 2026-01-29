@@ -103,3 +103,12 @@ export async function cancelAppointmentAPI(
 ): Promise<void> {
   return apiClient.post(`/api/appointments/${appointmentId}/cancel`, { reason })
 }
+
+// Aliases for compatibility
+export const getUpcomingAppointments = getUpcomingAppointmentsAPI
+export const getAppointments = getAppointmentsAPI
+export const createAppointment = createAppointmentAPI
+export const updateAppointment = updateAppointmentAPI
+export const deleteAppointment = deleteAppointmentAPI
+export const completeAppointment = completeAppointmentAPI
+export const cancelAppointment = cancelAppointmentAPI

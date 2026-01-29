@@ -226,3 +226,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     )
   }
 }
+
+// For Capacitor static export, skip this dynamic route
+export async function generateStaticParams() {
+  return []
+}

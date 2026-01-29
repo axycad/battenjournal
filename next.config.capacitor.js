@@ -20,6 +20,9 @@ const nextConfig = {
   },
   // Disable features that require server
   experimental: {},
+  // Specify output directory
+  distDir: '.next',
 }
 
+// Don't wrap with PWA for Capacitor builds - PWA conflicts with static export
 module.exports = withNextIntl(nextConfig)

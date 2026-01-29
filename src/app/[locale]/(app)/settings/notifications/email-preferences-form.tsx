@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui'
 import {
-  updateEmailPreferences,
+  updateEmailPreferencesAPI,
   type EmailPreferences,
   type DigestFrequency,
-} from '@/actions/email-notifications'
+} from '@/lib/api/notifications'
 
 interface EmailPreferencesFormProps {
   initialPreferences: EmailPreferences | null
@@ -44,7 +44,7 @@ export function EmailPreferencesForm({ initialPreferences }: EmailPreferencesFor
     setError('')
     setSaved(false)
 
-    const result = await updateEmailPreferences({
+    const result = await updateEmailPreferencesAPI({
       digestFrequency,
       watchAlerts,
       taskReminders,

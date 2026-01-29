@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input, Textarea } from '@/components/ui'
-import { createAppointment, type CreateAppointmentInput } from '@/actions/appointment'
+import { createAppointment, type CreateAppointmentInput } from '@/lib/api/appointments'
 import type { AppointmentType } from '@prisma/client'
 
 interface AppointmentFormProps {

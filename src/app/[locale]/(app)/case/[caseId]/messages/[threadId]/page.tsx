@@ -2,8 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
 import { getTranslations } from 'next-intl/server'
-import { getCase } from '@/actions/case'
-import { getThreadWithMessages } from '@/actions/messaging'
+import { getCase } from '@/lib/api/cases'
+import { getThreadWithMessages } from '@/lib/api/messaging'
 import { ThreadView } from '@/components/messaging'
 
 interface ThreadPageProps {
@@ -55,4 +55,12 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
       />
     </div>
   )
+}
+
+// For Capacitor static export - generate a placeholder
+// The actual caseId and threadId will be determined client-side from the URL
+export const dynamicParams = true
+export async function generateStaticParams() {
+  // Return a placeholder path with both dynamic segments
+  return [{ caseId: '_placeholder_', threadId: '_placeholder_' }]
 }

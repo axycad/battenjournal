@@ -124,3 +124,86 @@ export async function getFullProfileAPI(caseId: string): Promise<FullProfileData
   const params = new URLSearchParams({ caseId })
   return apiClient.get(`/api/profile/full?${params.toString()}`)
 }
+
+// Allergy operations
+export async function addAllergyAPI(caseId: string, data: { substance: string; reaction?: string; severity?: string }) {
+  return apiClient.post('/api/profile/allergies', { caseId, ...data })
+}
+
+export async function updateAllergyAPI(allergyId: string, data: { substance?: string; reaction?: string; severity?: string }) {
+  return apiClient.post(`/api/profile/allergies/${allergyId}`, data)
+}
+
+export async function deleteAllergyAPI(allergyId: string) {
+  return apiClient.delete(`/api/profile/allergies/${allergyId}`)
+}
+
+// Medication operations
+export async function addMedicationAPI(caseId: string, data: { name: string; dose?: string; route?: string; schedule?: string }) {
+  return apiClient.post('/api/profile/medications', { caseId, ...data })
+}
+
+export async function updateMedicationAPI(medicationId: string, data: { name?: string; dose?: string; route?: string; schedule?: string; active?: boolean }) {
+  return apiClient.post(`/api/profile/medications/${medicationId}`, data)
+}
+
+export async function deleteMedicationAPI(medicationId: string) {
+  return apiClient.delete(`/api/profile/medications/${medicationId}`)
+}
+
+// Condition operations
+export async function addConditionAPI(caseId: string, data: { name: string; notes?: string }) {
+  return apiClient.post('/api/profile/conditions', { caseId, ...data })
+}
+
+export async function updateConditionAPI(conditionId: string, data: { name?: string; notes?: string }) {
+  return apiClient.post(`/api/profile/conditions/${conditionId}`, data)
+}
+
+export async function deleteConditionAPI(conditionId: string) {
+  return apiClient.delete(`/api/profile/conditions/${conditionId}`)
+}
+
+// Care contact operations
+export async function addCareContactAPI(caseId: string, data: { role: string; name: string; phone?: string; address?: string }) {
+  return apiClient.post('/api/profile/contacts', { caseId, ...data })
+}
+
+export async function updateCareContactAPI(contactId: string, data: { role?: string; name?: string; phone?: string; address?: string }) {
+  return apiClient.post(`/api/profile/contacts/${contactId}`, data)
+}
+
+export async function deleteCareContactAPI(contactId: string) {
+  return apiClient.delete(`/api/profile/contacts/${contactId}`)
+}
+
+// Measurements
+export async function addMeasurementAPI(caseId: string, data: { weightKg?: number; heightCm?: number; measuredAt: Date }) {
+  return apiClient.post('/api/profile/measurements', { caseId, ...data, measuredAt: data.measuredAt.toISOString() })
+}
+
+// Baseline status
+export async function updateBaselineAPI(caseId: string, data: {
+  visionStatus?: string
+  mobilityStatus?: string
+  communicationStatus?: string
+  feedingStatus?: string
+}) {
+  return apiClient.post('/api/profile/baseline', { caseId, ...data })
+}
+
+export async function confirmBaselineUnchangedAPI(caseId: string) {
+  return apiClient.post('/api/profile/baseline/confirm', { caseId })
+}
+
+// Care intent
+export async function updateCareIntentAPI(caseId: string, data: {
+  preferredHospital?: string
+  emergencyPreferences?: string
+  avoidList?: string
+  communicationNotes?: string
+  keyEquipment?: string
+  showOnEmergencyCard?: boolean
+}) {
+  return apiClient.post('/api/profile/care-intent', { caseId, ...data })
+}

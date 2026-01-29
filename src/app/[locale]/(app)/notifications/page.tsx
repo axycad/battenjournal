@@ -2,9 +2,9 @@ import { redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
 import {
-  getNotificationCounts,
-  getRecentNotifications,
-} from '@/actions/notifications'
+  getNotificationCountsAPI,
+  getRecentNotificationsAPI,
+} from '@/lib/api/notifications'
 import { NotificationSummary, NotificationList } from '@/components/notifications'
 
 export default async function NotificationsPage() {
@@ -15,8 +15,8 @@ export default async function NotificationsPage() {
   }
 
   const [counts, notifications] = await Promise.all([
-    getNotificationCounts(),
-    getRecentNotifications(50),
+    getNotificationCountsAPI(),
+    getRecentNotificationsAPI(50),
   ])
 
   const unreadNotifications = notifications.filter((n) => !n.read)

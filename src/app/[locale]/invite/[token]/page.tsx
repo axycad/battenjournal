@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getInviteByToken } from '@/actions/invite'
-import { getClinicianInviteByToken } from '@/actions/sharing'
+import { getInviteByToken } from '@/lib/api/invites'
+import { getClinicianInviteByToken } from '@/lib/api/invites'
 import { AcceptInviteButton } from './accept-button'
 import { AcceptClinicianInvite } from './accept-clinician'
 
@@ -12,12 +12,30 @@ interface InvitePageProps {
 
 export default async function InvitePage({ params }: InvitePageProps) {
   const { token } = await params
-  
-  // Check both invite types
-  const [familyInvite, clinicianInvite] = await Promise.all([
-    getInviteByToken(token),
-    getClinicianInviteByToken(token),
-  ])
+
+  // During build, API calls will fail - return a loading shell
+  let familyInvite = null
+  let clinicianInvite = null
+
+  try {
+    // Check both invite types
+    [familyInvite, clinicianInvite] = await Promise.all([
+      getInviteByToken(token),
+      getClinicianInviteByToken(token),
+    ])
+  } catch (error) {
+    // During build, return a minimal shell that will be hydrated client-side
+    if (process.env.CAPACITOR_BUILD === 'true' || token === '_placeholder_') {
+      return (
+        <main className="min-h-screen flex flex-col items-center justify-center p-md">
+          <div className="max-w-sm text-center">
+            <div className="animate-pulse">Loading invite...</div>
+          </div>
+        </main>
+      )
+    }
+    throw error
+  }
 
   const invite = familyInvite || clinicianInvite
   const isClinician = !familyInvite && !!clinicianInvite
@@ -159,4 +177,12 @@ export default async function InvitePage({ params }: InvitePageProps) {
       </div>
     </main>
   )
+}
+
+// For Capacitor static export - generate a placeholder
+// The actual token will be determined client-side from the URL
+export const dynamicParams = true
+export async function generateStaticParams() {
+  // Return a placeholder path
+  return [{ token: '_placeholder_' }]
 }

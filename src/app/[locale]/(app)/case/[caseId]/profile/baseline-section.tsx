@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Select } from '@/components/ui'
-import { updateBaseline, confirmBaselineUnchanged } from '@/actions/profile'
+import { updateBaselineAPI, confirmBaselineUnchangedAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
 import type { PatientProfile, VisionStatus, MobilityStatus, CommunicationStatus, FeedingStatus } from '@prisma/client'
 
@@ -79,7 +79,7 @@ export function BaselineSection({
     setSaving(true)
     setError('')
 
-    const result = await updateBaseline(caseId, {
+    const result = await updateBaselineAPI(caseId, {
       visionStatus: vision,
       mobilityStatus: mobility,
       communicationStatus: communication,
@@ -98,7 +98,7 @@ export function BaselineSection({
     setConfirming(true)
     setError('')
 
-    const result = await confirmBaselineUnchanged(caseId, [
+    const result = await confirmBaselineUnchangedAPI(caseId, [
       'vision',
       'mobility',
       'communication',

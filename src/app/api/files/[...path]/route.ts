@@ -117,3 +117,8 @@ export async function GET(
     return new NextResponse('Not found', { status: 404 })
   }
 }
+
+// For Capacitor static export, skip this dynamic route
+export async function generateStaticParams() {
+  return []
+}

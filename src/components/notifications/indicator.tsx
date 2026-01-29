@@ -2,7 +2,7 @@
 
 import {Link} from '@/navigation'
 import { NotificationBadge } from './badge'
-import type { NotificationCounts, CaseNotificationCounts } from '@/actions/notifications'
+import type { NotificationCounts, CaseNotificationCounts } from '@/lib/api/notifications'
 
 // ============================================================================
 // GLOBAL NOTIFICATION INDICATOR

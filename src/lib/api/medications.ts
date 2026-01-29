@@ -45,3 +45,33 @@ export async function getAdministrationHistoryAPI(
   if (options?.limit) params.append('limit', options.limit.toString())
   return apiClient.get(`/api/medications/history?${params.toString()}`)
 }
+
+// Log medication administration
+export async function logMedicationAdministrationAPI(data: {
+  medicationId: string
+  administeredAt: Date
+  notes?: string
+}) {
+  return apiClient.post('/api/medications/admin', data)
+}
+
+// Skip medication dose
+export async function skipMedicationAPI(medicationId: string, reason?: string) {
+  return apiClient.post(`/api/medications/${medicationId}/skip`, { reason })
+}
+
+// Delete administration record
+export async function deleteAdministrationAPI(administrationId: string) {
+  return apiClient.delete(`/api/medications/admin/${administrationId}`)
+}
+
+// Update medication reminders
+export async function updateMedicationRemindersAPI(medicationId: string, reminders: any) {
+  return apiClient.post(`/api/medications/${medicationId}/reminders`, { reminders })
+}
+
+// Aliases
+export const logMedicationAdministration = logMedicationAdministrationAPI
+export const skipMedication = skipMedicationAPI
+export const deleteAdministration = deleteAdministrationAPI
+export const updateMedicationReminders = updateMedicationRemindersAPI

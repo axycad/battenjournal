@@ -17,7 +17,7 @@ import {
   type MessageWithAuthor,
   type QuestionCardContent,
   type CaseParticipant,
-} from '@/actions/messaging'
+} from '@/lib/api/messaging'
 import { formatDate } from '@/lib/utils'
 
 // ============================================================================

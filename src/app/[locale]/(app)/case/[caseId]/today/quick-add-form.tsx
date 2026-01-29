@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Button, Input, Textarea, SeveritySlider } from '@/components/ui'
-import { createEvent, updateEvent, type EventWithScopes } from '@/actions/event'
+import { createEvent, updateEvent, type EventWithScopes } from '@/lib/api/events'
 import { EVENT_TYPES, type EventType, type SeverityLevel } from '@/lib/event-types'
 import { useOffline } from '@/lib/offline/context'
 import { createEventOffline } from '@/lib/offline/sync'
@@ -178,7 +178,7 @@ export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps)
 
       if (isOnline) {
         // Online: use server action
-        const result = await createEvent(caseId, {
+        const result = await createEventAPI(caseId, {
           eventType,
           freeText: freeTextValue?.trim() || undefined,
           occurredAt: occurredAtValue || undefined,
@@ -323,7 +323,7 @@ export function QuickAddForm({ caseId, scopes, events = [] }: QuickAddFormProps)
       }
 
       // Update the event
-      const result = await updateEvent(justSavedEventId, {
+      const result = await updateEventAPI(justSavedEventId, {
         freeText: freeText.trim() || undefined,
         occurredAt: backdateTime || undefined,
         scopeCodes: scopeSet.size > 0 ? Array.from(scopeSet) : undefined,

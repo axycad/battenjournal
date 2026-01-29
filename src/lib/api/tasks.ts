@@ -6,11 +6,11 @@ export interface Task {
   id: string
   caseId: string
   title: string
-  description?: string
-  status?: TaskStatus
-  dueAt?: Date
+  description: string | null
+  status: TaskStatus
+  dueAt: Date | null
   completed: boolean
-  completedAt?: Date
+  completedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -28,6 +28,8 @@ export interface TaskWithCase extends Task {
     name: string | null
   } | null
 }
+
+export type TaskWithDetails = TaskWithCase
 
 export interface CreateTaskInput {
   caseId: string
@@ -89,3 +91,12 @@ export async function completeTaskAPI(taskId: string): Promise<Task> {
 export async function getMyTasksAPI(): Promise<TaskWithCase[]> {
   return apiClient.get('/api/tasks/my-tasks')
 }
+
+// Aliases for compatibility
+export const getTasks = getTasksAPI
+export const getCaseTasks = getCaseTasksAPI
+export const createTask = createTaskAPI
+export const updateTask = updateTaskAPI
+export const deleteTask = deleteTaskAPI
+export const completeTask = completeTaskAPI
+export const getMyTasks = getMyTasksAPI

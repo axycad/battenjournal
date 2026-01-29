@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input, Select } from '@/components/ui'
-import { addAllergy, updateAllergy, deleteAllergy } from '@/actions/profile'
+import { addAllergyAPI, updateAllergyAPI, deleteAllergyAPI } from '@/lib/api/profile'
 import type { Allergy, AllergySeverity } from '@prisma/client'
 
 interface AllergiesSectionProps {
@@ -58,7 +58,7 @@ export function AllergiesSection({
     setSaving(true)
     setError('')
 
-    const result = await addAllergy(caseId, {
+    const result = await addAllergyAPI(caseId, {
       substance: substance.trim(),
       reaction: reaction.trim() || undefined,
       severity: severity || undefined,
@@ -78,7 +78,7 @@ export function AllergiesSection({
     setSaving(true)
     setError('')
 
-    const result = await updateAllergy(id, {
+    const result = await updateAllergyAPI(id, {
       substance: substance.trim(),
       reaction: reaction.trim() || undefined,
       severity: severity || undefined,
@@ -95,7 +95,7 @@ export function AllergiesSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteAllergy(id)
+    const result = await deleteAllergyAPI(id)
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }

@@ -6,6 +6,8 @@ export interface CaseData {
   dateOfBirth: Date
   createdAt: Date
   updatedAt: Date
+  currentUserMemberType?: string
+  currentUserRole?: string
 }
 
 export interface CreateCaseInput {
@@ -51,3 +53,6 @@ export async function updateCaseAPI(
 export async function deleteCaseAPI(caseId: string): Promise<void> {
   return apiClient.delete(`/api/cases/${caseId}`)
 }
+
+// Alias for server component compatibility
+export const getCase = getCaseAPI

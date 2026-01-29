@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Link } from '@/navigation'
-import { markNotificationRead, deleteNotification, type NotificationData } from '@/actions/notification'
+import { markNotificationRead, deleteNotification, type NotificationData } from '@/lib/api/notifications'
 
 interface NotificationListProps {
   notifications: NotificationData[]

@@ -1,13 +1,13 @@
 import { notFound, redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getCase } from '@/actions/case'
+import { getCase } from '@/lib/api/cases'
 import {
   getAccessSummary,
   getPermissionChanges,
   getDocumentAccessLog,
   getExportHistory,
-} from '@/actions/audit'
+} from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 
 interface DataPageProps {
@@ -67,7 +67,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
               <p className="text-meta text-text-secondary italic">No family members</p>
             ) : (
               <div className="space-y-sm">
-                {accessSummary?.familyMembers.map((member) => (
+                {accessSummary?.familyMembers.map((member: any) => (
                   <div
                     key={member.userId}
                     className="flex items-center justify-between p-sm bg-bg-primary rounded-sm"
@@ -97,7 +97,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
               <p className="text-meta text-text-secondary italic">No clinicians have access</p>
             ) : (
               <div className="space-y-sm">
-                {accessSummary?.clinicians.map((clinician) => (
+                {accessSummary?.clinicians.map((clinician: any) => (
                   <div
                     key={clinician.userId}
                     className="p-sm bg-bg-primary rounded-sm"
@@ -131,7 +131,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
                     <div>
                       <p className="text-caption text-text-secondary mb-xs">Can view:</p>
                       <div className="flex flex-wrap gap-xs">
-                        {clinician.scopes.map((scope) => (
+                        {clinician.scopes.map((scope: any) => (
                           <span
                             key={scope.code}
                             className="px-xs py-0.5 text-caption bg-white border border-divider rounded"
@@ -155,7 +155,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
             <p className="text-meta text-text-secondary italic">No permission changes recorded</p>
           ) : (
             <div className="space-y-sm">
-              {permissionChanges.map((entry) => (
+              {permissionChanges.map((entry: any) => (
                 <div
                   key={entry.id}
                   className="flex items-start justify-between py-sm border-b border-divider last:border-0"
@@ -198,7 +198,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {documentAccess.map((entry) => (
+                  {documentAccess.map((entry: any) => (
                     <tr key={entry.id} className="border-b border-divider last:border-0">
                       <td className="py-sm pr-md">{entry.documentTitle}</td>
                       <td className="py-sm pr-md">
@@ -237,7 +237,7 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
             <p className="text-meta text-text-secondary italic">No exports yet</p>
           ) : (
             <div className="space-y-sm">
-              {exportHistory.map((entry) => (
+              {exportHistory.map((entry: any) => (
                 <div
                   key={entry.id}
                   className="flex items-center justify-between py-sm border-b border-divider last:border-0"
@@ -279,4 +279,12 @@ export default async function DataBoundariesPage({ params }: DataPageProps) {
       </div>
     </div>
   )
+}
+
+// For Capacitor static export - generate a placeholder
+// The actual caseId will be determined client-side from the URL
+export const dynamicParams = true
+export async function generateStaticParams() {
+  // Return a placeholder path
+  return [{ caseId: '_placeholder_' }]
 }

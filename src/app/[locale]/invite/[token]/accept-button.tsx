@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui'
-import { acceptInvite } from '@/actions/invite'
+import { acceptInviteAPI } from '@/lib/api/invites'
 
 interface AcceptInviteButtonProps {
   token: string
@@ -18,7 +18,7 @@ export function AcceptInviteButton({ token }: AcceptInviteButtonProps) {
     setLoading(true)
     setError('')
 
-    const result = await acceptInvite(token)
+    const result = await acceptInviteAPI(token)
 
     if (!result.success) {
       setError(result.error || 'Failed to accept invite')

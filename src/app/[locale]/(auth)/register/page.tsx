@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import {Link} from '@/navigation'
 import { signIn } from 'next-auth/react'
 import { Button, Input } from '@/components/ui'
-import { register } from '@/actions/auth'
+import { registerAPI } from '@/lib/api'
 import { useRouter } from '@/navigation'
 
 export default function RegisterPage() {
@@ -23,7 +23,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const result = await register({ name, email, password })
+      const result = await registerAPI({ name, email, password })
 
       if (!result.success) {
         setError(result.error || t('errorRegistrationFailed'))

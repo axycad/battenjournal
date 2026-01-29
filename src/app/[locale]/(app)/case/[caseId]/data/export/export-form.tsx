@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui'
-import { createExport, exportToCSV, type ExportFormat, type ExportBundle } from '@/actions/export'
+import { createExportAPI, exportToCSVAPI, type ExportFormat, type ExportBundle } from '@/lib/api/export'
 
 interface ExportFormProps {
   caseId: string
@@ -41,7 +41,7 @@ export function ExportForm({ caseId, availableScopes, hasResearchConsent }: Expo
     setError('')
     setExportResult(null)
 
-    const result = await createExport({
+    const result = await createExportAPI({
       caseId,
       format,
       scopeCodes: selectedScopes.length > 0 ? selectedScopes : undefined,
@@ -54,7 +54,7 @@ export function ExportForm({ caseId, availableScopes, hasResearchConsent }: Expo
     if (!result.success) {
       setError(result.error || 'Export failed')
     } else {
-      setExportResult(result.data!.bundle)
+      setExportResult(result.data!)
     }
 
     setExporting(false)
@@ -68,12 +68,12 @@ export function ExportForm({ caseId, availableScopes, hasResearchConsent }: Expo
     let mimeType: string
 
     if (format === 'csv') {
-      content = await exportToCSV(exportResult)
-      filename = `export-${exportResult.exportId}.csv`
+      content = await exportToCSVAPI(exportResult.events || [])
+      filename = `export-${exportResult.id}.csv`
       mimeType = 'text/csv'
     } else {
       content = JSON.stringify(exportResult, null, 2)
-      filename = `export-${exportResult.exportId}.json`
+      filename = `export-${exportResult.id}.json`
       mimeType = 'application/json'
     }
 
@@ -95,10 +95,9 @@ export function ExportForm({ caseId, availableScopes, hasResearchConsent }: Expo
         <div className="p-md bg-semantic-success/5 border border-semantic-success/30 rounded-md">
           <h2 className="text-body font-medium text-semantic-success mb-sm">Export ready</h2>
           <p className="text-meta text-text-secondary mb-md">
-            Your export contains {exportResult.events.length} events
-            {exportResult.profile && ', profile data'}
-            {exportResult.mediaManifest && `, ${exportResult.mediaManifest.length} media files`}
-            {exportResult.documentManifest && `, ${exportResult.documentManifest.length} documents`}
+            Your export contains {exportResult.events?.length || 0} events
+            {exportResult.metadata && ', profile data'}
+            {exportResult.metadata && ' and additional data'}
           </p>
 
           <div className="flex gap-sm">
@@ -123,31 +122,16 @@ export function ExportForm({ caseId, availableScopes, hasResearchConsent }: Expo
           <dl className="space-y-sm text-meta">
             <div className="flex justify-between">
               <dt className="text-text-secondary">Export ID</dt>
-              <dd className="font-mono">{exportResult.exportId}</dd>
+              <dd className="font-mono">{exportResult.id}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-text-secondary">Exported at</dt>
-              <dd>{new Date(exportResult.caseInfo.exportedAt).toLocaleString()}</dd>
+              <dd>{new Date(exportResult.createdAt).toLocaleString()}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-text-secondary">Events</dt>
-              <dd>{exportResult.events.length}</dd>
+              <dd>{exportResult.events?.length || 0}</dd>
             </div>
-            {exportResult.caseInfo.scopeFilter && (
-              <div className="flex justify-between">
-                <dt className="text-text-secondary">Scopes</dt>
-                <dd>{exportResult.caseInfo.scopeFilter.join(', ')}</dd>
-              </div>
-            )}
-            {exportResult.caseInfo.dateRange.start && (
-              <div className="flex justify-between">
-                <dt className="text-text-secondary">Date range</dt>
-                <dd>
-                  {exportResult.caseInfo.dateRange.start}
-                  {exportResult.caseInfo.dateRange.end && ` to ${exportResult.caseInfo.dateRange.end}`}
-                </dd>
-              </div>
-            )}
           </dl>
         </div>
       </div>

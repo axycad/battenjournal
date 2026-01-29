@@ -1,8 +1,8 @@
 import { notFound, redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getCase } from '@/actions/case'
-import { getAvailableScopesForExport } from '@/actions/export'
+import { getCase } from '@/lib/api/cases'
+import { getAvailableScopesForExportAPI } from '@/lib/api/export'
 import { ExportForm } from './export-form'
 
 interface ExportPageProps {
@@ -33,7 +33,7 @@ export default async function ExportPage({ params }: ExportPageProps) {
     redirect(`/case/${caseId}`)
   }
 
-  const availableScopes = await getAvailableScopesForExport(caseId)
+  const availableScopes = await getAvailableScopesForExportAPI(caseId)
 
   // Check for research consent
   const hasResearchConsent = false // TODO: implement research consent check
@@ -60,4 +60,12 @@ export default async function ExportPage({ params }: ExportPageProps) {
       />
     </div>
   )
+}
+
+// For Capacitor static export - generate a placeholder
+// The actual caseId will be determined client-side from the URL
+export const dynamicParams = true
+export async function generateStaticParams() {
+  // Return a placeholder path
+  return [{ caseId: '_placeholder_' }]
 }

@@ -8,7 +8,7 @@ import {
   deleteClinicalNote,
   updateNoteVisibility,
   type ClinicalNoteWithAuthor,
-} from '@/actions/clinical-notes'
+} from '@/lib/api/clinical'
 import { formatDate } from '@/lib/utils'
 
 interface NoteFormProps {

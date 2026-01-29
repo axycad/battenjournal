@@ -1,7 +1,7 @@
 'use client'
 
 import {Link} from '@/navigation'
-import type { NotificationItem } from '@/actions/notifications'
+import type { NotificationItem } from '@/lib/api/notifications'
 import { formatDate } from '@/lib/utils'
 
 // ============================================================================

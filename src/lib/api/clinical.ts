@@ -15,6 +15,19 @@ export interface ClinicalNote {
   }
 }
 
+export interface ClinicalNoteWithAuthor {
+  id: string
+  text: string
+  visibility: 'TEAM_ONLY' | 'SHARE_WITH_PARENT'
+  createdAt: Date
+  author: {
+    id: string
+    name: string | null
+  }
+  eventId: string | null
+  caseId: string | null
+}
+
 export async function getClinicalNotesAPI(caseId: string): Promise<ClinicalNote[]> {
   const params = new URLSearchParams({ caseId })
   return apiClient.get(`/api/clinical-notes?${params.toString()}`)
@@ -42,6 +55,21 @@ export interface Flag {
     name: string | null
     email: string
   } | null
+}
+
+export interface FlagWithDetails {
+  id: string
+  label: string
+  status: 'OPEN' | 'RESOLVED'
+  visibility: 'TEAM_ONLY' | 'SHARE_WITH_PARENT'
+  anchorType: string
+  anchorId: string
+  createdAt: Date
+  resolvedAt: Date | null
+  createdBy: {
+    id: string
+    name: string | null
+  }
 }
 
 export async function getFlagsAPI(
@@ -162,3 +190,103 @@ export async function getCliniciansAPI(caseId: string): Promise<Clinician[]> {
   const params = new URLSearchParams({ caseId })
   return apiClient.get(`/api/clinicians?${params.toString()}`)
 }
+
+// Get notes for a specific event
+export async function getNotesForEventAPI(eventId: string): Promise<ClinicalNote[]> {
+  return apiClient.get(`/api/clinical-notes/event/${eventId}`)
+}
+
+// Get flags for a specific event
+export async function getFlagsForEventAPI(eventId: string): Promise<Flag[]> {
+  return apiClient.get(`/api/flags/event/${eventId}`)
+}
+
+// Watch with scope details
+export interface WatchWithScope extends Watch {
+  scope: {
+    id: string
+    code: string
+    label: string
+    description: string | null
+  }
+}
+
+// Create a watch
+export async function createWatchAPI(caseId: string, scopeId: string): Promise<{ success: boolean; error?: string }> {
+  return apiClient.post('/api/watches', { caseId, scopeId })
+}
+
+// Remove a watch
+export async function removeWatchAPI(watchId: string): Promise<{ success: boolean; error?: string }> {
+  return apiClient.delete(`/api/watches/${watchId}`)
+}
+
+// Create a flag
+export async function createFlagAPI(data: {
+  caseId: string
+  label: string
+  status: 'OPEN' | 'RESOLVED'
+  visibility: 'TEAM_ONLY' | 'SHARE_WITH_PARENT'
+  anchorType: string
+  anchorId: string
+}): Promise<{ flagId: string }> {
+  return apiClient.post('/api/flags', data)
+}
+
+// Resolve a flag
+export async function resolveFlagAPI(flagId: string): Promise<{ success: boolean }> {
+  return apiClient.post(`/api/flags/${flagId}/resolve`)
+}
+
+// Reopen a flag
+export async function reopenFlagAPI(flagId: string): Promise<{ success: boolean }> {
+  return apiClient.post(`/api/flags/${flagId}/reopen`)
+}
+
+// Delete a flag
+export async function deleteFlagAPI(flagId: string): Promise<{ success: boolean }> {
+  return apiClient.delete(`/api/flags/${flagId}`)
+}
+
+// Create a clinical note
+export async function createClinicalNoteAPI(data: {
+  caseId?: string
+  eventId?: string
+  text: string
+  visibility: 'TEAM_ONLY' | 'SHARE_WITH_PARENT'
+}): Promise<{ noteId: string }> {
+  return apiClient.post('/api/clinical-notes', data)
+}
+
+// Update note visibility
+export async function updateNoteVisibilityAPI(
+  noteId: string,
+  visibility: 'TEAM_ONLY' | 'SHARE_WITH_PARENT'
+): Promise<{ success: boolean }> {
+  return apiClient.put(`/api/clinical-notes/${noteId}`, { visibility })
+}
+
+// Delete a clinical note
+export async function deleteClinicalNoteAPI(noteId: string): Promise<{ success: boolean }> {
+  return apiClient.delete(`/api/clinical-notes/${noteId}`)
+}
+
+// Aliases for compatibility
+export const getClinicalNotes = getClinicalNotesAPI
+export const getFlags = getFlagsAPI
+export const getClinicalCaseTasks = getClinicalCaseTasksAPI
+export const getWatches = getWatchesAPI
+export const getWatchedUpdates = getWatchedUpdatesAPI
+export const getAvailableScopesForWatch = getAvailableScopesForWatchAPI
+export const getClinicians = getCliniciansAPI
+export const getNotesForEvent = getNotesForEventAPI
+export const getFlagsForEvent = getFlagsForEventAPI
+export const createWatch = createWatchAPI
+export const removeWatch = removeWatchAPI
+export const createFlag = createFlagAPI
+export const resolveFlag = resolveFlagAPI
+export const reopenFlag = reopenFlagAPI
+export const deleteFlag = deleteFlagAPI
+export const createClinicalNote = createClinicalNoteAPI
+export const updateNoteVisibility = updateNoteVisibilityAPI
+export const deleteClinicalNote = deleteClinicalNoteAPI

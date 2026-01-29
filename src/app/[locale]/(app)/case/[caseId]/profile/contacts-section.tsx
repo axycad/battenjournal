@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input, Select } from '@/components/ui'
-import { addCareContact, updateCareContact, deleteCareContact } from '@/actions/profile'
+import { addCareContactAPI, updateCareContactAPI, deleteCareContactAPI } from '@/lib/api/profile'
 import type { CareContact } from '@prisma/client'
 
 interface ContactsSectionProps {
@@ -49,7 +49,7 @@ export function ContactsSection({
     setSaving(true)
     setError('')
 
-    const result = await addCareContact(caseId, {
+    const result = await addCareContactAPI(caseId, {
       role,
       name: name.trim(),
       phone: phone.trim() || undefined,
@@ -70,7 +70,7 @@ export function ContactsSection({
     setSaving(true)
     setError('')
 
-    const result = await updateCareContact(id, {
+    const result = await updateCareContactAPI(id, {
       role,
       name: name.trim(),
       phone: phone.trim() || undefined,
@@ -88,7 +88,7 @@ export function ContactsSection({
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteCareContact(id)
+    const result = await deleteCareContactAPI(id)
     if (!result.success) {
       setError(result.error || 'Failed to delete')
     }
