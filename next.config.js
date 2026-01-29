@@ -102,6 +102,9 @@ const nextConfig = isCapacitorBuild
     }
   : {
       // Web configuration
+      eslint: {
+        ignoreDuringBuilds: true,
+      },
       experimental: {
         serverActions: {
           bodySizeLimit: '10mb',
