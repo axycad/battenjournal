@@ -8,6 +8,7 @@ export * from './notifications'
 export * from './appointments'
 export * from './clinical'
 export * from './messaging'
+export * from './medications'
 
 // Re-export the API client and error class
 export { apiClient, ApiError } from '../api-client'
