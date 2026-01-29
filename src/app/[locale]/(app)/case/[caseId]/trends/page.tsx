@@ -157,21 +157,48 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
         </div>
       </div>
 
-      <div className="mb-lg flex flex-wrap gap-sm">
-        {[7, 30, 90].map((days) => (
-          <Link
-            key={days}
-            href={`/case/${caseId}/trends?range=${days}`}
-            className={`px-sm py-1 text-meta rounded-full border transition-colors ${
-              rangeDays === days
-                ? 'border-purple-600 bg-purple-50 text-purple-700 font-medium'
-                : 'border-purple-200 text-text-secondary hover:border-purple-400 hover:bg-purple-50'
-            }`}
-          >
-            {t('days', { count: days })}
-          </Link>
-        ))}
+      {/* Time range selector */}
+      <div className="mb-lg">
+        <p className="text-meta text-text-secondary mb-sm">Time range</p>
+        <div className="flex flex-wrap gap-sm">
+          {[7, 30, 90].map((days) => (
+            <Link
+              key={days}
+              href={`/case/${caseId}/trends?range=${days}`}
+              className={`px-md py-sm text-body rounded-lg border-2 transition-all font-medium ${
+                rangeDays === days
+                  ? 'border-purple-600 bg-purple-50 text-purple-700 shadow-sm'
+                  : 'border-purple-200 text-text-secondary hover:border-purple-400 hover:bg-purple-50'
+              }`}
+            >
+              {days} days
+            </Link>
+          ))}
+        </div>
       </div>
+
+      {/* Summary stats */}
+      {eventsInRange.length > 0 && (
+        <div className="mb-lg p-md bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+          <div className="flex items-center justify-between flex-wrap gap-md">
+            <div>
+              <p className="text-caption text-purple-700 font-medium uppercase tracking-wide">Summary</p>
+              <p className="text-h3 font-bold text-purple-900">{eventsInRange.length} observations</p>
+              <p className="text-meta text-purple-700">logged in the last {rangeDays} days</p>
+            </div>
+            <div className="flex gap-md">
+              <div className="text-right">
+                <p className="text-caption text-purple-700">Daily average</p>
+                <p className="text-title-lg font-semibold text-purple-900">{(eventsInRange.length / rangeDays).toFixed(1)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-caption text-purple-700">Event types</p>
+                <p className="text-title-lg font-semibold text-purple-900">{trendCards.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-md">
         <div className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
@@ -180,66 +207,97 @@ export default async function TrendsPage({ params, searchParams }: TrendsPagePro
             {t('checkInsCount', { count: checkIns.length, days: rangeDays })}
           </p>
           <div className="mt-sm grid gap-sm sm:grid-cols-4">
-            <div className="p-sm rounded-sm bg-bg-primary">
-              <p className="text-caption text-text-secondary">{t('better')}</p>
-              <p className="text-title-md font-medium">{checkInSummary.better}</p>
+            <div className="p-sm rounded-md bg-green-50 border border-green-200">
+              <p className="text-caption text-green-700 font-medium">{t('better')}</p>
+              <p className="text-title-lg font-semibold text-green-800">{checkInSummary.better}</p>
             </div>
-            <div className="p-sm rounded-sm bg-bg-primary">
-              <p className="text-caption text-text-secondary">{t('steadier')}</p>
-              <p className="text-title-md font-medium">{checkInSummary.same}</p>
+            <div className="p-sm rounded-md bg-blue-50 border border-blue-200">
+              <p className="text-caption text-blue-700 font-medium">{t('steadier')}</p>
+              <p className="text-title-lg font-semibold text-blue-800">{checkInSummary.same}</p>
             </div>
-            <div className="p-sm rounded-sm bg-bg-primary">
-              <p className="text-caption text-text-secondary">{t('tougherDays')}</p>
-              <p className="text-title-md font-medium">{checkInSummary.worse}</p>
+            <div className="p-sm rounded-md bg-orange-50 border border-orange-200">
+              <p className="text-caption text-orange-700 font-medium">{t('tougherDays')}</p>
+              <p className="text-title-lg font-semibold text-orange-800">{checkInSummary.worse}</p>
             </div>
-            <div className="p-sm rounded-sm bg-bg-primary">
-              <p className="text-caption text-text-secondary">{t('notSure')}</p>
-              <p className="text-title-md font-medium">{checkInSummary.unsure}</p>
+            <div className="p-sm rounded-md bg-gray-50 border border-gray-200">
+              <p className="text-caption text-gray-700 font-medium">{t('notSure')}</p>
+              <p className="text-title-lg font-semibold text-gray-800">{checkInSummary.unsure}</p>
             </div>
           </div>
         </div>
 
         {trendCards.length === 0 ? (
-          <div className="text-center py-xl">
-            <p className="text-body text-text-secondary">
+          <div className="p-xl bg-white border border-purple-100 rounded-lg shadow-sm text-center">
+            <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-md">
+              <span className="text-3xl">📊</span>
+            </div>
+            <h3 className="text-title-lg font-semibold text-text-primary mb-xs">
+              No observations yet
+            </h3>
+            <p className="text-body text-text-secondary mb-md">
               {t('noObservations')}
             </p>
+            <Link href={`/case/${caseId}/today`}>
+              <button className="px-lg py-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:shadow-lg transition-all font-medium">
+                Log your first observation
+              </button>
+            </Link>
           </div>
         ) : (
           trendCards.map((card) => {
             const change = card.rangeCount - card.prevCount
-            const changeLabel =
-              change === 0
-                ? t('stable')
-                : change > 0
-                ? t('increase', { count: change })
-                : t('decrease', { count: change })
+            const changePercent = card.prevCount > 0 ? Math.round((change / card.prevCount) * 100) : 0
+            const isIncrease = change > 0
+            const isDecrease = change < 0
+            const isStable = change === 0
 
             return (
-              <div key={card.type} className="p-md bg-white border border-divider rounded-md">
-                <div className="flex flex-wrap items-center justify-between gap-sm">
+              <div key={card.type} className="p-md bg-white border border-purple-100 rounded-lg shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-sm mb-sm">
                   <div>
-                    <h3 className="text-title-md font-medium">{card.label}</h3>
+                    <h3 className="text-title-lg font-semibold text-text-primary">{card.label}</h3>
                     <p className="text-meta text-text-secondary">
-                      {t('eventsCount', { count: card.rangeCount, days: rangeDays })}
+                      <span className="font-medium text-text-primary">{card.rangeCount}</span> {card.rangeCount === 1 ? 'event' : 'events'} in last {rangeDays} days
                     </p>
                   </div>
-                  <span className="text-caption text-text-secondary">{changeLabel}</span>
+                  {!isStable && (
+                    <span className={`px-sm py-xs rounded-full text-caption font-medium ${
+                      isIncrease
+                        ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                        : 'bg-green-50 text-green-700 border border-green-200'
+                    }`}>
+                      {isIncrease ? '↑' : '↓'} {Math.abs(changePercent)}% vs previous period
+                    </span>
+                  )}
+                  {isStable && (
+                    <span className="px-sm py-xs rounded-full text-caption font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      → Stable
+                    </span>
+                  )}
                 </div>
 
-                <div className="mt-sm">
-                  <div className="flex items-end gap-xs h-20">
-                    {card.counts.map((count, index) => (
-                      <div key={`${card.type}-${rangeDayKeys[index]}`} className="flex flex-col items-center">
+                {/* Chart container with overflow scroll for 90 days */}
+                <div className="mt-md">
+                  <div className="overflow-x-auto pb-xs">
+                    <div className="flex items-end gap-xs h-20 min-w-full" style={{ width: `${rangeDays * 3}px` }}>
+                      {card.counts.map((count, index) => (
                         <div
-                          className="w-2 rounded-full bg-gradient-to-t from-purple-500 to-pink-500"
-                          style={{ height: `${Math.max(6, (count / card.maxCount) * 64)}px` }}
-                        />
-                      </div>
-                    ))}
+                          key={`${card.type}-${rangeDayKeys[index]}`}
+                          className="flex flex-col items-center flex-shrink-0"
+                          style={{ width: '2px' }}
+                        >
+                          <div
+                            className="w-full rounded-full bg-gradient-to-t from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-colors cursor-pointer"
+                            style={{ height: `${Math.max(4, (count / card.maxCount) * 64)}px` }}
+                            title={`${formatDayLabel(rangeDaysList[index])}: ${count} ${count === 1 ? 'event' : 'events'}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   <div className="mt-xs flex justify-between text-caption text-text-secondary">
                     <span>{formatDayLabel(rangeDaysList[0])}</span>
+                    <span className="text-center">{rangeDays} days</span>
                     <span>{formatDayLabel(rangeDaysList[rangeDaysList.length - 1])}</span>
                   </div>
                 </div>
