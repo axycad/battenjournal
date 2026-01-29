@@ -48,7 +48,7 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
         messages={thread.messages}
         currentUserId={session.user.id}
         subject={thread.subject}
-        anchorType={thread.anchorType}
+        anchorType={thread.anchorType as 'CASE' | 'EVENT'}
         participants={thread.participants}
       />
     </div>
