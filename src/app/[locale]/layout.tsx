@@ -3,6 +3,7 @@ import '../globals.css'
 import { Providers } from '../providers'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
+import { MobileWrapper } from '@/components/layouts/mobile-wrapper'
 
 export const metadata: Metadata = {
   title: 'Batten Journal',
@@ -45,7 +46,9 @@ export default async function LocaleLayout({
       </head>
       <body className="min-h-screen bg-bg-primary antialiased">
         <NextIntlClientProvider messages={messages} locale={locale}>
-          <Providers>{children}</Providers>
+          <Providers>
+            <MobileWrapper>{children}</MobileWrapper>
+          </Providers>
         </NextIntlClientProvider>
       </body>
     </html>

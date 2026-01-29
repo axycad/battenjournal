@@ -50,6 +50,11 @@ const config: Config = {
         'md': '24px',
         'lg': '32px',
         'xl': '40px',
+        // Safe area insets for mobile devices (notches, home indicators)
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
       },
       
       // Border radius

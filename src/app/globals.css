@@ -92,3 +92,63 @@
     @apply text-semantic-success text-meta;
   }
 }
+
+@layer utilities {
+  /* Mobile-specific optimizations */
+
+  /* Disable tap highlight on mobile browsers */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* Smooth scrolling for mobile */
+  html {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text selection on interactive elements */
+  button, a, .btn-primary, .btn-secondary, .btn-text {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Enable text selection on content areas */
+  p, span:not(button span), div:not(button div) {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Minimum touch target size for accessibility (44x44px iOS, 48x48px Android) */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Safe area support for content */
+  .safe-area-padding {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Disable zoom on double-tap for form inputs (prevents iOS zoom) */
+  input, textarea, select {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Optimize for mobile viewport */
+  @media (max-width: 768px) {
+    /* Slightly larger touch targets on small screens */
+    .btn-primary, .btn-secondary {
+      min-height: 48px;
+    }
+
+    /* Full-width buttons on mobile */
+    .btn-mobile-full {
+      @apply w-full;
+    }
+  }
+}
