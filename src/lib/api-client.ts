@@ -1,4 +1,6 @@
 import { getSession } from 'next-auth/react'
+import { Capacitor } from '@capacitor/core'
+import { NativeAuth } from './auth-native'
 
 interface RequestOptions extends RequestInit {
   requireAuth?: boolean
@@ -34,11 +36,20 @@ export class ApiClient {
       ...fetchOptions.headers,
     }
 
-    // In native apps or web, try to get auth token from session
+    // Get auth token based on platform
     if (requireAuth && typeof window !== 'undefined') {
-      const session = await getSession()
-      if (session?.accessToken) {
-        headers['Authorization'] = `Bearer ${session.accessToken}`
+      if (Capacitor.isNativePlatform()) {
+        // Native app: use token-based auth
+        const accessToken = await NativeAuth.getAccessToken()
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`
+        }
+      } else {
+        // Web app: use NextAuth session
+        const session = await getSession()
+        if (session?.accessToken) {
+          headers['Authorization'] = `Bearer ${session.accessToken}`
+        }
       }
     }
 
