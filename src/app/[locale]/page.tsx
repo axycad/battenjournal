@@ -23,20 +23,12 @@ export default async function HomePage() {
               Batten Journal
             </h1>
           </div>
-          <div className="flex gap-sm">
-            <Link
-              href="/login"
-              className="px-md py-sm text-body text-text-primary hover:text-accent-primary transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/register"
-              className="px-md py-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:shadow-lg transition-all"
-            >
-              Get started
-            </Link>
-          </div>
+          <Link
+            href="/login"
+            className="text-body text-purple-600 hover:text-purple-700 hover:underline font-medium"
+          >
+            Log in
+          </Link>
         </div>
       </header>
 
@@ -52,19 +44,19 @@ export default async function HomePage() {
           <p className="text-title-lg text-text-secondary mb-lg max-w-2xl mx-auto">
             Track symptoms, share with your care team, and find patterns—all in one compassionate space designed for the Batten community.
           </p>
-          <div className="flex gap-sm justify-center">
+          <div className="flex flex-col items-center gap-sm">
             <Link
               href="/register"
-              className="px-lg py-md bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:shadow-lg transition-all text-body font-medium"
+              className="px-xl py-md bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-xl transition-all text-title-md font-semibold"
             >
-              Start your journal
+              Get started — it's free
             </Link>
-            <Link
-              href="/login"
-              className="px-lg py-md border-2 border-purple-200 text-purple-700 rounded-md hover:border-purple-400 hover:bg-purple-50 transition-all text-body font-medium"
-            >
-              Log in
-            </Link>
+            <p className="text-meta text-text-secondary">
+              Already have an account?{' '}
+              <Link href="/login" className="text-purple-600 hover:text-purple-700 hover:underline font-medium">
+                Log in
+              </Link>
+            </p>
           </div>
         </div>
 
