@@ -46,11 +46,11 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
     )
   }
 
-  async function handleSaveScopes(userId: string) {
+  async function handleSaveScopes(membershipId: string) {
     setSaving(true)
     setError('')
 
-    const result = await updateClinicianScopesAPI(caseId, userId, selectedScopes)
+    const result = await updateClinicianScopesAPI(membershipId, selectedScopes)
 
     if (!result.success) {
       setError(result.error || 'Failed to update')
@@ -184,7 +184,7 @@ export function ClinicianList({ caseId, clinicians, scopes }: ClinicianListProps
               {error && <p className="text-caption text-semantic-critical mb-sm">{error}</p>}
 
               <Button
-                onClick={() => handleSaveScopes(clinician.userId)}
+                onClick={() => handleSaveScopes(clinician.id)}
                 loading={saving}
                 className="h-auto py-2"
               >
