@@ -363,8 +363,42 @@ export function NewThreadForm({
   const [message, setMessage] = useState('')
   const [participantIds, setParticipantIds] = useState<string[]>([])
   const [documentId, setDocumentId] = useState<string | null>(null)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingFile(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('caseId', caseId)
+      formData.append('title', file.name)
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const data = await response.json()
+      setDocumentId(data.documentId)
+      setUploadedFileName(file.name)
+    } catch (err) {
+      setError('Failed to upload file')
+    } finally {
+      setUploadingFile(false)
+    }
+  }
 
   async function handleSubmit() {
     if (!message.trim()) {
@@ -429,12 +463,51 @@ export function NewThreadForm({
         rows={3}
       />
 
-      <div className="flex items-center justify-between">
-        <DocumentPicker
-          caseId={caseId}
-          selectedId={documentId}
-          onSelect={setDocumentId}
-        />
+      {/* File upload section */}
+      <div className="space-y-xs">
+        <div className="flex items-center gap-sm">
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              onChange={handleFileUpload}
+              disabled={uploadingFile || saving}
+              className="hidden"
+              accept="image/*,.pdf,.doc,.docx"
+              id="file-upload-new-thread"
+            />
+            <span className="text-meta text-purple-600 hover:text-purple-700 hover:underline">
+              {uploadingFile ? t('uploading', { defaultMessage: 'Uploading...' }) : '📎 Upload new file'}
+            </span>
+          </label>
+          {!uploadedFileName && (
+            <>
+              <span className="text-meta text-text-secondary">or</span>
+              <DocumentPicker
+                caseId={caseId}
+                selectedId={documentId}
+                onSelect={(id) => {
+                  setDocumentId(id)
+                  setUploadedFileName(null)
+                }}
+              />
+            </>
+          )}
+        </div>
+        {uploadedFileName && (
+          <div className="flex items-center gap-sm p-sm bg-purple-50 border border-purple-200 rounded-md">
+            <span className="text-meta text-purple-900">📎 {uploadedFileName}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setDocumentId(null)
+                setUploadedFileName(null)
+              }}
+              className="text-caption text-red-600 hover:underline ml-auto"
+            >
+              Remove
+            </button>
+          </div>
+        )}
       </div>
 
       {error && <p className="text-caption text-semantic-critical">{error}</p>}
@@ -748,8 +821,42 @@ export function ThreadView({
   const [isQuestion, setIsQuestion] = useState(false)
   const [questionOptions, setQuestionOptions] = useState('')
   const [documentId, setDocumentId] = useState<string | null>(null)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingFile(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('caseId', caseId)
+      formData.append('title', file.name)
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const data = await response.json()
+      setDocumentId(data.documentId)
+      setUploadedFileName(file.name)
+    } catch (err) {
+      setError('Failed to upload file')
+    } finally {
+      setUploadingFile(false)
+    }
+  }
 
   async function handleSend() {
     if (!reply.trim()) {
@@ -788,6 +895,7 @@ export function ThreadView({
       setIsQuestion(false)
       setQuestionOptions('')
       setDocumentId(null)
+      setUploadedFileName(null)
       router.refresh()
     }
 
@@ -869,11 +977,51 @@ export function ThreadView({
         )}
 
         {!isQuestion && (
-          <DocumentPicker
-            caseId={caseId}
-            selectedId={documentId}
-            onSelect={setDocumentId}
-          />
+          <div className="space-y-xs">
+            <div className="flex items-center gap-sm">
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  onChange={handleFileUpload}
+                  disabled={uploadingFile || saving}
+                  className="hidden"
+                  accept="image/*,.pdf,.doc,.docx"
+                  id="file-upload-reply"
+                />
+                <span className="text-meta text-purple-600 hover:text-purple-700 hover:underline">
+                  {uploadingFile ? t('uploading', { defaultMessage: 'Uploading...' }) : '📎 Upload new file'}
+                </span>
+              </label>
+              {!uploadedFileName && (
+                <>
+                  <span className="text-meta text-text-secondary">or</span>
+                  <DocumentPicker
+                    caseId={caseId}
+                    selectedId={documentId}
+                    onSelect={(id) => {
+                      setDocumentId(id)
+                      setUploadedFileName(null)
+                    }}
+                  />
+                </>
+              )}
+            </div>
+            {uploadedFileName && (
+              <div className="flex items-center gap-sm p-sm bg-purple-50 border border-purple-200 rounded-md">
+                <span className="text-meta text-purple-900">📎 {uploadedFileName}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocumentId(null)
+                    setUploadedFileName(null)
+                  }}
+                  className="text-caption text-red-600 hover:underline ml-auto"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {error && <p className="text-caption text-semantic-critical">{error}</p>}
