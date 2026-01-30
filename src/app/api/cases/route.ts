@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createCaseSchema } from '@/lib/validations'
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic'
+
 // GET /api/cases - List all cases for current user
 export async function GET() {
   const session = await auth()
