@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
@@ -53,9 +56,9 @@ export async function GET() {
         const reads = await prisma.threadRead.findMany({
           where: {
             threadId: { in: threadIds },
-            membershipId: membership.id,
-          } as any,
-        } as any)
+            userId: userId,
+          },
+        })
 
         const readMap = new Map(reads.map((r) => [r.threadId, r]))
 
@@ -72,10 +75,10 @@ export async function GET() {
         where: {
           caseId,
           deletedAt: null,
-          createdByUserId: userId,
-        } as any,
+          authorUserId: userId,
+        },
         select: { id: true },
-      } as any)
+      })
 
       const eventIds = events.map((e) => e.id)
 
@@ -87,11 +90,11 @@ export async function GET() {
               anchorType: 'EVENT',
               anchorId: { in: eventIds },
               deletedAt: null,
-            } as any,
+            },
             senderId: { not: userId },
             deletedAt: null,
-          } as any,
-        } as any)
+          },
+        })
       }
 
       // Count overdue tasks for this case
