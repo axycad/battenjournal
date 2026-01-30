@@ -25,11 +25,13 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
     notFound()
   }
 
-  const thread = await getThreadWithMessages(threadId)
+  const data = await getThreadWithMessages(threadId)
 
-  if (!thread) {
+  if (!data) {
     notFound()
   }
+
+  const { thread, messages } = data
 
   return (
     <div className="max-w-3xl mx-auto px-md py-lg">
@@ -45,15 +47,15 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
       <ThreadView
         threadId={threadId}
         caseId={caseId}
-        messages={thread.messages}
+        messages={messages}
         currentUserId={session.user.id}
         subject={thread.subject}
         anchorType={thread.anchorType as 'CASE' | 'EVENT'}
         participants={thread.participants.map(p => ({
-          id: p.user.id,
-          name: p.user.name,
-          email: p.user.email,
-          memberType: p.user.memberType,
+          id: p.id,
+          name: p.name,
+          email: p.email,
+          memberType: p.memberType,
         }))}
       />
     </div>
