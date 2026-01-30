@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
-import { getInviteByToken } from '@/lib/api/invites'
-import { getClinicianInviteByToken } from '@/lib/api/invites'
+import { getInviteByToken } from '@/actions/invite'
+import { getClinicianInviteByToken } from '@/actions/sharing'
 import { AcceptInviteButton } from './accept-button'
 import { AcceptClinicianInvite } from './accept-clinician'
 

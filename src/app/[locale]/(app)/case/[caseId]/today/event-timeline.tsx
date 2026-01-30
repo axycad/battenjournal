@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { EventCard } from './event-card'
-import type { Event } from '@/lib/api/events'
+import type { EventWithScopes } from '@/actions/event'
 import type { Scope } from '@prisma/client'
 
 interface EventTimelineProps {

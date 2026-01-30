@@ -9,7 +9,8 @@
       "Bash(wc:*)",
       "Bash(npm run build:capacitor:*)",
       "Bash(npx cap:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ]
   }
 }

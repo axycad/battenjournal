@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {Link} from '@/navigation'
 import { Button, Input } from '@/components/ui'
-import { requestPasswordResetAPI } from '@/lib/api'
+import { requestPasswordReset } from '@/actions/auth'
 
 export default function ForgotPasswordPage() {
   const t = useTranslations('authForgot')
@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      const result = await requestPasswordResetAPI({ email })
+      const result = await requestPasswordReset({ email })
       if (!result.success) {
         setError(result.error || t('errorSend'))
       } else {

@@ -1,5 +1,5 @@
 import {Link} from '@/navigation'
-import { unsubscribeByToken } from '@/lib/api/notifications'
+import { unsubscribeByToken } from '@/actions/email-notifications'
 
 interface UnsubscribePageProps {
   params: Promise<{ token: string }>
@@ -9,7 +9,7 @@ export default async function UnsubscribePage({ params }: UnsubscribePageProps) 
   const { token } = await params
 
   // During build, API calls will fail - return a loading shell
-  let result = { success: false, error: 'Loading...' }
+  let result: { success: boolean; error?: string } = { success: false, error: 'Loading...' }
 
   try {
     result = await unsubscribeByToken(token)

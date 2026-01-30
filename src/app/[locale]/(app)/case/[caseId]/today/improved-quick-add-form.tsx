@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Button, Input, Textarea, SeveritySlider } from '@/components/ui'
-import { createEvent, type EventWithScopes } from '@/lib/api/events'
+import { createEvent, type EventWithScopes } from '@/actions/event'
 import { EVENT_TYPES, type EventType, type SeverityLevel } from '@/lib/event-types'
 import { useOffline } from '@/lib/offline/context'
 import { createEventOffline } from '@/lib/offline/sync'
@@ -139,7 +139,7 @@ export function ImprovedQuickAddForm({ caseId, scopes, events = [] }: ImprovedQu
         notesWithContext = `Duration: ${duration} min. ${notesWithContext}`
       }
 
-      const result = await createEventAPI(caseId, {
+      const result = await createEvent(caseId, {
         eventType: selectedType,
         freeText: notesWithContext.trim() || undefined,
         occurredAt: backdateTime || undefined,

@@ -4,21 +4,20 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {Link} from '@/navigation'
 import { Button, Textarea, Input, SeveritySlider } from '@/components/ui'
-import { updateEventAPI, deleteEventAPI } from '@/lib/api/events'
-import { type EventWithScopes } from '@/actions/event'
+import { updateEvent, deleteEvent, type EventWithScopes } from '@/actions/event'
 import {
   EVENT_TYPES,
   SEVERITY_LABELS,
   SEVERITY_COLORS,
   type SeverityLevel,
 } from '@/lib/event-types'
-import { deleteMediaItemAPI } from '@/lib/api/documents'
+import { deleteMediaItem } from '@/actions/document'
 import {
-  getNotesForEventAPI,
+  getNotesForEvent,
   type ClinicalNoteWithAuthor,
-} from '@/lib/api/clinical'
-import { getFlagsForEventAPI, type FlagWithDetails } from '@/lib/api/clinical'
-import { getThreadForEventAPI } from '@/lib/api/messaging'
+} from '@/actions/clinical-notes'
+import { getFlagsForEvent, type FlagWithDetails } from '@/actions/flags'
+import { getThreadForEvent } from '@/actions/messaging'
 import {
   ClinicalNoteForm,
   ClinicalNotesList,
@@ -119,9 +118,9 @@ export function EventCard({
   useEffect(() => {
     async function loadClinicalData() {
       const [notes, eventFlags, thread] = await Promise.all([
-        getNotesForEventAPI(event.id),
-        isClinician ? getFlagsForEventAPI(event.id) : Promise.resolve([]),
-        getThreadForEventAPI(event.id),
+        getNotesForEvent(caseId, event.id),
+        isClinician ? getFlagsForEvent(caseId, event.id) : Promise.resolve([]),
+        getThreadForEvent(caseId, event.id),
       ])
       setClinicalNotes(notes)
       setFlags(eventFlags)
@@ -132,8 +131,8 @@ export function EventCard({
 
   async function handleRefreshClinicalData() {
     const [notes, eventFlags] = await Promise.all([
-      getNotesForEventAPI(event.id),
-      isClinician ? getFlagsForEventAPI(event.id) : Promise.resolve([]),
+      getNotesForEvent(caseId, event.id),
+      isClinician ? getFlagsForEvent(caseId, event.id) : Promise.resolve([]),
     ])
     setClinicalNotes(notes)
     setFlags(eventFlags)
@@ -149,7 +148,7 @@ export function EventCard({
         ? `${checkInToken} ${trimmedText}`.trim()
         : trimmedText
 
-    const result = await updateEventAPI(event.id, {
+    const result = await updateEvent(event.id, {
       freeText: normalizedText || undefined,
       occurredAt: backdateTime,
       scopeCodes: selectedScopes,
@@ -168,7 +167,7 @@ export function EventCard({
     setSaving(true)
     setError('')
 
-    const result = await deleteEventAPI(event.id)
+    const result = await deleteEvent(event.id)
 
     if (!result.success) {
       setError(result.error || 'Failed to delete')
@@ -226,7 +225,7 @@ export function EventCard({
     setSaving(true)
     setError('')
 
-    const result = await deleteMediaItemAPI(mediaId)
+    const result = await deleteMediaItem(mediaId)
 
     if (!result.success) {
       setError(result.error || 'Failed to delete')

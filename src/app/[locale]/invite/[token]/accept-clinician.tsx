@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui'
-import { acceptClinicianInviteAPI } from '@/lib/api/invites'
+import { acceptClinicianInvite } from '@/actions/sharing'
 import { SPECIALTIES, type Specialty } from '@/lib/specialties'
 
 interface AcceptClinicianInviteProps {
@@ -25,7 +25,7 @@ export function AcceptClinicianInvite({ token }: AcceptClinicianInviteProps) {
     setLoading(true)
     setError('')
 
-    const result = await acceptClinicianInviteAPI(token, specialty)
+    const result = await acceptClinicianInvite(token, specialty)
 
     if (!result.success) {
       setError(result.error || 'Failed to accept invite')

@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
 import { getTranslations } from 'next-intl/server'
-import { getEmailPreferencesAPI, getUserReminderPreferencesAPI } from '@/lib/api/notifications'
+import { getUserReminderPreferences } from '@/actions/notification'
+import { getEmailPreferences } from '@/actions/email-notifications'
 import { EmailPreferencesForm } from './email-preferences-form'
 import { ReminderPreferences } from '@/components/notifications/reminder-preferences'
 
@@ -15,8 +16,8 @@ export default async function NotificationSettingsPage() {
   }
 
   const [emailPreferences, reminderPreferences] = await Promise.all([
-    getEmailPreferencesAPI(),
-    getUserReminderPreferencesAPI(),
+    getEmailPreferences(),
+    getUserReminderPreferences(),
   ])
 
   return (
