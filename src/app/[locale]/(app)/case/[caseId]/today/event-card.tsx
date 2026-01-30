@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {Link} from '@/navigation'
 import { Button, Textarea, Input, SeveritySlider } from '@/components/ui'
-import { updateEvent, deleteEvent, type EventWithScopes } from '@/lib/api/events'
+import { updateEventAPI, deleteEventAPI } from '@/lib/api/events'
+import { type EventWithScopes } from '@/actions/event'
 import {
   EVENT_TYPES,
   SEVERITY_LABELS,
