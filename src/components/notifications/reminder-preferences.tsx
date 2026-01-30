@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Input } from '@/components/ui'
-import { updateReminderPreferences } from '@/lib/api/notifications'
+import { updateReminderPreferences } from '@/actions/notification'
 
 interface ReminderPreferencesProps {
   initialPreferences: {

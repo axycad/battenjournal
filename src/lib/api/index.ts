@@ -1,3 +1,7 @@
+// Re-export the API client and error class
+export { apiClient, ApiError } from '../api-client'
+import { apiClient } from '../api-client'
+
 // Export all API modules
 export * from './events'
 export * from './cases'
@@ -10,9 +14,6 @@ export * from './clinical'
 export * from './messaging'
 export * from './medications'
 export * from './invites'
-
-// Re-export the API client and error class
-export { apiClient, ApiError } from '../api-client'
 
 // Auth functions
 export async function requestPasswordResetAPI(email: string): Promise<{ success: boolean; error?: string }> {
