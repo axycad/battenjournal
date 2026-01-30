@@ -119,9 +119,9 @@ export function EventCard({
   useEffect(() => {
     async function loadClinicalData() {
       const [notes, eventFlags, thread] = await Promise.all([
-        getNotesForEventAPI(caseId, event.id),
-        isClinician ? getFlagsForEventAPI(caseId, event.id) : Promise.resolve([]),
-        getThreadForEventAPI(caseId, event.id),
+        getNotesForEventAPI(event.id),
+        isClinician ? getFlagsForEventAPI(event.id) : Promise.resolve([]),
+        getThreadForEventAPI(event.id),
       ])
       setClinicalNotes(notes)
       setFlags(eventFlags)
@@ -132,8 +132,8 @@ export function EventCard({
 
   async function handleRefreshClinicalData() {
     const [notes, eventFlags] = await Promise.all([
-      getNotesForEventAPI(caseId, event.id),
-      isClinician ? getFlagsForEventAPI(caseId, event.id) : Promise.resolve([]),
+      getNotesForEventAPI(event.id),
+      isClinician ? getFlagsForEventAPI(event.id) : Promise.resolve([]),
     ])
     setClinicalNotes(notes)
     setFlags(eventFlags)
