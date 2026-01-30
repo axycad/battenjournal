@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getUnreadCount } from '@/lib/api/notifications'
+import { getUnreadCount } from '@/actions/notification'
 
 export function NotificationBadge() {
   const [unreadCount, setUnreadCount] = useState(0)

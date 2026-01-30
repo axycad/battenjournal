@@ -10,7 +10,8 @@
       "Bash(npm run build:capacitor:*)",
       "Bash(npx cap:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git push:*)"
     ]
   }
 }
