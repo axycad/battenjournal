@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getStorage, validateFile, ValidationError, isImage, isPdf } from '@/lib/storage'
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {

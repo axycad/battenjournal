@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic'
+
 // GET /api/watches - Get watches for current user on a case
 export async function GET(request: NextRequest) {
   const session = await auth()
