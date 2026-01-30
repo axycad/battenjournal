@@ -92,7 +92,7 @@ export async function GET() {
               anchorId: { in: eventIds },
               deletedAt: null,
             },
-            senderId: { not: userId },
+            authorUserId: { not: userId },
             deletedAt: null,
           },
         })
