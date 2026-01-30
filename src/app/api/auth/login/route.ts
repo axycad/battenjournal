@@ -7,6 +7,9 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || 'fallback-secret-for-development-only'
 )
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic'
+
 // POST /api/auth/login - Native app login
 export async function POST(request: NextRequest) {
   try {

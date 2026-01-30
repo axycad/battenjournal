@@ -14,6 +14,9 @@ interface TokenPayload {
   iat?: number
 }
 
+// Force this route to be dynamic
+export const dynamic = 'force-dynamic'
+
 // POST /api/auth/refresh - Refresh JWT access token
 export async function POST(request: NextRequest) {
   try {
