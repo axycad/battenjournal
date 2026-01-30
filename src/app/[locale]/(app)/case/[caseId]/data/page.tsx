@@ -7,7 +7,7 @@ import {
   getPermissionChanges,
   getDocumentAccessLog,
   getExportHistory,
-} from '@/lib/api'
+} from '@/actions/audit'
 import { formatDate } from '@/lib/utils'
 
 interface DataPageProps {
