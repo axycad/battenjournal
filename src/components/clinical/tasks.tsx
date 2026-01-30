@@ -9,7 +9,7 @@ import {
   deleteTask,
   type TaskStatus,
   type TaskWithDetails,
-} from '@/lib/api/tasks'
+} from '@/actions/tasks'
 import { formatDate } from '@/lib/utils'
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [

@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Link } from '@/navigation'
-import type { AppointmentWithCreator } from '@/lib/api/appointments'
-import { updateAppointment } from '@/lib/api/appointments'
+import { type AppointmentWithCreator, updateAppointment } from '@/actions/appointment'
 import { generateICSFile, downloadICSFile, generateGoogleCalendarURL } from '@/lib/calendar-sync'
 import { APPOINTMENT_TYPE_LABELS, APPOINTMENT_TYPE_EMOJI } from '@/lib/appointment-types'
 

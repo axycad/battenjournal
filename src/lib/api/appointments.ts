@@ -1,7 +1,18 @@
 import { apiClient } from '@/lib/api-client'
 
-export type AppointmentType = 'CLINIC' | 'SPECIALIST' | 'THERAPY' | 'PROCEDURE' | 'OTHER'
-export type AppointmentStatus = 'SCHEDULED' | 'RESCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
+export type AppointmentType =
+  | 'NEUROLOGY'
+  | 'CARDIOLOGY'
+  | 'OPHTHALMOLOGY'
+  | 'PHYSICAL_THERAPY'
+  | 'OCCUPATIONAL_THERAPY'
+  | 'SPEECH_THERAPY'
+  | 'INFUSION'
+  | 'PRIMARY_CARE'
+  | 'DENTAL'
+  | 'OTHER'
+
+export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'
 
 export interface Appointment {
   id: string

@@ -10,10 +10,10 @@ import {
 import { FlagsList } from '@/components/clinical/flags'
 import { TaskForm, TasksList } from '@/components/clinical/tasks'
 import { WatchManager, WatchedUpdatesList } from '@/components/clinical/watches'
-import type { ClinicalNoteWithAuthor } from '@/lib/api/clinical'
-import type { FlagWithDetails } from '@/lib/api/clinical'
-import type { TaskWithDetails } from '@/lib/api/tasks'
-import type { WatchWithScope, WatchedUpdate } from '@/lib/api/clinical'
+import type { ClinicalNoteWithAuthor } from '@/actions/clinical-notes'
+import type { FlagWithDetails } from '@/actions/flags'
+import type { TaskWithDetails } from '@/actions/tasks'
+import type { WatchWithScope, WatchedUpdate } from '@/actions/watches'
 
 interface ClinicalOverviewClientProps {
   caseId: string

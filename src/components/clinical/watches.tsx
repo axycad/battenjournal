@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {Link} from '@/navigation'
-import { createWatchAPI, removeWatchAPI, type WatchWithScope, type WatchedUpdate } from '@/lib/api/clinical'
+import { createWatch, removeWatch, type WatchWithScope, type WatchedUpdate } from '@/actions/watches'
 import { formatDate } from '@/lib/utils'
 
 interface WatchManagerProps {
@@ -27,7 +27,7 @@ export function WatchManager({
 
   async function handleWatch(scopeId: string) {
     setSaving(true)
-    await createWatchAPI(caseId, scopeId)
+    await createWatch(caseId, scopeId)
     setSaving(false)
     router.refresh()
     onUpdate?.()
@@ -35,7 +35,7 @@ export function WatchManager({
 
   async function handleUnwatch(watchId: string) {
     setSaving(true)
-    await removeWatchAPI(watchId)
+    await removeWatch(watchId)
     setSaving(false)
     router.refresh()
     onUpdate?.()
