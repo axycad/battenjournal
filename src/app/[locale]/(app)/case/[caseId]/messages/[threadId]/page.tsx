@@ -3,7 +3,7 @@ import {Link} from '@/navigation'
 import { auth } from '@/lib/auth'
 import { getTranslations } from 'next-intl/server'
 import { getCase } from '@/lib/api/cases'
-import { getThreadWithMessages } from '@/lib/api/messaging'
+import { getThreadWithMessages } from '@/actions/messaging'
 import { ThreadView } from '@/components/messaging'
 
 interface ThreadPageProps {
