@@ -1,18 +1,14 @@
 import { apiClient } from '@/lib/api-client'
+import type { CreateCaseInput } from '@/lib/validations'
 
 export interface CaseData {
   id: string
   childDisplayName: string
-  dateOfBirth: Date
+  dateOfBirth?: Date
   createdAt: Date
   updatedAt: Date
   currentUserMemberType?: string
   currentUserRole?: string
-}
-
-export interface CreateCaseInput {
-  childDisplayName: string
-  dateOfBirth: Date
 }
 
 export interface UpdateCaseInput {
@@ -32,10 +28,7 @@ export async function getCaseAPI(caseId: string): Promise<CaseData> {
 
 // Create a new case
 export async function createCaseAPI(input: CreateCaseInput): Promise<CaseData> {
-  return apiClient.post('/api/cases', {
-    ...input,
-    dateOfBirth: input.dateOfBirth.toISOString(),
-  })
+  return apiClient.post('/api/cases', input)
 }
 
 // Update a case

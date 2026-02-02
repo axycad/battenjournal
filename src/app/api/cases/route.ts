@@ -128,9 +128,10 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
-      caseId: newCase.id,
-      case: newCase,
+      id: newCase.id,
+      childDisplayName: newCase.childDisplayName,
+      createdAt: newCase.createdAt,
+      updatedAt: newCase.updatedAt,
     })
   } catch (error) {
     console.error('Failed to create case:', error)

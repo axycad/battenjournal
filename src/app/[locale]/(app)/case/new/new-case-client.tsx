@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {Link} from '@/navigation'
 import { Button, Input } from '@/components/ui'
-// TODO: Replace with API call for Capacitor build
-// import { createCase } from '@/lib/api/cases'
+import { createCaseAPI } from '@/lib/api/cases'
 
 export default function NewCasePage() {
   const router = useRouter()
@@ -19,25 +18,19 @@ export default function NewCasePage() {
     setLoading(true)
 
     try {
-      // TODO: Implement API call for static export
-      setError('This feature requires API implementation for native app')
-      setLoading(false)
-      return
-
-      /* const result = await createCase({
+      const result = await createCaseAPI({
         childDisplayName: childName,
         diseaseProfileVersion: 'CLN2',
       })
 
-      if (!result.success) {
-        setError(result.error || 'Failed to create')
+      if (result.id) {
+        router.push(`/case/${result.id}`)
+      } else {
+        setError('Failed to create case')
         setLoading(false)
-        return
       }
-
-      router.push(`/case/${result.data?.caseId}`) */
-    } catch {
-      setError('Something went wrong')
+    } catch (err: any) {
+      setError(err.message || 'Failed to create case')
       setLoading(false)
     }
   }
