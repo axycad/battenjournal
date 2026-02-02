@@ -1,4 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="64" fill="#B58A71"/>
-  <text x="256" y="320" font-family="system-ui" font-size="280" font-weight="600" fill="white" text-anchor="middle">BJ</text>
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded rectangle with gradient -->
+  <rect width="512" height="512" rx="96" fill="url(#bgGradient)"/>
+
+  <!-- Care icon - stylized figure representing health tracking -->
+  <g transform="translate(256, 256)">
+    <!-- Body/torso shape -->
+    <path
+      d="M-112 -40C-112 -90 -70 -128 -20 -128h40c50 0 92 38 92 88v0c0 44-26 84-66 102l-20 10v50c0 22-18 40-40 40h-32c-22 0-40-18-40-40v-50l-20-10c-40-18-66-58-66-102z"
+      fill="white"
+      opacity="0.95"
+    />
+
+    <!-- Eye dots with gradient -->
+    <circle cx="-45" cy="-40" r="24" fill="url(#accentGradient)"/>
+    <circle cx="35" cy="-40" r="24" fill="url(#accentGradient)"/>
+
+    <!-- Heart symbol in the center -->
+    <path
+      d="M-15 10c-8-8-20-8-28 0-8 8-8 20 0 28l28 28 28-28c8-8 8-20 0-28-8-8-20-8-28 0z"
+      fill="url(#accentGradient)"
+      opacity="0.4"
+    />
+  </g>
 </svg>
