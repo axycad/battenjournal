@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: 'Batten Journal',
   description: 'Parent-first care logging for Batten disease',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icons/icon.svg',
+    shortcut: '/icons/icon.svg',
+    apple: '/icons/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -55,6 +60,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir={isRtl ? 'rtl' : 'ltr'}>
       <head>
         <meta charSet="utf-8" />
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className="min-h-screen bg-bg-primary antialiased">

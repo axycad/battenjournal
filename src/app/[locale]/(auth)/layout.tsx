@@ -21,12 +21,12 @@ export default function AuthLayout({
                 </defs>
                 <rect width="32" height="32" rx="6" fill="url(#logoGradientAuth)" />
                 <path
-                  d="M9 13.5C9 11.567 10.567 10 12.5 10h7c1.933 0 3.5 1.567 3.5 3.5v0c0 1.38-.8 2.64-2.05 3.22L19 17.5v2.5c0 1.105-.895 2-2 2h-2c-1.105 0-2-.895-2-2v-2.5l-1.95-.78C9.8 16.14 9 14.88 9 13.5z"
+                  d="M10 7h8.6c3.5 0 5.9 2 5.9 5.1 0 2.2-1.2 3.8-3.1 4.5 2.5.6 4.1 2.5 4.1 5.2 0 3.6-2.8 5.8-6.8 5.8H10V7z"
                   fill="white"
                   opacity="0.95"
                 />
-                <circle cx="13.5" cy="13.5" r="1.5" fill="url(#logoGradientAuth)" />
-                <circle cx="18.5" cy="13.5" r="1.5" fill="url(#logoGradientAuth)" />
+                <rect x="14" y="10" width="6.6" height="3.8" rx="1.9" fill="url(#logoGradientAuth)" />
+                <rect x="14" y="18" width="7.4" height="4.4" rx="2.2" fill="url(#logoGradientAuth)" />
               </svg>
             </div>
             <h1 className="text-h3 font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">

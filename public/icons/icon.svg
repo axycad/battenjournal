@@ -4,33 +4,12 @@
       <stop offset="0%" stop-color="#9333ea"/>
       <stop offset="100%" stop-color="#ec4899"/>
     </linearGradient>
-    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#7c3aed"/>
-      <stop offset="100%" stop-color="#db2777"/>
-    </linearGradient>
   </defs>
-
-  <!-- Background rounded rectangle with gradient -->
   <rect width="512" height="512" rx="96" fill="url(#bgGradient)"/>
-
-  <!-- Care icon - stylized figure representing health tracking -->
-  <g transform="translate(256, 256)">
-    <!-- Body/torso shape -->
-    <path
-      d="M-112 -40C-112 -90 -70 -128 -20 -128h40c50 0 92 38 92 88v0c0 44-26 84-66 102l-20 10v50c0 22-18 40-40 40h-32c-22 0-40-18-40-40v-50l-20-10c-40-18-66-58-66-102z"
-      fill="white"
-      opacity="0.95"
-    />
-
-    <!-- Eye dots with gradient -->
-    <circle cx="-45" cy="-40" r="24" fill="url(#accentGradient)"/>
-    <circle cx="35" cy="-40" r="24" fill="url(#accentGradient)"/>
-
-    <!-- Heart symbol in the center -->
-    <path
-      d="M-15 10c-8-8-20-8-28 0-8 8-8 20 0 28l28 28 28-28c8-8 8-20 0-28-8-8-20-8-28 0z"
-      fill="url(#accentGradient)"
-      opacity="0.4"
-    />
-  </g>
+  <path
+    d="M144 104h140c58 0 96 34 96 86 0 34-18 58-50 71 42 11 66 39 66 84 0 62-45 103-112 103H144V104z"
+    fill="#ffffff"
+  />
+  <rect x="214" y="156" width="110" height="64" rx="32" fill="url(#bgGradient)"/>
+  <rect x="214" y="284" width="124" height="74" rx="37" fill="url(#bgGradient)"/>
 </svg>
