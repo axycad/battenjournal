@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Input, Select } from '@/components/ui'
 import { addCareContactAPI, updateCareContactAPI, deleteCareContactAPI } from '@/lib/api/profile'
 import type { CareContact } from '@prisma/client'
@@ -25,6 +26,7 @@ export function ContactsSection({
   contacts,
   canEdit,
 }: ContactsSectionProps) {
+  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -48,52 +50,70 @@ export function ContactsSection({
     if (!name.trim()) return
     setSaving(true)
     setError('')
+    try {
+      const result = await addCareContactAPI(caseId, {
+        role,
+        name: name.trim(),
+        phone: phone.trim() || undefined,
+        address: address.trim() || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await addCareContactAPI(caseId, {
-      role,
-      name: name.trim(),
-      phone: phone.trim() || undefined,
-      address: address.trim() || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to add')
-    } else {
-      setAdding(false)
-      resetForm()
+      if (!result.success) {
+        setError(result.error || 'Failed to add')
+      } else {
+        setAdding(false)
+        resetForm()
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to add')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleUpdate(id: string) {
     if (!name.trim()) return
     setSaving(true)
     setError('')
+    try {
+      const result = await updateCareContactAPI(id, {
+        role,
+        name: name.trim(),
+        phone: phone.trim() || undefined,
+        address: address.trim() || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await updateCareContactAPI(id, {
-      role,
-      name: name.trim(),
-      phone: phone.trim() || undefined,
-      address: address.trim() || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to update')
-    } else {
-      setEditingId(null)
-      resetForm()
+      if (!result.success) {
+        setError(result.error || 'Failed to update')
+      } else {
+        setEditingId(null)
+        resetForm()
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to update')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteCareContactAPI(id) as { success: boolean; error?: string }
-    if (!result.success) {
-      setError(result.error || 'Failed to delete')
+    setError('')
+    try {
+      const result = await deleteCareContactAPI(id) as { success: boolean; error?: string }
+      if (!result.success) {
+        setError(result.error || 'Failed to delete')
+      } else {
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete')
+    } finally {
+      setDeletingId(null)
+      setSaving(false)
     }
-    setDeletingId(null)
-    setSaving(false)
   }
 
   function startEdit(contact: CareContact) {

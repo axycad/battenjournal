@@ -30,6 +30,22 @@ export interface ProfileData {
   }>
 }
 
+export interface ProfileUpdateInput {
+  legalName?: string
+  dateOfBirth?: string
+  sex?: string
+  bloodType?: string
+  nationalId?: string
+  insuranceProvider?: string
+  insuranceNumber?: string
+  emergencyNotes?: string
+  weightKg?: number
+  heightCm?: number
+  measuredAt?: string
+  communicationNotes?: string
+  keyEquipment?: string
+}
+
 // Get profile data for a case
 export async function getProfileAPI(caseId: string): Promise<ProfileData> {
   const params = new URLSearchParams({ caseId })
@@ -39,9 +55,9 @@ export async function getProfileAPI(caseId: string): Promise<ProfileData> {
 // Update profile data (full sync)
 export async function updateProfileAPI(
   caseId: string,
-  profile: ProfileData
-): Promise<ProfileData> {
-  return apiClient.post('/api/sync/profile', {
+  profile: ProfileUpdateInput
+): Promise<{ success: boolean }> {
+  return apiClient.put('/api/sync/profile', {
     caseId,
     ...profile,
   })
@@ -179,7 +195,11 @@ export async function deleteCareContactAPI(contactId: string) {
 
 // Measurements
 export async function addMeasurementAPI(caseId: string, data: { weightKg?: number; heightCm?: number; measuredAt: Date }) {
-  return apiClient.post('/api/profile/measurements', { caseId, ...data, measuredAt: data.measuredAt.toISOString() })
+  return apiClient.put('/api/sync/profile', {
+    caseId,
+    ...data,
+    measuredAt: data.measuredAt.toISOString(),
+  })
 }
 
 // Baseline status

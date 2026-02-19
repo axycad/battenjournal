@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Input, Select } from '@/components/ui'
 import { addAllergyAPI, updateAllergyAPI, deleteAllergyAPI } from '@/lib/api/profile'
 import type { Allergy, AllergySeverity } from '@prisma/client'
@@ -36,6 +37,7 @@ export function AllergiesSection({
   allergies,
   canEdit,
 }: AllergiesSectionProps) {
+  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -57,50 +59,68 @@ export function AllergiesSection({
     if (!substance.trim()) return
     setSaving(true)
     setError('')
+    try {
+      const result = await addAllergyAPI(caseId, {
+        substance: substance.trim(),
+        reaction: reaction.trim() || undefined,
+        severity: severity || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await addAllergyAPI(caseId, {
-      substance: substance.trim(),
-      reaction: reaction.trim() || undefined,
-      severity: severity || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to add')
-    } else {
-      setAdding(false)
-      resetForm()
+      if (!result.success) {
+        setError(result.error || 'Failed to add')
+      } else {
+        setAdding(false)
+        resetForm()
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to add')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleUpdate(id: string) {
     if (!substance.trim()) return
     setSaving(true)
     setError('')
+    try {
+      const result = await updateAllergyAPI(id, {
+        substance: substance.trim(),
+        reaction: reaction.trim() || undefined,
+        severity: severity || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await updateAllergyAPI(id, {
-      substance: substance.trim(),
-      reaction: reaction.trim() || undefined,
-      severity: severity || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to update')
-    } else {
-      setEditingId(null)
-      resetForm()
+      if (!result.success) {
+        setError(result.error || 'Failed to update')
+      } else {
+        setEditingId(null)
+        resetForm()
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to update')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteAllergyAPI(id) as { success: boolean; error?: string }
-    if (!result.success) {
-      setError(result.error || 'Failed to delete')
+    setError('')
+    try {
+      const result = await deleteAllergyAPI(id) as { success: boolean; error?: string }
+      if (!result.success) {
+        setError(result.error || 'Failed to delete')
+      } else {
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete')
+    } finally {
+      setDeletingId(null)
+      setSaving(false)
     }
-    setDeletingId(null)
-    setSaving(false)
   }
 
   function startEdit(allergy: Allergy) {

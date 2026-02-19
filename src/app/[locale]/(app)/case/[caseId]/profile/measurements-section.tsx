@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Input } from '@/components/ui'
 import { addMeasurementAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
@@ -17,6 +18,7 @@ export function MeasurementsSection({
   profile,
   canEdit,
 }: MeasurementsSectionProps) {
+  const router = useRouter()
   const [addingWeight, setAddingWeight] = useState(false)
   const [addingHeight, setAddingHeight] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -29,38 +31,38 @@ export function MeasurementsSection({
     if (!weight) return
     setSaving(true)
     setError('')
-
-    const result = await addMeasurementAPI(caseId, {
-      weightKg: parseFloat(weight),
-      measuredAt: new Date(),
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to save')
-    } else {
+    try {
+      await addMeasurementAPI(caseId, {
+        weightKg: parseFloat(weight),
+        measuredAt: new Date(),
+      })
       setAddingWeight(false)
       setWeight('')
+      router.refresh()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleSaveHeight() {
     if (!height) return
     setSaving(true)
     setError('')
-
-    const result = await addMeasurementAPI(caseId, {
-      heightCm: parseFloat(height),
-      measuredAt: new Date(),
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to save')
-    } else {
+    try {
+      await addMeasurementAPI(caseId, {
+        heightCm: parseFloat(height),
+        measuredAt: new Date(),
+      })
       setAddingHeight(false)
       setHeight('')
+      router.refresh()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   return (

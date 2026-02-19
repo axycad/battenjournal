@@ -100,7 +100,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { caseId, localUpdatedAt, ...updates } = body
+  const { caseId, localUpdatedAt, measuredAt, ...updates } = body
 
   if (!caseId) {
     return NextResponse.json({ error: 'Case ID required' }, { status: 400 })
@@ -167,8 +167,15 @@ export async function PUT(request: NextRequest) {
     }
   }
 
-  // Limited fields allowed for offline update (emergency-critical)
+  // Fields allowed for profile update
   const allowedFields = [
+    'legalName',
+    'dateOfBirth',
+    'sex',
+    'bloodType',
+    'nationalId',
+    'insuranceProvider',
+    'insuranceNumber',
     'weightKg',
     'heightCm',
     'emergencyNotes',
@@ -179,14 +186,27 @@ export async function PUT(request: NextRequest) {
   const profileUpdates: Record<string, unknown> = {}
   const intentUpdates: Record<string, unknown> = {}
 
+  const measuredAtDate =
+    typeof measuredAt === 'string' && measuredAt ? new Date(measuredAt) : new Date()
+
   for (const field of allowedFields) {
     if (updates[field] !== undefined) {
       if (field === 'communicationNotes' || field === 'keyEquipment') {
         intentUpdates[field] = updates[field]
+      } else if (field === 'dateOfBirth') {
+        profileUpdates[field] = updates[field] ? new Date(updates[field]) : null
       } else {
         profileUpdates[field] = updates[field]
       }
     }
+  }
+
+  if (updates.weightKg !== undefined) {
+    profileUpdates.weightMeasuredAt = measuredAtDate
+  }
+
+  if (updates.heightCm !== undefined) {
+    profileUpdates.heightMeasuredAt = measuredAtDate
   }
 
   // Update in transaction

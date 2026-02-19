@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Input } from '@/components/ui'
 import { addMedicationAPI, updateMedicationAPI, deleteMedicationAPI } from '@/lib/api/profile'
 import type { Medication } from '@prisma/client'
@@ -16,6 +17,7 @@ export function MedicationsSection({
   medications,
   canEdit,
 }: MedicationsSectionProps) {
+  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -39,52 +41,70 @@ export function MedicationsSection({
     if (!name.trim()) return
     setSaving(true)
     setError('')
+    try {
+      const result = await addMedicationAPI(caseId, {
+        name: name.trim(),
+        dose: dose.trim() || undefined,
+        route: route.trim() || undefined,
+        schedule: schedule.trim() || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await addMedicationAPI(caseId, {
-      name: name.trim(),
-      dose: dose.trim() || undefined,
-      route: route.trim() || undefined,
-      schedule: schedule.trim() || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to add')
-    } else {
-      setAdding(false)
-      resetForm()
+      if (!result.success) {
+        setError(result.error || 'Failed to add')
+      } else {
+        setAdding(false)
+        resetForm()
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to add')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleUpdate(id: string) {
     if (!name.trim()) return
     setSaving(true)
     setError('')
+    try {
+      const result = await updateMedicationAPI(id, {
+        name: name.trim(),
+        dose: dose.trim() || undefined,
+        route: route.trim() || undefined,
+        schedule: schedule.trim() || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await updateMedicationAPI(id, {
-      name: name.trim(),
-      dose: dose.trim() || undefined,
-      route: route.trim() || undefined,
-      schedule: schedule.trim() || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to update')
-    } else {
-      setEditingId(null)
-      resetForm()
+      if (!result.success) {
+        setError(result.error || 'Failed to update')
+      } else {
+        setEditingId(null)
+        resetForm()
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to update')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleDelete(id: string) {
     setSaving(true)
-    const result = await deleteMedicationAPI(id) as { success: boolean; error?: string }
-    if (!result.success) {
-      setError(result.error || 'Failed to delete')
+    setError('')
+    try {
+      const result = await deleteMedicationAPI(id) as { success: boolean; error?: string }
+      if (!result.success) {
+        setError(result.error || 'Failed to delete')
+      } else {
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to delete')
+    } finally {
+      setDeletingId(null)
+      setSaving(false)
     }
-    setDeletingId(null)
-    setSaving(false)
   }
 
   function startEdit(med: Medication) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Select } from '@/components/ui'
 import { updateBaselineAPI, confirmBaselineUnchangedAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
@@ -65,6 +66,7 @@ export function BaselineSection({
   profile,
   canEdit,
 }: BaselineSectionProps) {
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -78,32 +80,43 @@ export function BaselineSection({
   async function handleSave() {
     setSaving(true)
     setError('')
+    try {
+      const result = await updateBaselineAPI(caseId, {
+        visionStatus: vision,
+        mobilityStatus: mobility,
+        communicationStatus: communication,
+        feedingStatus: feeding,
+      }) as { success: boolean; error?: string }
 
-    const result = await updateBaselineAPI(caseId, {
-      visionStatus: vision,
-      mobilityStatus: mobility,
-      communicationStatus: communication,
-      feedingStatus: feeding,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to save')
-    } else {
-      setEditing(false)
+      if (!result.success) {
+        setError(result.error || 'Failed to save')
+      } else {
+        setEditing(false)
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   async function handleConfirmUnchanged() {
     setConfirming(true)
     setError('')
+    try {
+      const result = await confirmBaselineUnchangedAPI(caseId) as { success: boolean; error?: string }
 
-    const result = await confirmBaselineUnchangedAPI(caseId) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to confirm')
+      if (!result.success) {
+        setError(result.error || 'Failed to confirm')
+      } else {
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to confirm')
+    } finally {
+      setConfirming(false)
     }
-    setConfirming(false)
   }
 
   function handleCancel() {

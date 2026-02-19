@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Input, Textarea } from '@/components/ui'
 import { updateCareIntentAPI } from '@/lib/api/profile'
 import type { CareIntent } from '@prisma/client'
@@ -16,6 +17,7 @@ export function CareIntentSection({
   careIntent,
   canEdit,
 }: CareIntentSectionProps) {
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -29,21 +31,26 @@ export function CareIntentSection({
   async function handleSave() {
     setSaving(true)
     setError('')
+    try {
+      const result = await updateCareIntentAPI(caseId, {
+        preferredHospital: preferredHospital.trim() || undefined,
+        emergencyPreferences: emergencyPreferences.trim() || undefined,
+        avoidList: avoidList.trim() || undefined,
+        communicationNotes: communicationNotes.trim() || undefined,
+        keyEquipment: keyEquipment.trim() || undefined,
+      }) as { success: boolean; error?: string }
 
-    const result = await updateCareIntentAPI(caseId, {
-      preferredHospital: preferredHospital.trim() || undefined,
-      emergencyPreferences: emergencyPreferences.trim() || undefined,
-      avoidList: avoidList.trim() || undefined,
-      communicationNotes: communicationNotes.trim() || undefined,
-      keyEquipment: keyEquipment.trim() || undefined,
-    }) as { success: boolean; error?: string }
-
-    if (!result.success) {
-      setError(result.error || 'Failed to save')
-    } else {
-      setEditing(false)
+      if (!result.success) {
+        setError(result.error || 'Failed to save')
+      } else {
+        setEditing(false)
+        router.refresh()
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to save')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   function handleCancel() {

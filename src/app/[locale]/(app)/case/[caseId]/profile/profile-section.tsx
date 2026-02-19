@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button, Input, Select } from '@/components/ui'
 import { updateProfileAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
@@ -37,6 +38,7 @@ export function ProfileSection({
   childDisplayName,
   canEdit,
 }: ProfileSectionProps) {
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -67,9 +69,10 @@ export function ProfileSection({
         nationalId: nationalId || undefined,
         insuranceProvider: insuranceProvider || undefined,
         insuranceNumber: insuranceNumber || undefined,
-      } as any)
+      })
 
       setEditing(false)
+      router.refresh()
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save')
     }
