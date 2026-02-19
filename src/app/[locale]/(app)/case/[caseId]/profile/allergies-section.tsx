@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input, Select } from '@/components/ui'
 import { addAllergyAPI, updateAllergyAPI, deleteAllergyAPI } from '@/lib/api/profile'
 import type { Allergy, AllergySeverity } from '@prisma/client'
@@ -10,6 +9,7 @@ interface AllergiesSectionProps {
   caseId: string
   allergies: Allergy[]
   canEdit: boolean
+  onSaved?: () => void
 }
 
 const SEVERITY_OPTIONS = [
@@ -36,8 +36,8 @@ export function AllergiesSection({
   caseId,
   allergies,
   canEdit,
+  onSaved,
 }: AllergiesSectionProps) {
-  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -71,7 +71,7 @@ export function AllergiesSection({
       } else {
         setAdding(false)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to add')
@@ -96,7 +96,7 @@ export function AllergiesSection({
       } else {
         setEditingId(null)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update')
@@ -113,7 +113,7 @@ export function AllergiesSection({
       if (!result.success) {
         setError(result.error || 'Failed to delete')
       } else {
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete')

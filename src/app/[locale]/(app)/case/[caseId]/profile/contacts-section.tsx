@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input, Select } from '@/components/ui'
 import { addCareContactAPI, updateCareContactAPI, deleteCareContactAPI } from '@/lib/api/profile'
 import type { CareContact } from '@prisma/client'
@@ -10,6 +9,7 @@ interface ContactsSectionProps {
   caseId: string
   contacts: CareContact[]
   canEdit: boolean
+  onSaved?: () => void
 }
 
 const ROLE_OPTIONS = [
@@ -25,8 +25,8 @@ export function ContactsSection({
   caseId,
   contacts,
   canEdit,
+  onSaved,
 }: ContactsSectionProps) {
-  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -63,7 +63,7 @@ export function ContactsSection({
       } else {
         setAdding(false)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to add')
@@ -89,7 +89,7 @@ export function ContactsSection({
       } else {
         setEditingId(null)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update')
@@ -106,7 +106,7 @@ export function ContactsSection({
       if (!result.success) {
         setError(result.error || 'Failed to delete')
       } else {
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete')

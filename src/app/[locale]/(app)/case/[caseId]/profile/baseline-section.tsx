@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Select } from '@/components/ui'
 import { updateBaselineAPI, confirmBaselineUnchangedAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
@@ -11,6 +10,7 @@ interface BaselineSectionProps {
   caseId: string
   profile: PatientProfile | null
   canEdit: boolean
+  onSaved?: () => void
 }
 
 const VISION_OPTIONS = [
@@ -65,8 +65,8 @@ export function BaselineSection({
   caseId,
   profile,
   canEdit,
+  onSaved,
 }: BaselineSectionProps) {
-  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -92,7 +92,7 @@ export function BaselineSection({
         setError(result.error || 'Failed to save')
       } else {
         setEditing(false)
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save')
@@ -110,7 +110,7 @@ export function BaselineSection({
       if (!result.success) {
         setError(result.error || 'Failed to confirm')
       } else {
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to confirm')

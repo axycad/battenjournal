@@ -33,7 +33,7 @@ npm install
 # Configure environment
 cp .env.example .env.local
 # Edit .env.local with your database URL and secrets
-# SMTP settings are required for password reset emails
+# Configure either SMTP_* or RESEND_* for password reset emails
 
 # Setup database
 npm run db:generate

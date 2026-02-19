@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input } from '@/components/ui'
 import { addMedicationAPI, updateMedicationAPI, deleteMedicationAPI } from '@/lib/api/profile'
 import type { Medication } from '@prisma/client'
@@ -10,14 +9,15 @@ interface MedicationsSectionProps {
   caseId: string
   medications: Medication[]
   canEdit: boolean
+  onSaved?: () => void
 }
 
 export function MedicationsSection({
   caseId,
   medications,
   canEdit,
+  onSaved,
 }: MedicationsSectionProps) {
-  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -54,7 +54,7 @@ export function MedicationsSection({
       } else {
         setAdding(false)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to add')
@@ -80,7 +80,7 @@ export function MedicationsSection({
       } else {
         setEditingId(null)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update')
@@ -97,7 +97,7 @@ export function MedicationsSection({
       if (!result.success) {
         setError(result.error || 'Failed to delete')
       } else {
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete')

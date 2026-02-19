@@ -14,7 +14,7 @@ import {
 } from '@/lib/validations'
 import { signIn } from '@/lib/auth'
 import { AuthError } from 'next-auth'
-import { sendEmail } from '@/lib/email'
+import { isEmailConfigured, sendEmail } from '@/lib/email'
 
 export type ActionResult = {
   success: boolean
@@ -103,6 +103,13 @@ export async function requestPasswordReset(
     return { success: false, error: parsed.error.errors[0].message }
   }
 
+  if (!isEmailConfigured()) {
+    return {
+      success: false,
+      error: 'Password reset email is not available right now. Please contact support.',
+    }
+  }
+
   const normalizedEmail = parsed.data.email.toLowerCase()
   const user = await prisma.user.findFirst({
     where: { email: normalizedEmail, deletedAt: null },
@@ -161,7 +168,7 @@ If you did not request a reset, you can safely ignore this email.`
     console.error('[auth] Failed to send password reset email', error)
     return {
       success: false,
-      error: 'Password reset email service is not configured',
+      error: 'Unable to send reset email right now. Please try again later.',
     }
   }
 

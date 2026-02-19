@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input, Textarea } from '@/components/ui'
 import { updateCareIntentAPI } from '@/lib/api/profile'
 import type { CareIntent } from '@prisma/client'
@@ -10,14 +9,15 @@ interface CareIntentSectionProps {
   caseId: string
   careIntent: CareIntent | null
   canEdit: boolean
+  onSaved?: () => void
 }
 
 export function CareIntentSection({
   caseId,
   careIntent,
   canEdit,
+  onSaved,
 }: CareIntentSectionProps) {
-  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -44,7 +44,7 @@ export function CareIntentSection({
         setError(result.error || 'Failed to save')
       } else {
         setEditing(false)
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save')

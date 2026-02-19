@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input, Textarea } from '@/components/ui'
 import { addConditionAPI, updateConditionAPI, deleteConditionAPI } from '@/lib/api/profile'
 import type { Condition } from '@prisma/client'
@@ -10,14 +9,15 @@ interface ConditionsSectionProps {
   caseId: string
   conditions: Condition[]
   canEdit: boolean
+  onSaved?: () => void
 }
 
 export function ConditionsSection({
   caseId,
   conditions,
   canEdit,
+  onSaved,
 }: ConditionsSectionProps) {
-  const router = useRouter()
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -48,7 +48,7 @@ export function ConditionsSection({
       } else {
         setAdding(false)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to add')
@@ -72,7 +72,7 @@ export function ConditionsSection({
       } else {
         setEditingId(null)
         resetForm()
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to update')
@@ -89,7 +89,7 @@ export function ConditionsSection({
       if (!result.success) {
         setError(result.error || 'Failed to delete')
       } else {
-        router.refresh()
+        onSaved?.()
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to delete')

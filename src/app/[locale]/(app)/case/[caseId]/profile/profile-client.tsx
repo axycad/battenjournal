@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Link } from '@/navigation'
 import { getCaseAPI, getFullProfileAPI, type FullProfileData } from '@/lib/api'
@@ -29,26 +29,28 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [caseDataRes, fullProfileRes] = await Promise.all([
-          getCaseAPI(caseId),
-          getFullProfileAPI(caseId),
-        ])
+  const loadData = useCallback(async (showLoader = false) => {
+    if (showLoader) setLoading(true)
+    try {
+      const [caseDataRes, fullProfileRes] = await Promise.all([
+        getCaseAPI(caseId),
+        getFullProfileAPI(caseId),
+      ])
 
-        setCaseData(caseDataRes as any)
-        setFullProfile(fullProfileRes)
-      } catch (err) {
-        console.error('Failed to load profile:', err)
-        setError('Failed to load profile. Please refresh.')
-      } finally {
-        setLoading(false)
-      }
+      setCaseData(caseDataRes as any)
+      setFullProfile(fullProfileRes)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to load profile:', err)
+      setError('Failed to load profile. Please refresh.')
+    } finally {
+      setLoading(false)
     }
-
-    loadData()
   }, [caseId])
+
+  useEffect(() => {
+    loadData(true)
+  }, [loadData])
 
   if (loading) {
     return (
@@ -99,6 +101,7 @@ export default function ProfilePage() {
           profile={fullProfile.profile as any}
           childDisplayName={caseData.childDisplayName}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Measurements */}
@@ -106,6 +109,7 @@ export default function ProfilePage() {
           caseId={caseId}
           profile={fullProfile.profile as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Baseline status */}
@@ -113,6 +117,7 @@ export default function ProfilePage() {
           caseId={caseId}
           profile={fullProfile.profile as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Allergies */}
@@ -120,6 +125,7 @@ export default function ProfilePage() {
           caseId={caseId}
           allergies={fullProfile.allergies as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Active medications */}
@@ -127,6 +133,7 @@ export default function ProfilePage() {
           caseId={caseId}
           medications={fullProfile.medications as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Conditions */}
@@ -134,6 +141,7 @@ export default function ProfilePage() {
           caseId={caseId}
           conditions={fullProfile.conditions as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Care contacts */}
@@ -141,6 +149,7 @@ export default function ProfilePage() {
           caseId={caseId}
           contacts={fullProfile.careContacts as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
 
         {/* Care intent / emergency preferences */}
@@ -148,6 +157,7 @@ export default function ProfilePage() {
           caseId={caseId}
           careIntent={fullProfile.careIntent as any}
           canEdit={canEdit}
+          onSaved={() => loadData()}
         />
       </div>
     </div>

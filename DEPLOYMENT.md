@@ -86,6 +86,14 @@ In Vercel dashboard, add:
 | `DATABASE_URL` | Your PostgreSQL connection string |
 | `AUTH_SECRET` | Generated secret |
 | `AUTH_URL` | `https://your-app.vercel.app` |
+| `SMTP_HOST` | SMTP host (if using SMTP) |
+| `SMTP_PORT` | SMTP port, e.g. `587` |
+| `SMTP_SECURE` | `true` for TLS/465 else `false` |
+| `SMTP_USER` | SMTP username (optional for open relay) |
+| `SMTP_PASS` | SMTP password (optional for open relay) |
+| `SMTP_FROM` | Sender address, e.g. `Batten Journal <no-reply@...>` |
+| `RESEND_API_KEY` | Resend API key (alternative to SMTP) |
+| `RESEND_FROM` | Verified sender for Resend |
 | `CRON_SECRET` | Generated secret (for email digests) |
 
 ### 3. Configure Build

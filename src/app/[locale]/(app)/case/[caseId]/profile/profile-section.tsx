@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input, Select } from '@/components/ui'
 import { updateProfileAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
@@ -12,6 +11,7 @@ interface ProfileSectionProps {
   profile: PatientProfile | null
   childDisplayName: string
   canEdit: boolean
+  onSaved?: () => void
 }
 
 const BLOOD_TYPES = [
@@ -37,8 +37,8 @@ export function ProfileSection({
   profile,
   childDisplayName,
   canEdit,
+  onSaved,
 }: ProfileSectionProps) {
-  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -72,7 +72,7 @@ export function ProfileSection({
       })
 
       setEditing(false)
-      router.refresh()
+      onSaved?.()
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save')
     }

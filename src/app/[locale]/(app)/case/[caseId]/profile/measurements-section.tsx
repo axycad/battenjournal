@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input } from '@/components/ui'
 import { addMeasurementAPI } from '@/lib/api/profile'
 import { formatDate } from '@/lib/utils'
@@ -11,14 +10,15 @@ interface MeasurementsSectionProps {
   caseId: string
   profile: PatientProfile | null
   canEdit: boolean
+  onSaved?: () => void
 }
 
 export function MeasurementsSection({
   caseId,
   profile,
   canEdit,
+  onSaved,
 }: MeasurementsSectionProps) {
-  const router = useRouter()
   const [addingWeight, setAddingWeight] = useState(false)
   const [addingHeight, setAddingHeight] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -38,7 +38,7 @@ export function MeasurementsSection({
       })
       setAddingWeight(false)
       setWeight('')
-      router.refresh()
+      onSaved?.()
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save')
     } finally {
@@ -57,7 +57,7 @@ export function MeasurementsSection({
       })
       setAddingHeight(false)
       setHeight('')
-      router.refresh()
+      onSaved?.()
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to save')
     } finally {
